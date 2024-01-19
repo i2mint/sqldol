@@ -1,4 +1,4 @@
-from sqldol.base_test import (
+from sqldol.tests.base_test import (
     BaseStoreTest,
     BasePersisterTest,
     BaseKeyTupleStoreTest,
