@@ -4,7 +4,7 @@ from sqldol.tests.base_test import (
     BaseKeyTupleStoreTest,
     BaseTupleStoreTest,
 )
-from py2store.util import ModuleNotFoundWarning
+from dol.util import ModuleNotFoundWarning
 
 
 from sqldol import (
