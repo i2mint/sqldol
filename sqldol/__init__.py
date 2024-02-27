@@ -1,6 +1,7 @@
 """
 sql with a simple (dict-like or list-like) interface
 """
+
 from functools import partial
 
 import sqlalchemy
@@ -10,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 import sqlalchemy as db
 
 from collections.abc import Sequence
-from dol.base import Persister
+from dol.base import KvPersister
 from dol.base import Collection, KvReader
 from dol.util import lazyprop, lazyprop_w_sentinel
 
@@ -41,9 +42,7 @@ class SqlTableRowsCollection(Collection):
     _tmpl_describe_tmpl = "DESCRIBE {table_name}"
     _tmpl_iter_tmpl = "SELECT * FROM {table_name}"
 
-    def __init__(
-            self, connection, table_name, batch_size=2000, limit=int(1e16)
-    ):
+    def __init__(self, connection, table_name, batch_size=2000, limit=int(1e16)):
         self.connection = connection
         self.table_name = table_name
         self.iter_rows = partial(
@@ -112,9 +111,7 @@ class SqlTableRowsCollection(Collection):
             assert start >= 0, "slice start can't be negative"
 
             if stop:
-                assert (
-                        stop >= start
-                ), "slice stop must be at least the slice start"
+                assert stop >= start, "slice stop must be at least the slice start"
                 return self.iter_rows(offset=start, limit=stop - start)
             elif start:
                 return self.iter_rows(offset=start)
@@ -159,15 +156,13 @@ class SqlDbCollection(Collection):
     @classmethod
     def from_config_dict(cls, config_dict):
         # handle defaults
-        config_dict = dict(
-            dict(host=DFLT_SQL_HOST, port=DFLT_SQL_PORT), **config_dict
-        )
+        config_dict = dict(dict(host=DFLT_SQL_HOST, port=DFLT_SQL_PORT), **config_dict)
 
         # validate input
         expected_keys = {"user", "pwd", "host", "port", "database"}
         assert {
-                   key for key in config_dict.keys() if key in expected_keys
-               } == expected_keys, "incomplete config"
+            key for key in config_dict.keys() if key in expected_keys
+        } == expected_keys, "incomplete config"
 
         # make the uri
         uri = "mysql+pymysql://{user}:{pwd}@{host}:{port}/{database}".format(
@@ -181,12 +176,12 @@ class SqlDbCollection(Collection):
 
     @classmethod
     def from_configs(
-            cls,
-            database,
-            user="user",
-            pwd="password",
-            port=DFLT_SQL_PORT,
-            host=DFLT_SQL_HOST,
+        cls,
+        database,
+        user="user",
+        pwd="password",
+        port=DFLT_SQL_PORT,
+        host=DFLT_SQL_HOST,
     ):
         return cls.from_config_dict(
             dict(database=database, user=user, pwd=pwd, port=port, host=host)
@@ -215,8 +210,21 @@ SqlAlchemyDatabaseCollection = SqlDbCollection
 #         table = super().__getitem__(k)
 #         return pd.DataFrame(data=list(table), columns=table.column_names)
 
+from typing import Tuple
 
-class SQLAlchemyPersister(Persister):
+
+def _split_uri_into_base_and_collection_name(uri: str) -> Tuple[str, str]:
+    """Splits a uri into a base and a collection name.
+
+    >>> _split_uri_into_base_and_collection_name("sqlite:///my_sqlite.db/my_table")
+    ('sqlite:///my_sqlite.db', 'my_table')
+
+    """
+    base, collection_name = uri.rsplit("/", 1)
+    return base, collection_name.split(".")[0]
+
+
+class SQLAlchemyPersister(KvPersister):
     TYPE_INTEGER = sqlalchemy.INTEGER
     TYPE_STRING = sqlalchemy.String
     TYPE_BOOLEAN = sqlalchemy.BOOLEAN
@@ -228,13 +236,14 @@ class SQLAlchemyPersister(Persister):
     """
 
     def __init__(
-            self,
-            uri="sqlite:///my_sqlite.db",
-            collection_name="py2store_default_table",
-            key_fields={"_id": TYPE_INTEGER},
-            data_fields={"data": TYPE_STRING},
-            autocommit=True,
-            **db_kwargs,
+        self,
+        uri="sqlite:///my_sqlite.db",
+        collection_name='dol_default_table',
+        *,
+        key_fields={"_id": TYPE_INTEGER},
+        data_fields={"data": TYPE_STRING},
+        autocommit=True,
+        **db_kwargs,
     ):
         """
         :param uri: Uniform Resource Identifier of a database you would like to use.
@@ -256,6 +265,7 @@ class SQLAlchemyPersister(Persister):
                 dialect+driver://username:password@host:port/database
 
         :param collection_name: name of the table to use, i.e. "my_table".
+            If not given, it will be assumed that it's in the uri (i.e. the last part of the uri).
         :param key_fields: indexed keys columns names.
         :param data_fields: non-indexed data columns names.
         :param autocommit: whether each data change should be instantly commited, or not.
@@ -271,6 +281,12 @@ class SQLAlchemyPersister(Persister):
         self.table = None
         self.session = None
 
+        # if collection_name is None:
+        #     # TODO: Verify this logic and possibly refactor into a function
+        #     uri, collection_name = _split_uri_into_base_and_collection_name(uri))
+
+        self._uri = uri
+        self._collection_name = collection_name
         self.setup(uri, collection_name, **db_kwargs)
 
     def setup(self, db_uri, collection_name, **db_kwargs):
@@ -278,33 +294,38 @@ class SQLAlchemyPersister(Persister):
         engine = create_engine(db_uri, **db_kwargs)
         self.connection = engine.connect()
 
-        # Create a table:
+        # Create a table (if not there yet)
         self.table = self._create_table(collection_name, engine)
 
         # Open ORM session:
         self.session = sessionmaker(bind=engine)()
 
+    def table_columns(self):
+        return self.connection.execute(f"DESCRIBE {self.table}")
+
     def teardown(self):
         self.session.close()
         self.connection.close()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.teardown()
+        return False
+
     def _create_table(self, table_name, engine):
-        """ Create our data table (if not there yet). """
+        """Create our data table (if not there yet)."""
         Base = declarative_base()
 
         table = Table(
             table_name,
             Base.metadata,
             *[
-                Column(
-                    key, self._key_fields[key], primary_key=True, index=True
-                )
+                Column(key, self._key_fields[key], primary_key=True, index=True)
                 for key in self._key_fields
             ],
-            *[
-                Column(name, self._data_fields[name])
-                for name in self._data_fields
-            ],
+            *[Column(name, self._data_fields[name]) for name in self._data_fields],
         )
         table.create(bind=engine, checkfirst=True)
 
@@ -356,9 +377,7 @@ class SQLAlchemyPersister(Persister):
     #     self.teardown()
 
 
-def iter_rows(
-        connection, table_name, batch_size=1000, offset=0, limit=int(1e12)
-):
+def iter_rows(connection, table_name, batch_size=1000, offset=0, limit=int(1e12)):
     """Iterate the over the rows of a table.
     The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.
     """
@@ -400,9 +419,7 @@ class SQLAlchemyTupleStore(SQLAlchemyStore):
         return self.store._key_fields
 
     def _id_of_key(self, k):
-        return {
-            field: field_val for field, field_val in zip(self._key_fields, k)
-        }
+        return {field: field_val for field, field_val in zip(self._key_fields, k)}
 
     def _key_of_id(self, obj):
         return tuple(getattr(obj, x) for x in self._key_fields)
@@ -412,10 +429,7 @@ class SQLAlchemyTupleStore(SQLAlchemyStore):
         return self.store._data_fields
 
     def _data_of_obj(self, data):
-        return {
-            field: field_val
-            for field, field_val in zip(self._data_fields, data)
-        }
+        return {field: field_val for field, field_val in zip(self._data_fields, data)}
 
     def _obj_of_data(self, obj):
         return tuple(getattr(obj, x) for x in self._data_fields)
@@ -425,10 +439,12 @@ class SQLAlchemyTupleStore(SQLAlchemyStore):
 # Note: The stuff below may require extra dependencies
 #
 
+
 # TODO: Move or remove, or add pandas dependency to sql (make a module for it)
 class DfSqlDbReader(SqlDbReader):
 
     def __getitem__(self, k):
         import pandas as pd
+
         table = super().__getitem__(k)
         return pd.DataFrame(data=list(table), columns=table.column_names)
