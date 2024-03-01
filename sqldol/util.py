@@ -18,8 +18,10 @@ from sqlalchemy import (
     JSON,
 )
 
+EngineSpec = Union[Engine, str]
 
-def ensure_engine(engine: Union[Engine, str]) -> Engine:
+
+def ensure_engine(engine: EngineSpec) -> Engine:
     if isinstance(engine, str):
         return create_engine(engine)
     return engine

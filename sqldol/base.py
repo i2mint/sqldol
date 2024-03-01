@@ -1,6 +1,6 @@
 """Base objects for sqldol"""
 
-from typing import Iterable, Iterable, Mapping, Sized
+from typing import Iterable, Iterable, Mapping, Sized, Union, List
 from sqlalchemy import (
     Table,
     MetaData,
@@ -10,13 +10,13 @@ from sqlalchemy import (
 )
 
 from sqlalchemy import Table, Column, MetaData
-from sqldol.util import ensure_engine, rows_iter
+from sqldol.util import ensure_engine, rows_iter, EngineSpec
 
 PostgresBaseKvReader: Mapping
 
 
 class TablesDol(Mapping):
-    def __init__(self, engine, metadata=None):
+    def __init__(self, engine: EngineSpec, metadata=None):
         self.engine = ensure_engine(engine)
         self.metadata = metadata or MetaData()
         self.metadata.reflect(bind=self.engine)
@@ -75,6 +75,9 @@ class TableRows(Sized, Iterable):
             return result.rowcount
 
 
+# TODO: Extend TableRows to TableRowsReader by adding a __getitem__ method?
+
+
 class PostgresBaseColumnsReader(Mapping):
     """Here, keys are column names and values are column values"""
 
@@ -103,7 +106,11 @@ class PostgresBaseColumnsReader(Mapping):
         #     return result.fetchall()
 
 
-class PostgresBaseKvReader(Mapping):
+# TODO: Extend key_columns to be multiple
+# TODO: Handle single and multiple key and value columns to avoid 1-tuples
+# TODO: Do we waste time opening and closing connections 
+#       (perhaps we should make the whole SqlBaseKvReader a context manager?)
+class SqlBaseKvReader(Mapping):
     """A mapping view of a table,
     where keys are values from a key column and values are values from a value column.
     There's also a filter function that can be used to filter the rows.
@@ -113,24 +120,41 @@ class PostgresBaseKvReader(Mapping):
         self,
         engine,
         table_name,
-        key_column: str = None,
-        value_column: str = None,
+        key_columns: str,
+        value_columns: Union[str, List[str]] = None,
         filt=None,
     ):
-        self.engine = engine
+        self.engine = ensure_engine(engine)
         self.table_name = table_name
         self.metadata = MetaData()
         self.table = Table(self.table_name, self.metadata, autoload_with=self.engine)
-        self.key_column = key_column
-        self.value_column = value_column
+        assert isinstance(key_columns, str), "Must be a single column name"  # for now!
+        self.key_columns = key_columns
+        self._column_names = [col.name for col in self.table.columns]
+        if value_columns is None:
+            value_columns = self._column_names
+        elif isinstance(value_columns, str):
+            value_columns = [value_columns]
+        self.value_columns = value_columns
         self.filt = filt
+        self._prepare()
+
+    def _prepare(self):
+        self._key_index = self._column_names.index(self.key_columns)
+        self._value_indices = list(map(self._column_names.index, self.value_columns))
+
+    def _extract_key(self, row):
+        return row[self._key_index]
+
+    def _extract_values(self, row):
+        return [row[i] for i in self._value_indices]
 
     def __iter__(self):
         query = select(self.table)
         with self.engine.connect() as connection:
             result = connection.execute(query)
             for row in result:
-                yield row[self.key_column], row[self.value_column]
+                yield self._extract_key(row)
 
     def __len__(self):
         query = select(self.table)
@@ -142,4 +166,4 @@ class PostgresBaseKvReader(Mapping):
         query = select(self.table).where(self.table.c[self.key_column] == key)
         with self.engine.connect() as connection:
             result = connection.execute(query)
-            return result.fetchall()
+            return list(map(self._extract_values, result.fetchall()))

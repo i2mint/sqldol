@@ -22,3 +22,5 @@ from sqldol.base import (
     PostgresBaseColumnsReader,
     PostgresBaseKvReader,
 )
+
+from sqldol.util import create_table_from_dict, rows_iter
