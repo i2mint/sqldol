@@ -20,7 +20,6 @@ from sqldol.base import (
     TableColumnsDol,
     TableRows,
     PostgresBaseColumnsReader,
-    PostgresBaseKvReader,
 )
 
 from sqldol.util import create_table_from_dict, rows_iter

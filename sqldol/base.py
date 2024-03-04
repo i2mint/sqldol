@@ -12,8 +12,6 @@ from sqlalchemy import (
 from sqlalchemy import Table, Column, MetaData
 from sqldol.util import ensure_engine, rows_iter, EngineSpec
 
-PostgresBaseKvReader: Mapping
-
 
 class TablesDol(Mapping):
     def __init__(self, engine: EngineSpec, metadata=None):
