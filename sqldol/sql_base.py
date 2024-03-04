@@ -16,7 +16,7 @@ from dol.base import Collection, KvReader
 from dol.util import lazyprop, lazyprop_w_sentinel
 
 DFLT_SQL_PORT = 1433
-DFLT_SQL_HOST = "localhost"
+DFLT_SQL_HOST = 'localhost'
 
 
 # TODO: decorator to automatically retry (once) if the connection times out
@@ -38,9 +38,9 @@ class SqlTableRowsCollection(Collection):
     * column_names is a cached property
     """
 
-    _tmpl_count_rows_tmpl = "SELECT COUNT(*) FROM {table_name}"
-    _tmpl_describe_tmpl = "DESCRIBE {table_name}"
-    _tmpl_iter_tmpl = "SELECT * FROM {table_name}"
+    _tmpl_count_rows_tmpl = 'SELECT COUNT(*) FROM {table_name}'
+    _tmpl_describe_tmpl = 'DESCRIBE {table_name}'
+    _tmpl_iter_tmpl = 'SELECT * FROM {table_name}'
 
     def __init__(self, connection, table_name, batch_size=2000, limit=int(1e16)):
         self.connection = connection
@@ -63,7 +63,7 @@ class SqlTableRowsCollection(Collection):
 
     @lazyprop
     def _row_count(self):
-        if lazyprop_w_sentinel.cache_is_active(self, "_rows"):
+        if lazyprop_w_sentinel.cache_is_active(self, '_rows'):
             return len(self._rows)
         else:
             return self.count_rows()
@@ -111,7 +111,7 @@ class SqlTableRowsCollection(Collection):
             assert start >= 0, "slice start can't be negative"
 
             if stop:
-                assert stop >= start, "slice stop must be at least the slice start"
+                assert stop >= start, 'slice stop must be at least the slice start'
                 return self.iter_rows(offset=start, limit=stop - start)
             elif start:
                 return self.iter_rows(offset=start)
@@ -121,7 +121,7 @@ class SqlTableRowsCollection(Collection):
             return self.iter_rows(offset=idx, limit=1)
 
     def __repr__(self):
-        return f"SqlTable(..., table_name={self.table_name})"
+        return f'SqlTable(..., table_name={self.table_name})'
 
 
 class SqlTableRowsSequence(SqlTableRowsCollection, Sequence):
@@ -159,13 +159,13 @@ class SqlDbCollection(Collection):
         config_dict = dict(dict(host=DFLT_SQL_HOST, port=DFLT_SQL_PORT), **config_dict)
 
         # validate input
-        expected_keys = {"user", "pwd", "host", "port", "database"}
+        expected_keys = {'user', 'pwd', 'host', 'port', 'database'}
         assert {
             key for key in config_dict.keys() if key in expected_keys
-        } == expected_keys, "incomplete config"
+        } == expected_keys, 'incomplete config'
 
         # make the uri
-        uri = "mysql+pymysql://{user}:{pwd}@{host}:{port}/{database}".format(
+        uri = 'mysql+pymysql://{user}:{pwd}@{host}:{port}/{database}'.format(
             **config_dict
         )  # connect to database
 
@@ -178,8 +178,8 @@ class SqlDbCollection(Collection):
     def from_configs(
         cls,
         database,
-        user="user",
-        pwd="password",
+        user='user',
+        pwd='password',
         port=DFLT_SQL_PORT,
         host=DFLT_SQL_HOST,
     ):
@@ -188,7 +188,7 @@ class SqlDbCollection(Collection):
         )
 
     def __iter__(self):
-        yield from (x[0] for x in self.connection.execute("show tables"))
+        yield from (x[0] for x in self.connection.execute('show tables'))
 
 
 class SqlDbReader(SqlDbCollection, KvReader):
@@ -220,8 +220,8 @@ def _split_uri_into_base_and_collection_name(uri: str) -> Tuple[str, str]:
     ('sqlite:///my_sqlite.db', 'my_table')
 
     """
-    base, collection_name = uri.rsplit("/", 1)
-    return base, collection_name.split(".")[0]
+    base, collection_name = uri.rsplit('/', 1)
+    return base, collection_name.split('.')[0]
 
 
 class SQLAlchemyPersister(KvPersister):
@@ -237,11 +237,11 @@ class SQLAlchemyPersister(KvPersister):
 
     def __init__(
         self,
-        uri="sqlite:///my_sqlite.db",
+        uri='sqlite:///my_sqlite.db',
         collection_name='dol_default_table',
         *,
-        key_fields={"_id": TYPE_INTEGER},
-        data_fields={"data": TYPE_STRING},
+        key_fields={'_id': TYPE_INTEGER},
+        data_fields={'data': TYPE_STRING},
         autocommit=True,
         **db_kwargs,
     ):
@@ -301,7 +301,7 @@ class SQLAlchemyPersister(KvPersister):
         self.session = sessionmaker(bind=engine)()
 
     def table_columns(self):
-        return self.connection.execute(f"DESCRIBE {self.table}")
+        return self.connection.execute(f'DESCRIBE {self.table}')
 
     def teardown(self):
         self.session.close()
@@ -343,7 +343,7 @@ class SQLAlchemyPersister(KvPersister):
         doc = self.query.filter_by(**k).first()
         # todo: think of intuitive way of selecting many by 1 (or some) of many keys
         if not doc:
-            raise KeyError(f"No document found for query: {k}")
+            raise KeyError(f'No document found for query: {k}')
 
         return doc
 
@@ -387,7 +387,7 @@ def iter_rows(connection, table_name, batch_size=1000, offset=0, limit=int(1e12)
         if i >= limit:
             break
         r = connection.execute(
-            f"SELECT * FROM {table_name} LIMIT {batch_size} OFFSET {offset}"
+            f'SELECT * FROM {table_name} LIMIT {batch_size} OFFSET {offset}'
         )
         if r.rowcount:
             for i, x in enumerate(r.fetchall(), i):
@@ -442,7 +442,6 @@ class SQLAlchemyTupleStore(SQLAlchemyStore):
 
 # TODO: Move or remove, or add pandas dependency to sql (make a module for it)
 class DfSqlDbReader(SqlDbReader):
-
     def __getitem__(self, k):
         import pandas as pd
 

@@ -8,8 +8,8 @@ from dol.util import ModuleNotFoundWarning
 
 from sqldol import SQLAlchemyTupleStore, SQLAlchemyStore, SQLAlchemyPersister
 
-SQLITE_DB_URI = "sqlite:///:memory:"
-SQLITE_TABLE_NAME = "test_table"
+SQLITE_DB_URI = 'sqlite:///:memory:'
+SQLITE_TABLE_NAME = 'test_table'
 
 
 # class TestSQLAlchemyPersister(BasePersisterTest):

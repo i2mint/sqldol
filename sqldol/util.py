@@ -41,7 +41,7 @@ def get_engine_insert_func(engine):
     try:
         return importlib.import_module(f'sqlalchemy.dialects.{engine_dialect}').insert
     except ImportError:
-        raise ValueError(f"Unsupported engine dialect: {engine_dialect}")
+        raise ValueError(f'Unsupported engine dialect: {engine_dialect}')
 
 
 @contextmanager
@@ -51,7 +51,7 @@ def rows_iter(table: Table, filt=None, *, engine: Engine = None):
         if not engine:
             raise ValueError(
                 f"You didn't specify an engine, and your table ({table.name})"
-                " is not bound to an engine or connection."
+                ' is not bound to an engine or connection.'
             )
 
     query = select(table)
@@ -96,7 +96,7 @@ dflt_type_mapping = tuple(
 def create_table_from_dict(
     data,
     *,
-    table_name: str = "temp_table",
+    table_name: str = 'temp_table',
     uri: str,
     delete_table_before_create_if_same_columns: bool = True,
     type_mapping=dflt_type_mapping,
@@ -111,7 +111,7 @@ def create_table_from_dict(
         # Determine the SQLAlchemy column type based on the first value of each column
         col_type = type_mapping.get(type(values[0]))
         if col_type is None:
-            raise ValueError(f"Unsupported data type for column {col_name}")
+            raise ValueError(f'Unsupported data type for column {col_name}')
         columns.append(Column(col_name, col_type))
 
     column_names = [col.name for col in columns]

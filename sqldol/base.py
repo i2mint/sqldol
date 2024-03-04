@@ -16,6 +16,7 @@ from sqlalchemy import (
 from sqlalchemy import Table, Column, MetaData
 from sqldol.util import ensure_engine, rows_iter, EngineSpec
 
+
 class TablesDol(Mapping):
     def __init__(self, engine: EngineSpec, metadata=None):
         self.engine = ensure_engine(engine)
@@ -109,7 +110,7 @@ class PostgresBaseColumnsReader(Mapping):
 
 # TODO: Extend key_columns to be multiple
 # TODO: Handle single and multiple key and value columns to avoid 1-tuples
-# TODO: Do we waste time opening and closing connections 
+# TODO: Do we waste time opening and closing connections
 #       (perhaps we should make the whole SqlBaseKvReader a context manager?)
 class SqlBaseKvReader(Mapping):
     """A mapping view of a table,
@@ -129,7 +130,7 @@ class SqlBaseKvReader(Mapping):
         self.table_name = table_name
         self.metadata = MetaData()
         self.table = Table(self.table_name, self.metadata, autoload_with=self.engine)
-        assert isinstance(key_columns, str), "Must be a single column name"  # for now!
+        assert isinstance(key_columns, str), 'Must be a single column name'  # for now!
         self.key_columns = key_columns
         self._column_names = [col.name for col in self.table.columns]
         if value_columns is None:
@@ -168,23 +169,22 @@ class SqlBaseKvReader(Mapping):
         with self.engine.connect() as connection:
             result = connection.execute(query)
             return map(self._extract_values, result.fetchall())
-        
+
     def __setitem__(self, key, value):
         value[self.key_columns] = key
 
-        if key is str :
-            key = f"\"{key}\""
-        filter = text(f"{self.key_columns} = {key}")
+        if key is str:
+            key = f'"{key}"'
+        filter = text(f'{self.key_columns} = {key}')
 
         with self.engine.connect() as connection:
             query = select(self.table).where(filter)
             result = connection.execute(query)
 
-            if result.rowcount == 1 :
+            if result.rowcount == 1:
                 query = update(self.table).values(**value).where(filter)
-            else :
+            else:
                 query = insert(self.table).values(**value)
 
             connection.execute(query)
             connection.commit()
-

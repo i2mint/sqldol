@@ -2,4 +2,4 @@
 
 from warnings import warn
 
-warn("This module has been moved to util.py and base.py")
+warn('This module has been moved to util.py and base.py')
