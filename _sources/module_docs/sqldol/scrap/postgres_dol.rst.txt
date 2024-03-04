@@ -1,0 +1,4 @@
+sqldol.scrap.postgres_dol
+=========================
+.. automodule:: sqldol.scrap.postgres_dol
+   :members:

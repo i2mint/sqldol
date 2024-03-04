@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>sqldol.sql_base &mdash; sqldol 0.0.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=47de8214"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
+        <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="sqldol.tests.base_test" href="tests/base_test.html" />
+    <link rel="prev" title="sqldol.scrap.postgres_dol" href="scrap/postgres_dol.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            sqldol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../sqldol.html">sqldol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="base.html">sqldol.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scrap.html">sqldol.scrap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scrap/postgres_dol.html">sqldol.scrap.postgres_dol</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">sqldol.sql_base</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.sql_base.DfSqlDbReader"><code class="docutils literal notranslate"><span class="pre">DfSqlDbReader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_BLOB"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_BLOB</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_BOOLEAN"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_BOOLEAN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_INTEGER"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_INTEGER</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_STRING"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_STRING</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_TEXT</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyStore"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyStore</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyTupleStore"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyTupleStore</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.sql_base.SqlAlchemyDatabaseCollection"><code class="docutils literal notranslate"><span class="pre">SqlAlchemyDatabaseCollection</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.sql_base.SqlAlchemyReader"><code class="docutils literal notranslate"><span class="pre">SqlAlchemyReader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.sql_base.SqlDbCollection"><code class="docutils literal notranslate"><span class="pre">SqlDbCollection</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.sql_base.SqlDbReader"><code class="docutils literal notranslate"><span class="pre">SqlDbReader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.sql_base.SqlTableRowsCollection"><code class="docutils literal notranslate"><span class="pre">SqlTableRowsCollection</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.sql_base.SqlTableRowsSequence"><code class="docutils literal notranslate"><span class="pre">SqlTableRowsSequence</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.sql_base.iter_rows"><code class="docutils literal notranslate"><span class="pre">iter_rows()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tests/base_test.html">sqldol.tests.base_test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_sql_w_sqlalchemy.html">sqldol.tests.test_sql_w_sqlalchemy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="util.html">sqldol.util</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">sqldol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">sqldol.sql_base</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/module_docs/sqldol/sql_base.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-sqldol.sql_base">
+<span id="sqldol-sql-base"></span><h1>sqldol.sql_base<a class="headerlink" href="#module-sqldol.sql_base" title="Link to this heading"></a></h1>
+<p>Independent legacy DOLs
+sql with a simple (dict-like or list-like) interface</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="sqldol.sql_base.DfSqlDbReader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">DfSqlDbReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/sqldol/sql_base.html#DfSqlDbReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sqldol.sql_base.DfSqlDbReader" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SQLAlchemyPersister</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri='sqlite:///my_sqlite.db'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name='dol_default_table'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_fields={'_id':</span> <span class="pre">&lt;class</span> <span class="pre">'sqlalchemy.sql.sqltypes.INTEGER'&gt;}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_fields={'data':</span> <span class="pre">&lt;class</span> <span class="pre">'sqlalchemy.sql.sqltypes.String'&gt;}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autocommit=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**db_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/sqldol/sql_base.html#SQLAlchemyPersister"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sqldol.sql_base.SQLAlchemyPersister" title="Link to this definition"></a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.TYPE_BLOB">
+<span class="sig-name descname"><span class="pre">TYPE_BLOB</span></span><a class="headerlink" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_BLOB" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">BLOB</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.TYPE_BOOLEAN">
+<span class="sig-name descname"><span class="pre">TYPE_BOOLEAN</span></span><a class="headerlink" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_BOOLEAN" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">BOOLEAN</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.TYPE_INTEGER">
+<span class="sig-name descname"><span class="pre">TYPE_INTEGER</span></span><a class="headerlink" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_INTEGER" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">INTEGER</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.TYPE_STRING">
+<span class="sig-name descname"><span class="pre">TYPE_STRING</span></span><a class="headerlink" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_STRING" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">String</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT">
+<span class="sig-name descname"><span class="pre">TYPE_TEXT</span></span><a class="headerlink" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT" title="Link to this definition"></a></dt>
+<dd><p>A basic SQL DB persister written with SQLAlchemy.</p>
+<p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TEXT</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyStore">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SQLAlchemyStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri='sqlite:///my_sqlite.db'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name='dol_default_table'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_fields={'_id':</span> <span class="pre">&lt;class</span> <span class="pre">'sqlalchemy.sql.sqltypes.INTEGER'&gt;}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_fields={'data':</span> <span class="pre">&lt;class</span> <span class="pre">'sqlalchemy.sql.sqltypes.String'&gt;}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autocommit=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**db_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/sqldol/sql_base.html#SQLAlchemyStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sqldol.sql_base.SQLAlchemyStore" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyTupleStore">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SQLAlchemyTupleStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri='sqlite:///my_sqlite.db'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name='dol_default_table'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_fields={'_id':</span> <span class="pre">&lt;class</span> <span class="pre">'sqlalchemy.sql.sqltypes.INTEGER'&gt;}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_fields={'data':</span> <span class="pre">&lt;class</span> <span class="pre">'sqlalchemy.sql.sqltypes.String'&gt;}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autocommit=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**db_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/sqldol/sql_base.html#SQLAlchemyTupleStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sqldol.sql_base.SQLAlchemyTupleStore" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sqldol.sql_base.SqlAlchemyDatabaseCollection">
+<span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SqlAlchemyDatabaseCollection</span></span><a class="headerlink" href="#sqldol.sql_base.SqlAlchemyDatabaseCollection" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#sqldol.sql_base.SqlDbCollection" title="sqldol.sql_base.SqlDbCollection"><code class="xref py py-class docutils literal notranslate"><span class="pre">SqlDbCollection</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sqldol.sql_base.SqlAlchemyReader">
+<span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SqlAlchemyReader</span></span><a class="headerlink" href="#sqldol.sql_base.SqlAlchemyReader" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#sqldol.sql_base.SqlDbReader" title="sqldol.sql_base.SqlDbReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">SqlDbReader</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="sqldol.sql_base.SqlDbCollection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SqlDbCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/sqldol/sql_base.html#SqlDbCollection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sqldol.sql_base.SqlDbCollection" title="Link to this definition"></a></dt>
+<dd><p>A collection of sql tables names.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="sqldol.sql_base.SqlDbReader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SqlDbReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/sqldol/sql_base.html#SqlDbReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sqldol.sql_base.SqlDbReader" title="Link to this definition"></a></dt>
+<dd><p>A KvReader of sql tables. Keys are table names and values are SqlTable objects</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="sqldol.sql_base.SqlTableRowsCollection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SqlTableRowsCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000000000000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/sqldol/sql_base.html#SqlTableRowsCollection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sqldol.sql_base.SqlTableRowsCollection" title="Link to this definition"></a></dt>
+<dd><p>Base class wrapping an sql table.
+It is Iterable (yields rows (as tuples)) and Sized (i.e. you can call len on it).
+It’s also a container, but brute-forced: should probably subclass if you want to perform <cite>row in table</cite> efficiently.</p>
+<p>Note: Be aware of how this object works if you’re (1) talking to a table whose contents are changing dynamically.
+* count_rows() will return the current count every time
+* len returns the value of the _row_count lazyprop
+* _row_count returns the length of the _rows cache if it exists, and if not, will return the live count_rows
+* if len (therefore _row_count) is called before the object listed the rows (therefore filling it’s cache),</p>
+<blockquote>
+<div><p>it will return the current number of rows, but if at the time of listing rows, the number of different,
+the number of rows will be updated to match number of rows cached.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>column_names is a cached property</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="sqldol.sql_base.SqlTableRowsSequence">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SqlTableRowsSequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000000000000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/sqldol/sql_base.html#SqlTableRowsSequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sqldol.sql_base.SqlTableRowsSequence" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="sqldol.sql_base.iter_rows">
+<span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">iter_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/sqldol/sql_base.html#iter_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sqldol.sql_base.iter_rows" title="Link to this definition"></a></dt>
+<dd><p>Iterate the over the rows of a table.
+The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="scrap/postgres_dol.html" class="btn btn-neutral float-left" title="sqldol.scrap.postgres_dol" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tests/base_test.html" class="btn btn-neutral float-right" title="sqldol.tests.base_test" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
