@@ -1,6 +1,6 @@
 """Base objects for sqldol"""
 
-from typing import Iterable, Iterable, Mapping, Sized, Union, List
+from typing import Iterable, Iterable, Mapping, Sized, Union, List, MutableMapping
 from sqlalchemy import (
     Table,
     MetaData,
@@ -108,6 +108,32 @@ class PostgresBaseColumnsReader(Mapping):
         #     return result.fetchall()
 
 
+def _get_primary_key_of_table(engine, table_name, metadata=None):
+    metadata = metadata or MetaData()
+    metadata.reflect(bind=engine)
+    table = metadata.tables[table_name]
+    return [key.name for key in table.primary_key.columns]
+
+
+def _get_columns_of_table(engine, table_name, metadata=None):
+    tables = TablesDol(engine, metadata)
+    return list(TableColumnsDol(tables[table_name]))
+
+
+def _validate_key_columns(engine, table_name, key_columns):
+    # TODO: Could do more. For example, use primary key by default if it exists, 
+    #   and/or check the unique keys, etc.
+    if key_columns is None:
+        column_names = _get_columns_of_table(engine, table_name)
+        msg = (
+            f"You need to specify key_columns. "
+            f"The columns of {table_name} are {column_names}."
+        )
+        raise ValueError(msg)
+
+    return key_columns
+
+
 # TODO: Extend key_columns to be multiple
 # TODO: Handle single and multiple key and value columns to avoid 1-tuples
 # TODO: Do we waste time opening and closing connections
@@ -122,12 +148,13 @@ class SqlBaseKvReader(Mapping):
         self,
         engine,
         table_name,
-        key_columns: str,
+        key_columns: str = None,
         value_columns: Union[str, List[str]] = None,
         filt=None,
     ):
         self.engine = ensure_engine(engine)
         self.table_name = table_name
+        key_columns = _validate_key_columns(self.engine, self.table_name, key_columns)
         self.metadata = MetaData()
         self.table = Table(self.table_name, self.metadata, autoload_with=self.engine)
         assert isinstance(key_columns, str), 'Must be a single column name'  # for now!
@@ -170,6 +197,8 @@ class SqlBaseKvReader(Mapping):
             result = connection.execute(query)
             return map(self._extract_values, result.fetchall())
 
+
+class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
     def __setitem__(self, key, value):
         value[self.key_columns] = key
 
@@ -188,3 +217,6 @@ class SqlBaseKvReader(Mapping):
 
             connection.execute(query)
             connection.commit()
+
+    def __delitem__(self, __name: str) -> None:
+        raise NotImplementedError(f"Haven't implemented delete yet")
