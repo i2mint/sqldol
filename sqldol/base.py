@@ -5,15 +5,16 @@ from sqlalchemy import (
     Table,
     MetaData,
     select,
+    insert,
+    exists,
+    update,
+    text,
     Engine,
     Column,
 )
 
 from sqlalchemy import Table, Column, MetaData
 from sqldol.util import ensure_engine, rows_iter, EngineSpec
-
-PostgresBaseKvReader: Mapping
-
 
 class TablesDol(Mapping):
     def __init__(self, engine: EngineSpec, metadata=None):
@@ -163,7 +164,27 @@ class SqlBaseKvReader(Mapping):
             return result.rowcount
 
     def __getitem__(self, key):
-        query = select(self.table).where(self.table.c[self.key_column] == key)
+        query = select(self.table).where(self.table.c[self.key_columns] == key)
         with self.engine.connect() as connection:
             result = connection.execute(query)
-            return list(map(self._extract_values, result.fetchall()))
+            return map(self._extract_values, result.fetchall())
+        
+    def __setitem__(self, key, value):
+        value[self.key_columns] = key
+
+        if key is str :
+            key = f"\"{key}\""
+        filter = text(f"{self.key_columns} = {key}")
+
+        with self.engine.connect() as connection:
+            query = select(self.table).where(filter)
+            result = connection.execute(query)
+
+            if result.rowcount == 1 :
+                query = update(self.table).values(**value).where(filter)
+            else :
+                query = insert(self.table).values(**value)
+
+            connection.execute(query)
+            connection.commit()
+
