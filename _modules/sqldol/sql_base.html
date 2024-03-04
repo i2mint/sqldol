@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>sqldol.sql_base &mdash; sqldol 0.0.3 documentation</title>
+  <title>sqldol.sql_base &mdash; sqldol 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -16,7 +16,7 @@
   
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../_static/documentation_options.js?v=47de8214"></script>
+        <script src="../../_static/documentation_options.js?v=01f34227"></script>
         <script src="../../_static/doctools.js?v=888ff710"></script>
         <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -101,7 +101,7 @@
 <span class="kn">from</span> <span class="nn">dol.util</span> <span class="kn">import</span> <span class="n">lazyprop</span><span class="p">,</span> <span class="n">lazyprop_w_sentinel</span>
 
 <span class="n">DFLT_SQL_PORT</span> <span class="o">=</span> <span class="mi">1433</span>
-<span class="n">DFLT_SQL_HOST</span> <span class="o">=</span> <span class="s2">&quot;localhost&quot;</span>
+<span class="n">DFLT_SQL_HOST</span> <span class="o">=</span> <span class="s1">&#39;localhost&#39;</span>
 
 
 <span class="c1"># TODO: decorator to automatically retry (once) if the connection times out</span>
@@ -125,9 +125,9 @@
 <span class="sd">    * column_names is a cached property</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_tmpl_count_rows_tmpl</span> <span class="o">=</span> <span class="s2">&quot;SELECT COUNT(*) FROM </span><span class="si">{table_name}</span><span class="s2">&quot;</span>
-    <span class="n">_tmpl_describe_tmpl</span> <span class="o">=</span> <span class="s2">&quot;DESCRIBE </span><span class="si">{table_name}</span><span class="s2">&quot;</span>
-    <span class="n">_tmpl_iter_tmpl</span> <span class="o">=</span> <span class="s2">&quot;SELECT * FROM </span><span class="si">{table_name}</span><span class="s2">&quot;</span>
+    <span class="n">_tmpl_count_rows_tmpl</span> <span class="o">=</span> <span class="s1">&#39;SELECT COUNT(*) FROM </span><span class="si">{table_name}</span><span class="s1">&#39;</span>
+    <span class="n">_tmpl_describe_tmpl</span> <span class="o">=</span> <span class="s1">&#39;DESCRIBE </span><span class="si">{table_name}</span><span class="s1">&#39;</span>
+    <span class="n">_tmpl_iter_tmpl</span> <span class="o">=</span> <span class="s1">&#39;SELECT * FROM </span><span class="si">{table_name}</span><span class="s1">&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e16</span><span class="p">)):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connection</span>
@@ -150,7 +150,7 @@
 
     <span class="nd">@lazyprop</span>
     <span class="k">def</span> <span class="nf">_row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">lazyprop_w_sentinel</span><span class="o">.</span><span class="n">cache_is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_rows&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">lazyprop_w_sentinel</span><span class="o">.</span><span class="n">cache_is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_rows&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rows</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_rows</span><span class="p">()</span>
@@ -198,7 +198,7 @@
             <span class="k">assert</span> <span class="n">start</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;slice start can&#39;t be negative&quot;</span>
 
             <span class="k">if</span> <span class="n">stop</span><span class="p">:</span>
-                <span class="k">assert</span> <span class="n">stop</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">,</span> <span class="s2">&quot;slice stop must be at least the slice start&quot;</span>
+                <span class="k">assert</span> <span class="n">stop</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">,</span> <span class="s1">&#39;slice stop must be at least the slice start&#39;</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">start</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="n">start</span><span class="p">)</span>
@@ -208,7 +208,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;SqlTable(..., table_name=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;SqlTable(..., table_name=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="si">}</span><span class="s1">)&#39;</span></div>
 
 
 
@@ -252,13 +252,13 @@
         <span class="n">config_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">DFLT_SQL_HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">DFLT_SQL_PORT</span><span class="p">),</span> <span class="o">**</span><span class="n">config_dict</span><span class="p">)</span>
 
         <span class="c1"># validate input</span>
-        <span class="n">expected_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;pwd&quot;</span><span class="p">,</span> <span class="s2">&quot;host&quot;</span><span class="p">,</span> <span class="s2">&quot;port&quot;</span><span class="p">,</span> <span class="s2">&quot;database&quot;</span><span class="p">}</span>
+        <span class="n">expected_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="s1">&#39;pwd&#39;</span><span class="p">,</span> <span class="s1">&#39;host&#39;</span><span class="p">,</span> <span class="s1">&#39;port&#39;</span><span class="p">,</span> <span class="s1">&#39;database&#39;</span><span class="p">}</span>
         <span class="k">assert</span> <span class="p">{</span>
             <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">expected_keys</span>
-        <span class="p">}</span> <span class="o">==</span> <span class="n">expected_keys</span><span class="p">,</span> <span class="s2">&quot;incomplete config&quot;</span>
+        <span class="p">}</span> <span class="o">==</span> <span class="n">expected_keys</span><span class="p">,</span> <span class="s1">&#39;incomplete config&#39;</span>
 
         <span class="c1"># make the uri</span>
-        <span class="n">uri</span> <span class="o">=</span> <span class="s2">&quot;mysql+pymysql://</span><span class="si">{user}</span><span class="s2">:</span><span class="si">{pwd}</span><span class="s2">@</span><span class="si">{host}</span><span class="s2">:</span><span class="si">{port}</span><span class="s2">/</span><span class="si">{database}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">uri</span> <span class="o">=</span> <span class="s1">&#39;mysql+pymysql://</span><span class="si">{user}</span><span class="s1">:</span><span class="si">{pwd}</span><span class="s1">@</span><span class="si">{host}</span><span class="s1">:</span><span class="si">{port}</span><span class="s1">/</span><span class="si">{database}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="o">**</span><span class="n">config_dict</span>
         <span class="p">)</span>  <span class="c1"># connect to database</span>
 
@@ -271,8 +271,8 @@
     <span class="k">def</span> <span class="nf">from_configs</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
         <span class="n">database</span><span class="p">,</span>
-        <span class="n">user</span><span class="o">=</span><span class="s2">&quot;user&quot;</span><span class="p">,</span>
-        <span class="n">pwd</span><span class="o">=</span><span class="s2">&quot;password&quot;</span><span class="p">,</span>
+        <span class="n">user</span><span class="o">=</span><span class="s1">&#39;user&#39;</span><span class="p">,</span>
+        <span class="n">pwd</span><span class="o">=</span><span class="s1">&#39;password&#39;</span><span class="p">,</span>
         <span class="n">port</span><span class="o">=</span><span class="n">DFLT_SQL_PORT</span><span class="p">,</span>
         <span class="n">host</span><span class="o">=</span><span class="n">DFLT_SQL_HOST</span><span class="p">,</span>
     <span class="p">):</span>
@@ -281,7 +281,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">yield from</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;show tables&quot;</span><span class="p">))</span></div>
+        <span class="k">yield from</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;show tables&#39;</span><span class="p">))</span></div>
 
 
 
@@ -317,8 +317,8 @@
 <span class="sd">    (&#39;sqlite:///my_sqlite.db&#39;, &#39;my_table&#39;)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">base</span><span class="p">,</span> <span class="n">collection_name</span> <span class="o">=</span> <span class="n">uri</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">base</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">base</span><span class="p">,</span> <span class="n">collection_name</span> <span class="o">=</span> <span class="n">uri</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">base</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="SQLAlchemyPersister">
@@ -336,11 +336,11 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">uri</span><span class="o">=</span><span class="s2">&quot;sqlite:///my_sqlite.db&quot;</span><span class="p">,</span>
+        <span class="n">uri</span><span class="o">=</span><span class="s1">&#39;sqlite:///my_sqlite.db&#39;</span><span class="p">,</span>
         <span class="n">collection_name</span><span class="o">=</span><span class="s1">&#39;dol_default_table&#39;</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
-        <span class="n">key_fields</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="n">TYPE_INTEGER</span><span class="p">},</span>
-        <span class="n">data_fields</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">TYPE_STRING</span><span class="p">},</span>
+        <span class="n">key_fields</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">TYPE_INTEGER</span><span class="p">},</span>
+        <span class="n">data_fields</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">TYPE_STRING</span><span class="p">},</span>
         <span class="n">autocommit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="o">**</span><span class="n">db_kwargs</span><span class="p">,</span>
     <span class="p">):</span>
@@ -400,7 +400,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)()</span>
 
     <span class="k">def</span> <span class="nf">table_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DESCRIBE </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;DESCRIBE </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">teardown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -442,7 +442,7 @@
         <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="o">**</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
         <span class="c1"># todo: think of intuitive way of selecting many by 1 (or some) of many keys</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No document found for query: </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No document found for query: </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">doc</span>
 
@@ -489,7 +489,7 @@
         <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">limit</span><span class="p">:</span>
             <span class="k">break</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;SELECT * FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> LIMIT </span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s2"> OFFSET </span><span class="si">{</span><span class="n">offset</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s1">&#39;SELECT * FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1"> LIMIT </span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s1"> OFFSET </span><span class="si">{</span><span class="n">offset</span><span class="si">}</span><span class="s1">&#39;</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">rowcount</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">fetchall</span><span class="p">(),</span> <span class="n">i</span><span class="p">):</span>
@@ -553,7 +553,6 @@
 <div class="viewcode-block" id="DfSqlDbReader">
 <a class="viewcode-back" href="../../module_docs/sqldol/sql_base.html#sqldol.sql_base.DfSqlDbReader">[docs]</a>
 <span class="k">class</span> <span class="nc">DfSqlDbReader</span><span class="p">(</span><span class="n">SqlDbReader</span><span class="p">):</span>
-
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 

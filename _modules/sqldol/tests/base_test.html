@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>sqldol.tests.base_test &mdash; sqldol 0.0.3 documentation</title>
+  <title>sqldol.tests.base_test &mdash; sqldol 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
@@ -16,7 +16,7 @@
   
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=47de8214"></script>
+        <script src="../../../_static/documentation_options.js?v=01f34227"></script>
         <script src="../../../_static/doctools.js?v=888ff710"></script>
         <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="../../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -95,17 +95,17 @@
     <span class="n">db</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Redefine me!</span>
 
     <span class="n">key</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;first_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Robot&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;last_name&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">),</span>
+        <span class="s1">&#39;first_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Robot&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;last_name&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">),</span>
     <span class="p">}</span>
     <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="s2">&quot;100sm&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;weight&quot;</span><span class="p">:</span> <span class="s2">&quot;50kg&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;fav number&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)),</span>
+        <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="s1">&#39;100sm&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="s1">&#39;50kg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;fav number&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)),</span>
     <span class="p">}</span>
 
     <span class="n">data_updated</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">data_updated</span><span class="p">[</span><span class="s2">&quot;fav number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;9000&quot;</span>
+    <span class="n">data_updated</span><span class="p">[</span><span class="s1">&#39;fav number&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;9000&#39;</span>
 
     <span class="k">def</span> <span class="nf">test_crud</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_test_create</span><span class="p">()</span>
@@ -153,7 +153,7 @@
 <span class="k">class</span> <span class="nc">BasePersisterTest</span><span class="p">(</span><span class="n">BaseTest</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Base test for all Persisters. &quot;&quot;&quot;</span>
 
-    <span class="n">inexistent_key</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;first_name&quot;</span><span class="p">:</span> <span class="s2">&quot;inexistent key value&quot;</span><span class="p">}</span></div>
+    <span class="n">inexistent_key</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;first_name&#39;</span><span class="p">:</span> <span class="s1">&#39;inexistent key value&#39;</span><span class="p">}</span></div>
 
 
 
@@ -162,7 +162,7 @@
 <span class="k">class</span> <span class="nc">BaseStoreTest</span><span class="p">(</span><span class="n">BaseTest</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Base test for all Stores. &quot;&quot;&quot;</span>
 
-    <span class="n">inexistent_key</span> <span class="o">=</span> <span class="s2">&quot;inexistent key&quot;</span>
+    <span class="n">inexistent_key</span> <span class="o">=</span> <span class="s1">&#39;inexistent key&#39;</span>
 
     <span class="n">key_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">BaseTest</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="n">data_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">BaseTest</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
