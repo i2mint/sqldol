@@ -121,13 +121,13 @@ def _get_columns_of_table(engine, table_name, metadata=None):
 
 
 def _validate_key_columns(engine, table_name, key_columns):
-    # TODO: Could do more. For example, use primary key by default if it exists, 
+    # TODO: Could do more. For example, use primary key by default if it exists,
     #   and/or check the unique keys, etc.
     if key_columns is None:
         column_names = _get_columns_of_table(engine, table_name)
         msg = (
-            f"You need to specify key_columns. "
-            f"The columns of {table_name} are {column_names}."
+            f'You need to specify key_columns. '
+            f'The columns of {table_name} are {column_names}.'
         )
         raise ValueError(msg)
 
