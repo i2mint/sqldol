@@ -199,12 +199,12 @@ class SqlBaseKvReader(Mapping):
             item = result.first()
             item_values = {}
             i = 0
-            for c in self.table.columns :
+            for c in self.table.columns:
                 item_values[c.name] = item[i]
-                i+=1
+                i += 1
 
         return item_values
-        #return map(self._extract_values, result.fetchall())
+        # return map(self._extract_values, result.fetchall())
 
 
 class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
