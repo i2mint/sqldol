@@ -109,7 +109,7 @@ def _prepare_columns(columns):
             # If it's a fully formed Column object, use it as is
             yield col
         else:
-            raise TypeError("Columns must be either string names or Column objects")
+            raise TypeError('Columns must be either string names or Column objects')
 
 
 def get_or_create_table(engine: EngineSpec, table_name: str, columns=None):

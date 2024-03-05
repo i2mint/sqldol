@@ -199,7 +199,7 @@ class SqlBaseKvReader(Mapping):
         with self.engine.connect() as connection:
             result = connection.execute(query)
             return map(self._extract_values, result.fetchall())
-        
+
     # def __getitem__(self, key):
     #     query = select(self.table).where(self.table.c[self.key_columns] == key)
     #     with self.engine.connect() as connection:
@@ -216,7 +216,6 @@ class SqlBaseKvReader(Mapping):
 
 
 class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
-
     def _mk_column_filter(self, key):
         if isinstance(key, str):
             return text(f"{self.key_columns} = '{key}'")
@@ -256,6 +255,6 @@ class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
             connection.commit()  # TODO: Add in the context manager?
 
         # TODO: Should we return something useful?
-            
+
 
 SqlKvStore = SqlBaseKvStore

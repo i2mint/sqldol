@@ -9,13 +9,13 @@ def mk_simple_4_by_3_table(engine, table_name='sqldol_test_table'):
     engine = ensure_engine(engine)
 
     example_data = {
-        "name": ["Alice", "Bob", "Charlie", "Diana"],
-        "age": [30, 25, 35, 28],
-        "extras": [
-            {"hobby": "cycling", "pet": "cat"},
-            {"hobby": "hiking", "pet": "dog"},
-            {"hobby": "swimming", "pet": "fish"},
-            {"hobby": "reading"},
+        'name': ['Alice', 'Bob', 'Charlie', 'Diana'],
+        'age': [30, 25, 35, 28],
+        'extras': [
+            {'hobby': 'cycling', 'pet': 'cat'},
+            {'hobby': 'hiking', 'pet': 'dog'},
+            {'hobby': 'swimming', 'pet': 'fish'},
+            {'hobby': 'reading'},
         ],
     }
     example_data_with_name_key = {
@@ -30,7 +30,7 @@ def mk_simple_4_by_3_table(engine, table_name='sqldol_test_table'):
 
     get_or_create_table(
         engine,
-        "sqldol_test_table",
+        'sqldol_test_table',
         ['name', Column('age', Integer), Column('extras', JSON)],
     )
 
