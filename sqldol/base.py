@@ -135,6 +135,9 @@ def _validate_key_columns(engine, table_name, key_columns):
     return key_columns
 
 
+# TODO: Make SqlBaseKvReader into a context manager. See https://github.com/i2mint/dol/discussions/49#discussioncomment-8658626
+# TODO: Implement filt. (Needs to filt iter, len, and getitem.
+# TODO: Refactor idea: Make a query class and a query executor class. Two layers below SqlBaseKvReader.
 # TODO: Extend key_columns to be multiple
 # TODO: Handle single and multiple key and value columns to avoid 1-tuples
 # TODO: Do we waste time opening and closing connections
@@ -170,6 +173,7 @@ class SqlBaseKvReader(Mapping):
         self._prepare()
 
     def _prepare(self):
+        self._table_selection_query = select(self.table)
         self._key_index = self._column_names.index(self.key_columns)
         self._value_indices = list(map(self._column_names.index, self.value_columns))
 
@@ -180,43 +184,57 @@ class SqlBaseKvReader(Mapping):
         return [row[i] for i in self._value_indices]
 
     def __iter__(self):
-        query = select(self.table)
         with self.engine.connect() as connection:
-            result = connection.execute(query)
+            result = connection.execute(self._table_selection_query)
             for row in result:
                 yield self._extract_key(row)
 
     def __len__(self):
-        query = select(self.table)
         with self.engine.connect() as connection:
-            result = connection.execute(query)
+            result = connection.execute(self._table_selection_query)
             return result.rowcount
 
     def __getitem__(self, key):
-        query = select(self.table).where(self.table.c[self.key_columns] == key)
+        query = self._table_selection_query.where(self.table.c[self.key_columns] == key)
         with self.engine.connect() as connection:
             result = connection.execute(query)
-            item = result.first()
-            item_values = {}
-            i = 0
-            for c in self.table.columns:
-                item_values[c.name] = item[i]
-                i += 1
+            return map(self._extract_values, result.fetchall())
+        
+    # def __getitem__(self, key):
+    #     query = select(self.table).where(self.table.c[self.key_columns] == key)
+    #     with self.engine.connect() as connection:
+    #         result = connection.execute(query)
+    #         item = result.first()
+    #         item_values = {}
+    #         i = 0
+    #         for c in self.table.columns:
+    #             item_values[c.name] = item[i]
+    #             i += 1
 
-        return item_values
-        # return map(self._extract_values, result.fetchall())
+    # return item_values
+    # # return map(self._extract_values, result.fetchall())
 
 
 class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
+
+    def _mk_column_filter(self, key):
+        if isinstance(key, str):
+            return text(f"{self.key_columns} = '{key}'")
+        else:  # the key is a tuple of columns
+            # TODO: Verify if this is correct
+            return text(
+                ' AND '.join(
+                    f"{col} = '{val}'" for col, val in zip(self.key_columns, key)
+                )
+            )
+
     def __setitem__(self, key, value):
         value[self.key_columns] = key
 
-        if key is str:
-            key = f'"{key}"'
-        filter = text(f'{self.key_columns} = {key}')
+        filter = self._mk_column_filter(key)
+        query = self._table_selection_query.where(filter)
 
         with self.engine.connect() as connection:
-            query = select(self.table).where(filter)
             result = connection.execute(query)
 
             if result.rowcount == 1:
@@ -225,15 +243,19 @@ class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
                 query = insert(self.table).values(**value)
 
             connection.execute(query)
-            connection.commit()
+            connection.commit()  # TODO: Add in the context manager?
 
-    def __delitem__(self, __name: str) -> None:
-        key = __name
-        if key is str:
-            key = f'"{key}"'
-        filter = text(f'{self.key_columns} = {key}')
+        # TODO: Should we return something useful?
+
+    def __delitem__(self, key: str) -> None:
+        filter = self._mk_column_filter(key)
+        query = delete(self.table).where(filter)
 
         with self.engine.connect() as connection:
-            query = delete(self.table).where(filter)
             connection.execute(query)
-            connection.commit()
+            connection.commit()  # TODO: Add in the context manager?
+
+        # TODO: Should we return something useful?
+            
+
+SqlKvStore = SqlBaseKvStore
