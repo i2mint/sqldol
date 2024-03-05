@@ -93,17 +93,65 @@ dflt_type_mapping = tuple(
 )
 
 
+from sqlalchemy import create_engine, Table, Column, Integer, MetaData, exc, String
+
+
+def _prepare_columns(columns):
+    assert isinstance(
+        columns, Iterable
+    ), 'Columns must be an iterable of strings or Column objects'
+    # Process columns input to handle both string names and Column objects
+    for col in columns:
+        if isinstance(col, str):
+            # Default to a Column with type String if just a name is provided
+            yield Column(col, String)
+        elif isinstance(col, Column):
+            # If it's a fully formed Column object, use it as is
+            yield col
+        else:
+            raise TypeError("Columns must be either string names or Column objects")
+
+
+def get_or_create_table(engine: EngineSpec, table_name: str, columns=None):
+    """
+    Get or create a table in the database.
+
+    If the table does not exist, it will be created with the specified columns.
+
+    :param engine: The SQLAlchemy engine or a URI string
+    :param table_name: The name of the table
+    :param columns: An iterable of column names or Column objects, used if the table
+        does not exist and needs to be created
+    """
+    engine = ensure_engine(engine)
+    metadata = MetaData()
+
+    try:
+        # Attempt to reflect the table
+        table = Table(table_name, metadata, autoload_with=engine)
+        # TODO: Idea -- could use columns to validate the table's schema
+    except exc.NoSuchTableError:
+        # If the table does not exist, define it with the specified columns and create it
+        # Process columns input to handle both string names and Column objects
+        processed_columns = list(_prepare_columns(columns))
+        table = Table(table_name, metadata, *processed_columns)
+        # Create the table in the database
+        metadata.create_all(engine)
+
+    return table
+
+
 def create_table_from_dict(
     data,
     *,
-    table_name: str = 'temp_table',
-    uri: str,
+    engine: str,
+    table_name: str = 'sqldol_test_table_2',
     delete_table_before_create_if_same_columns: bool = True,
     type_mapping=dflt_type_mapping,
 ):
     """Create a table from a dictionary of data."""
     type_mapping = dict(type_mapping)
-    engine = create_engine(uri)
+    engine = create_engine(engine)
     metadata = MetaData()
 
     columns = []
@@ -125,8 +173,9 @@ def create_table_from_dict(
                 existing_table.drop(engine)
 
     # Define and create the table
-    table = Table(table_name, metadata, *columns)
-    table.create(engine)
+    # table = Table(table_name, metadata, *columns)
+    table = get_or_create_table(engine, table_name, columns)
+    # table.create(engine)
     insert = get_engine_insert_func(engine)
 
     # Insert data into the table
@@ -142,5 +191,7 @@ def create_table_from_dict(
             }
             # Correct way to execute the insert statement
             conn.execute(insert(table).values(row))
+
+        conn.commit()
 
     return table
