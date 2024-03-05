@@ -4,6 +4,7 @@ from typing import Iterable, Iterable, Mapping, Sized, Union, List, MutableMappi
 from sqlalchemy import (
     Table,
     MetaData,
+    delete,
     select,
     insert,
     exists,
@@ -195,7 +196,15 @@ class SqlBaseKvReader(Mapping):
         query = select(self.table).where(self.table.c[self.key_columns] == key)
         with self.engine.connect() as connection:
             result = connection.execute(query)
-            return map(self._extract_values, result.fetchall())
+            item = result.first()
+            item_values = {}
+            i = 0
+            for c in self.table.columns :
+                item_values[c.name] = item[i]
+                i+=1
+
+        return item_values
+        #return map(self._extract_values, result.fetchall())
 
 
 class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
@@ -219,4 +228,12 @@ class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
             connection.commit()
 
     def __delitem__(self, __name: str) -> None:
-        raise NotImplementedError(f"Haven't implemented delete yet")
+        key = __name
+        if key is str:
+            key = f'"{key}"'
+        filter = text(f'{self.key_columns} = {key}')
+
+        with self.engine.connect() as connection:
+            query = delete(self.table).where(filter)
+            connection.execute(query)
+            connection.commit()
