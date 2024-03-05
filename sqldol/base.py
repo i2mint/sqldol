@@ -218,7 +218,6 @@ class SqlBaseKvReader(Mapping):
 # TODO: Needs to be made compliant with the "Base" strategy (see SqlBaseKvReader)
 #    For example, perhaps values are not dicts, but lists of rows
 class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
-
     def _mk_column_filter(self, key):
         if isinstance(key, str):
             return text(f"{self.key_columns} = '{key}'")
