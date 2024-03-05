@@ -199,7 +199,7 @@ class SqlBaseKvReader(Mapping):
         with self.engine.connect() as connection:
             result = connection.execute(query)
             return map(self._extract_values, result.fetchall())
-        
+
     # def __getitem__(self, key):
     #     query = select(self.table).where(self.table.c[self.key_columns] == key)
     #     with self.engine.connect() as connection:
@@ -215,6 +215,8 @@ class SqlBaseKvReader(Mapping):
     # # return map(self._extract_values, result.fetchall())
 
 
+# TODO: Needs to be made compliant with the "Base" strategy (see SqlBaseKvReader)
+#    For example, perhaps values are not dicts, but lists of rows
 class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
 
     def _mk_column_filter(self, key):
@@ -256,6 +258,6 @@ class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
             connection.commit()  # TODO: Add in the context manager?
 
         # TODO: Should we return something useful?
-            
+
 
 SqlKvStore = SqlBaseKvStore
