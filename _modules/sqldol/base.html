@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>sqldol.base &mdash; sqldol 0.1.1 documentation</title>
+  <title>sqldol.base &mdash; sqldol 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -16,7 +16,7 @@
   
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../_static/documentation_options.js?v=a58bc63e"></script>
+        <script src="../../_static/documentation_options.js?v=92734c54"></script>
         <script src="../../_static/doctools.js?v=888ff710"></script>
         <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -54,6 +54,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/sqldol/scrap/postgres_dol.html">sqldol.scrap.postgres_dol</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/sqldol/sql_base.html">sqldol.sql_base</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/sqldol/tests/base_test.html">sqldol.tests.base_test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/sqldol/tests/mk_test_data.html">sqldol.tests.mk_test_data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/sqldol/tests/test_sql_w_sqlalchemy.html">sqldol.tests.test_sql_w_sqlalchemy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/sqldol/util.html">sqldol.util</a></li>
 </ul>
@@ -232,6 +233,9 @@
     <span class="k">return</span> <span class="n">key_columns</span>
 
 
+<span class="c1"># TODO: Make SqlBaseKvReader into a context manager. See https://github.com/i2mint/dol/discussions/49#discussioncomment-8658626</span>
+<span class="c1"># TODO: Implement filt. (Needs to filt iter, len, and getitem.</span>
+<span class="c1"># TODO: Refactor idea: Make a query class and a query executor class. Two layers below SqlBaseKvReader.</span>
 <span class="c1"># TODO: Extend key_columns to be multiple</span>
 <span class="c1"># TODO: Handle single and multiple key and value columns to avoid 1-tuples</span>
 <span class="c1"># TODO: Do we waste time opening and closing connections</span>
@@ -269,6 +273,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_prepare</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_table_selection_query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_key_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_column_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_value_indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_column_names</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_columns</span><span class="p">))</span>
 
@@ -279,46 +284,60 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_indices</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_table_selection_query</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_key</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_table_selection_query</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">rowcount</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="p">]</span> <span class="o">==</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_table_selection_query</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="p">]</span> <span class="o">==</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-            <span class="n">item</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-            <span class="n">item_values</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span> <span class="p">:</span>
-                <span class="n">item_values</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_extract_values</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span></div>
 
-        <span class="k">return</span> <span class="n">item_values</span></div>
+        
+    <span class="c1"># def __getitem__(self, key):</span>
+    <span class="c1">#     query = select(self.table).where(self.table.c[self.key_columns] == key)</span>
+    <span class="c1">#     with self.engine.connect() as connection:</span>
+    <span class="c1">#         result = connection.execute(query)</span>
+    <span class="c1">#         item = result.first()</span>
+    <span class="c1">#         item_values = {}</span>
+    <span class="c1">#         i = 0</span>
+    <span class="c1">#         for c in self.table.columns:</span>
+    <span class="c1">#             item_values[c.name] = item[i]</span>
+    <span class="c1">#             i += 1</span>
 
-        <span class="c1">#return map(self._extract_values, result.fetchall())</span>
+    <span class="c1"># return item_values</span>
+    <span class="c1"># # return map(self._extract_values, result.fetchall())</span>
 
 
 <div class="viewcode-block" id="SqlBaseKvStore">
 <a class="viewcode-back" href="../../module_docs/sqldol/base.html#sqldol.base.SqlBaseKvStore">[docs]</a>
 <span class="k">class</span> <span class="nc">SqlBaseKvStore</span><span class="p">(</span><span class="n">SqlBaseKvReader</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">_mk_column_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="si">}</span><span class="s2"> = &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># the key is a tuple of columns</span>
+            <span class="c1"># TODO: Verify if this is correct</span>
+            <span class="k">return</span> <span class="n">text</span><span class="p">(</span>
+                <span class="s1">&#39; AND &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> = &#39;</span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">&#39;&quot;</span> <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
     <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="n">value</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
 
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
-        <span class="nb">filter</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mk_column_filter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_table_selection_query</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
-            <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -327,19 +346,23 @@
                 <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">value</span><span class="p">)</span>
 
             <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c1"># TODO: Add in the context manager?</span>
 
-    <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="n">__name</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
-        <span class="nb">filter</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="c1"># TODO: Should we return something useful?</span>
+
+    <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mk_column_filter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
-            <span class="n">query</span> <span class="o">=</span> <span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
             <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c1"># TODO: Add in the context manager?</span></div>
 
+
+        <span class="c1"># TODO: Should we return something useful?</span>
+            
+
+<span class="n">SqlKvStore</span> <span class="o">=</span> <span class="n">SqlBaseKvStore</span>
 </pre></div>
 
            </div>

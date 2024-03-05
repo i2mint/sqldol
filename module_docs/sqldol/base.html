@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>sqldol.base &mdash; sqldol 0.1.1 documentation</title>
+  <title>sqldol.base &mdash; sqldol 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -17,7 +17,7 @@
   
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../_static/documentation_options.js?v=a58bc63e"></script>
+        <script src="../../_static/documentation_options.js?v=92734c54"></script>
         <script src="../../_static/doctools.js?v=888ff710"></script>
         <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -56,6 +56,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#sqldol.base.PostgresBaseColumnsReader"><code class="docutils literal notranslate"><span class="pre">PostgresBaseColumnsReader</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sqldol.base.SqlBaseKvReader"><code class="docutils literal notranslate"><span class="pre">SqlBaseKvReader</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sqldol.base.SqlBaseKvStore"><code class="docutils literal notranslate"><span class="pre">SqlBaseKvStore</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sqldol.base.SqlKvStore"><code class="docutils literal notranslate"><span class="pre">SqlKvStore</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sqldol.base.TableColumnsDol"><code class="docutils literal notranslate"><span class="pre">TableColumnsDol</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sqldol.base.TableRows"><code class="docutils literal notranslate"><span class="pre">TableRows</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sqldol.base.TablesDol"><code class="docutils literal notranslate"><span class="pre">TablesDol</span></code></a></li>
@@ -65,6 +66,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scrap/postgres_dol.html">sqldol.scrap.postgres_dol</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sql_base.html">sqldol.sql_base</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tests/base_test.html">sqldol.tests.base_test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/mk_test_data.html">sqldol.tests.mk_test_data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tests/test_sql_w_sqlalchemy.html">sqldol.tests.test_sql_w_sqlalchemy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="util.html">sqldol.util</a></li>
 </ul>
@@ -114,6 +116,12 @@ There’s also a filter function that can be used to filter the rows.</p>
 <dt class="sig sig-object py" id="sqldol.base.SqlBaseKvStore">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sqldol.base.</span></span><span class="sig-name descname"><span class="pre">SqlBaseKvStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/sqldol/base.html#SqlBaseKvStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sqldol.base.SqlBaseKvStore" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sqldol.base.SqlKvStore">
+<span class="sig-prename descclassname"><span class="pre">sqldol.base.</span></span><span class="sig-name descname"><span class="pre">SqlKvStore</span></span><a class="headerlink" href="#sqldol.base.SqlKvStore" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#sqldol.base.SqlBaseKvStore" title="sqldol.base.SqlBaseKvStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">SqlBaseKvStore</span></code></a></p>
+</dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="sqldol.base.TableColumnsDol">

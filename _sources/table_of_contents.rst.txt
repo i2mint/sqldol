@@ -8,5 +8,6 @@
    module_docs/sqldol/scrap/postgres_dol
    module_docs/sqldol/sql_base
    module_docs/sqldol/tests/base_test
+   module_docs/sqldol/tests/mk_test_data
    module_docs/sqldol/tests/test_sql_w_sqlalchemy
    module_docs/sqldol/util
