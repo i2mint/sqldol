@@ -1,7 +1,7 @@
 """Higher level stores for sql data"""
 
 from typing import List, Iterable
-from sqldol.base import SqlBaseKvReader
+from sqldol.base import SqlBaseKvReader, SqlBaseKvStore
 from dol import wrap_kvs
 
 # TODO: Extend value wrappers to contain data_of_obj to be able to wrap SqlBaseKvStore
