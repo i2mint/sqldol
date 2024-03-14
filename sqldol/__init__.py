@@ -22,4 +22,11 @@ from sqldol.base import (
     PostgresBaseColumnsReader,
 )
 
+from sqldol.stores import (
+    SqlRowsReader,
+    SqlRowReader,
+    SqlDictsReader,
+    SqlDictReader,
+    SqlDictStore,
+)
 from sqldol.util import create_table_from_dict, rows_iter
