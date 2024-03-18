@@ -221,13 +221,16 @@ class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
     def _mk_column_filter(self, key):
         if isinstance(key, str):
             return text(f"{self.key_columns} = '{key}'")
-        else:  # the key is a tuple of columns
+        elif isinstance(key, int):  # the key is a tuple of columns
+            return text(f"{self.key_columns} = {key}")
+        else :
             # TODO: Verify if this is correct
             return text(
                 ' AND '.join(
                     f"{col} = '{val}'" for col, val in zip(self.key_columns, key)
                 )
             )
+
 
     def __setitem__(self, key, value):
         value[self.key_columns] = key
