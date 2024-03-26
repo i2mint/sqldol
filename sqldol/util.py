@@ -6,7 +6,7 @@ import datetime
 import decimal
 from contextlib import contextmanager
 
-from sqlalchemy import create_engine, Table, MetaData, Engine, Column, select
+from sqlalchemy import create_engine, Table, MetaData, Engine, Column, select, text
 from sqlalchemy import (
     Integer,
     Float,
@@ -46,6 +46,8 @@ def get_engine_insert_func(engine):
 
 @contextmanager
 def rows_iter(table: Table, filt=None, *, engine: Engine = None):
+    engine = ensure_engine(engine)
+
     if engine is None:
         engine = table.bind
         if not engine:
@@ -54,9 +56,12 @@ def rows_iter(table: Table, filt=None, *, engine: Engine = None):
                 ' is not bound to an engine or connection.'
             )
 
-    query = select(table)
+    query = select('*').select_from(table)
+
     if filt is not None:
         query = query.where(filt)
+
+    connection = None
 
     try:
         # Open a connection
@@ -66,7 +71,8 @@ def rows_iter(table: Table, filt=None, *, engine: Engine = None):
         yield result
     finally:
         # Ensure the connection is closed after iteration
-        connection.close()
+        if connection is not None:
+            connection.close()
 
 
 dflt_type_mapping = tuple(
@@ -112,6 +118,9 @@ def _prepare_columns(columns):
             raise TypeError('Columns must be either string names or Column objects')
 
 
+from sqlalchemy.exc import SQLAlchemyError
+
+
 def get_or_create_table(engine: EngineSpec, table_name: str, columns=None):
     """
     Get or create a table in the database.
@@ -130,7 +139,7 @@ def get_or_create_table(engine: EngineSpec, table_name: str, columns=None):
         # Attempt to reflect the table
         table = Table(table_name, metadata, autoload_with=engine)
         # TODO: Idea -- could use columns to validate the table's schema
-    except exc.NoSuchTableError:
+    except SQLAlchemyError:
         # If the table does not exist, define it with the specified columns and create it
         # Process columns input to handle both string names and Column objects
         processed_columns = list(_prepare_columns(columns))

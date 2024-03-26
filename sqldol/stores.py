@@ -24,7 +24,9 @@ first_value = wrap_kvs(obj_of_data=_first_value)
 there_are_no_more = object()
 
 
-def _get_first_and_assert_there_are_no_more(iterable):
+def _get_first_and_assert_there_are_no_more(
+        iterable, msg_if_there_are_more="iterable has more than one element"
+    ):
     """
     Get the first element of an iterable, and assert that there are no more elements.
 
@@ -41,7 +43,7 @@ def _get_first_and_assert_there_are_no_more(iterable):
     if next_one is there_are_no_more:
         return first
     else:
-        raise ValueError("iterable has more than one element")
+        raise ValueError(msg_if_there_are_more)
 
 
 get_first_and_assert_there_are_no_more = wrap_kvs(

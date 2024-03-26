@@ -8,6 +8,8 @@ def mk_simple_4_by_3_table(engine, table_name='sqldol_test_table'):
 
     engine = ensure_engine(engine)
 
+    print(engine)
+
     example_data = {
         'name': ['Alice', 'Bob', 'Charlie', 'Diana'],
         'age': [30, 25, 35, 28],
@@ -28,12 +30,13 @@ def mk_simple_4_by_3_table(engine, table_name='sqldol_test_table'):
         'Diana': {'age': 28, 'extras': {'hobby': 'reading'}},
     }
 
+
     get_or_create_table(
         engine,
         'sqldol_test_table',
         ['name', Column('age', Integer), Column('extras', JSON)],
     )
-
+    
     test_store = SqlKvStore(engine, table_name, 'name', ['age', 'extras'])
 
     test_store.update(example_data_with_name_key)

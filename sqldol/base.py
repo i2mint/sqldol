@@ -61,12 +61,36 @@ class TableColumnsDol(Mapping):
         return column_name in self.table.c
 
 
+def ensure_table_and_engine(table, engine) -> Table:
+    if engine is None:
+        assert isinstance(
+            table, Table
+        ), "If engine is not provided, table must be a Table object"
+        engine = table.bind
+    else:
+        engine = ensure_engine(engine)
+    if isinstance(table, str):
+        try:
+            table = Table(table, MetaData(), autoload_with=engine)
+        except Exception as e:
+            table = Table(table, MetaData())
+    if isinstance(table, Table):
+        return table, engine
+    else:
+        raise ValueError(f"table must be a string or a Table object, not {type(table)}")
+
+
 # from sqldol
 class TableRows(Sized, Iterable):
     def __init__(self, table: Table, filt=None, *, engine: Engine = None):
+        table, engine = ensure_table_and_engine(table, engine)
+        if engine is None:
+            self.engine = table.bind
+        else:
+            self.engine = ensure_engine(engine)
+
         self.table = table
         self.filt = filt
-        self.engine = engine or table.bind
 
     def __iter__(self):
         with rows_iter(self.table, self.filt, engine=self.engine) as result:
@@ -76,6 +100,14 @@ class TableRows(Sized, Iterable):
     def __len__(self):
         with rows_iter(self.table, self.filt, engine=self.engine) as result:
             return result.rowcount
+
+    @property
+    def table_name(self):
+        return self.table.name
+
+    @property
+    def column_names(self):
+        return [col.name for col in self.table.columns]
 
 
 # TODO: Extend TableRows to TableRowsReader by adding a __getitem__ method?
@@ -223,14 +255,13 @@ class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
             return text(f"{self.key_columns} = '{key}'")
         elif isinstance(key, int):  # the key is a tuple of columns
             return text(f"{self.key_columns} = {key}")
-        else :
+        else:
             # TODO: Verify if this is correct
             return text(
                 ' AND '.join(
                     f"{col} = '{val}'" for col, val in zip(self.key_columns, key)
                 )
             )
-
 
     def __setitem__(self, key, value):
         value[self.key_columns] = key
