@@ -264,8 +264,6 @@ class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
             )
 
     def __setitem__(self, key, value):
-        value[self.key_columns] = key
-
         filter = self._mk_column_filter(key)
         query = self._table_selection_query.where(filter)
 

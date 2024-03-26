@@ -103,6 +103,6 @@ class SqlDictsReader(SqlBaseKvReader):
 class SqlDictReader(SqlBaseKvReader):
     """SqlBaseKvReader whose values are single dicts (the first one matchig the key)."""
 
-@dictionarize_rows
+@dictionarize_first_row
 class SqlDictStore(SqlBaseKvStore):
     """SqlDictStore whose values are lists of dicts."""
