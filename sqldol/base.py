@@ -229,8 +229,11 @@ class SqlBaseKvReader(Mapping):
     def __getitem__(self, key):
         query = self._table_selection_query.where(self.table.c[self.key_columns] == key)
         with self.engine.connect() as connection:
-            result = connection.execute(query)
-            return map(self._extract_values, result.fetchall())
+            try :
+                result = connection.execute(query)
+                return map(self._extract_values, result.fetchall())
+            except :
+                return None
 
     # def __getitem__(self, key):
     #     query = select(self.table).where(self.table.c[self.key_columns] == key)
