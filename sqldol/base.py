@@ -249,7 +249,6 @@ class SqlBaseKvReader(Mapping):
     # return item_values
     # # return map(self._extract_values, result.fetchall())
 
-
 # TODO: Needs to be made compliant with the "Base" strategy (see SqlBaseKvReader)
 #    For example, perhaps values are not dicts, but lists of rows
 class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
@@ -258,8 +257,13 @@ class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
             return text(f"{self.key_columns} = '{key}'")
         elif isinstance(key, int):  # the key is a tuple of columns
             return text(f"{self.key_columns} = {key}")
+        elif isinstance(key, dict) :
+            return text(
+                ' AND '.join(
+                    f"{col} = '{val}'" for col, val in key.items()
+                )
+            )
         else:
-            # TODO: Verify if this is correct
             return text(
                 ' AND '.join(
                     f"{col} = '{val}'" for col, val in zip(self.key_columns, key)
