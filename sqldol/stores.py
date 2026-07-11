@@ -1,6 +1,7 @@
 """Higher level stores for sql data"""
 
-from typing import List, Iterable
+from typing import List
+from collections.abc import Iterable
 from sqldol.base import SqlBaseKvReader, SqlBaseKvStore
 from dol import wrap_kvs
 
@@ -50,7 +51,7 @@ get_first_and_assert_there_are_no_more = wrap_kvs(
     obj_of_data=_get_first_and_assert_there_are_no_more
 )
 
-Row = List
+Row = list
 
 
 def _dictionarize_row(self, row: Row):

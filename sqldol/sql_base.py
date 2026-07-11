@@ -213,7 +213,7 @@ SqlAlchemyDatabaseCollection = SqlDbCollection
 from typing import Tuple
 
 
-def _split_uri_into_base_and_collection_name(uri: str) -> Tuple[str, str]:
+def _split_uri_into_base_and_collection_name(uri: str) -> tuple[str, str]:
     """Splits a uri into a base and a collection name.
 
     >>> _split_uri_into_base_and_collection_name("sqlite:///my_sqlite.db/my_table")

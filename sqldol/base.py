@@ -1,6 +1,7 @@
 """Base objects for sqldol"""
 
-from typing import Iterable, Iterable, Mapping, Sized, Union, List, MutableMapping
+from typing import Union, List
+from collections.abc import Iterable, Iterable, Mapping, Sized, MutableMapping
 from sqlalchemy import (
     Table,
     MetaData,
@@ -94,8 +95,7 @@ class TableRows(Sized, Iterable):
 
     def __iter__(self):
         with rows_iter(self.table, self.filt, engine=self.engine) as result:
-            for row in result:
-                yield row
+            yield from result
 
     def __len__(self):
         with rows_iter(self.table, self.filt, engine=self.engine) as result:
@@ -185,7 +185,7 @@ class SqlBaseKvReader(Mapping):
         engine,
         table_name,
         key_columns: str = None,
-        value_columns: Union[str, List[str]] = None,
+        value_columns: str | list[str] = None,
         filt=None,
     ):
         self.engine = ensure_engine(engine)

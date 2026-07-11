@@ -1,6 +1,7 @@
 """Utils for sqldol"""
 
-from typing import Iterable, Union, Sequence, Iterable
+from typing import Union
+from collections.abc import Iterable, Sequence, Iterable
 import json
 import datetime
 import decimal
