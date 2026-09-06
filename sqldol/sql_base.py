@@ -347,6 +347,24 @@ class SQLAlchemyPersister(KvPersister):
 
         return doc
 
+    def __contains__(self, k) -> bool:
+        """True if and only if a row matches the key query ``k``.
+
+        Getitem-based, so it agrees with ``__getitem__``, and it costs one
+        query instead of the brute-force scan inherited from
+        ``dol.base.Collection``. That inherited scan compared ``k`` against
+        whatever ``__iter__`` yields -- ORM row objects, never keys -- and so
+        answered False for every key, present or absent.
+
+        A key that cannot name a row at all (not a mapping of field to value,
+        or naming a field the table doesn't have) is simply not contained,
+        which is what the inherited scan answered too.
+        """
+        try:
+            return self.query.filter_by(**k).first() is not None
+        except (TypeError, sqlalchemy.exc.InvalidRequestError):
+            return False
+
     def __setitem__(self, k, v):
         try:
             doc = self[k]
