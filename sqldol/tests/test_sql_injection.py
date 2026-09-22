@@ -250,7 +250,5 @@ def test_iter_rows_rejects_a_table_name_carrying_sql(dbapi_connection):
 
 def test_raw_sql_paths_still_read_a_plain_table(dbapi_connection):
     SqlTableRowsCollection(dbapi_connection, TABLE_NAME)  # accepted
-    # Note: a single bounded batch, because on a DB-API cursor whose SELECT rowcount
-    # is -1 (sqlite3), iter_rows does not detect the end of the table by itself.
-    rows = iter_rows(dbapi_connection, TABLE_NAME, batch_size=10, limit=10)
+    rows = iter_rows(dbapi_connection, TABLE_NAME, batch_size=10)
     assert sorted(rows) == _original_rows()

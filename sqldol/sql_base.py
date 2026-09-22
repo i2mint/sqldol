@@ -98,9 +98,12 @@ class SqlTableRowsCollection(Collection):
     # QUESTION: Should helpers (_describe, _columns, etc.) should be methods/properties/lazyprops, and hidden or not?
 
     def count_rows(self):
+        # Note: ``fetchone`` is DB-API, so this works on a plain DB-API connection
+        # (whose ``execute`` returns a cursor, which has no ``first``) as well as on
+        # a SQLAlchemy result.
         return self.connection.execute(
             self._tmpl_count_rows_tmpl.format(table_name=self.table_name)
-        ).first()[0]
+        ).fetchone()[0]
 
     @lazyprop
     def _row_count(self):
@@ -437,30 +440,43 @@ class SQLAlchemyPersister(KvPersister):
 
 
 def iter_rows(connection, table_name, batch_size=1000, offset=0, limit=int(1e12)):
-    """Iterate the over the rows of a table.
-    The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.
+    """Iterate over the rows of a table, fetching ``batch_size`` rows per query.
+
+    Yields at most ``limit`` rows, starting at row ``offset`` (like SQL's
+    ``LIMIT``/``OFFSET``), and stops at the end of the table: a page shorter than
+    the one requested means there is nothing after it.
 
     ``table_name`` must pass :func:`validate_sql_identifier`, and ``batch_size``,
     ``offset`` and ``limit`` must be integers, because they are written into the SQL text.
+
+    >>> import sqlite3
+    >>> con = sqlite3.connect(":memory:")
+    >>> _ = con.execute("CREATE TABLE t (x INTEGER)")
+    >>> _ = con.executemany("INSERT INTO t VALUES (?)", [(i,) for i in range(5)])
+    >>> list(iter_rows(con, "t", batch_size=2))
+    [(0,), (1,), (2,), (3,), (4,)]
+    >>> list(iter_rows(con, "t", batch_size=2, offset=1, limit=3))
+    [(1,), (2,), (3,)]
     """
     table_name = validate_sql_identifier(table_name)
     batch_size, offset, limit = index(batch_size), index(offset), index(limit)
-    stop_offset = limit + offset  # to the range act like like sql limit
-    i = 0
-    for offset in range(offset, stop_offset, batch_size):
-        if i >= limit:
+    if batch_size < 1:
+        raise ValueError(f"batch_size must be a positive integer, got {batch_size}")
+    # Note: The end of the table is detected from the rows actually fetched, never
+    # from ``rowcount``: for a SELECT that is -1 on DB-API drivers that don't
+    # pre-buffer (sqlite3), so testing it made this loop request empty pages until
+    # ``limit`` ran out.
+    remaining = limit
+    while remaining > 0:
+        page_size = min(batch_size, remaining)
+        rows = connection.execute(
+            f"SELECT * FROM {table_name} LIMIT {page_size} OFFSET {offset}"
+        ).fetchall()
+        yield from rows
+        if len(rows) < page_size:
             break
-        r = connection.execute(
-            f"SELECT * FROM {table_name} LIMIT {batch_size} OFFSET {offset}"
-        )
-        if r.rowcount:
-            for i, x in enumerate(r.fetchall(), i):
-                if i < limit:
-                    yield x
-                else:
-                    break
-        else:
-            break
+        remaining -= page_size
+        offset += page_size
 
 
 ####### Stores ########################################################################################################
