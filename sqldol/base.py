@@ -99,8 +99,14 @@ class TableRows(Sized, Iterable):
             yield from result
 
     def __len__(self):
-        with rows_iter(self.table, self.filt, engine=self.engine) as result:
-            return result.rowcount
+        # Note: Counted by the database, not read off a SELECT's ``rowcount``, which
+        # is -1 on drivers that don't pre-buffer results (SQLite, for one) -- so
+        # ``len()`` raised ``ValueError`` there instead of counting.
+        query = select(func.count()).select_from(self.table)
+        if self.filt is not None:
+            query = query.where(self.filt)
+        with self.engine.connect() as connection:
+            return connection.execute(query).scalar_one()
 
     @property
     def table_name(self):
