@@ -26,8 +26,8 @@ there_are_no_more = object()
 
 
 def _get_first_and_assert_there_are_no_more(
-        iterable, msg_if_there_are_more="iterable has more than one element"
-    ):
+    iterable, msg_if_there_are_more="iterable has more than one element"
+):
     """
     Get the first element of an iterable, and assert that there are no more elements.
 
@@ -78,10 +78,11 @@ def _dictionarize_rows(self, rows: Iterable[Row]):
 
 
 def _dictionarize_first_row(self, rows: Iterable[Row]):
-    try :
+    try:
         return dict(zip(self.value_columns, _first_value(rows)))
     except StopIteration:
         return None
+
 
 dictionarize_rows = wrap_kvs(obj_of_data=_dictionarize_rows)
 dictionarize_first_row = wrap_kvs(obj_of_data=_dictionarize_first_row)
@@ -105,6 +106,7 @@ class SqlDictsReader(SqlBaseKvReader):
 @dictionarize_first_row
 class SqlDictReader(SqlBaseKvReader):
     """SqlBaseKvReader whose values are single dicts (the first one matchig the key)."""
+
 
 @dictionarize_first_row
 class SqlDictStore(SqlBaseKvStore):

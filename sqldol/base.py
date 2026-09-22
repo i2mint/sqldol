@@ -160,24 +160,24 @@ def _validate_key_columns(engine, table_name, key_columns):
     if key_columns is None:
         column_names = _get_columns_of_table(engine, table_name)
         msg = (
-            f'You need to specify key_columns. '
-            f'The columns of {table_name} are {column_names}.'
+            f"You need to specify key_columns. "
+            f"The columns of {table_name} are {column_names}."
         )
         raise ValueError(msg)
 
     return key_columns
 
 
-MissingKeyPolicy = Literal['empty', 'raise']
-_missing_key_policies = ('empty', 'raise')
+MissingKeyPolicy = Literal["empty", "raise"]
+_missing_key_policies = ("empty", "raise")
 
 
 def _validate_missing_key_policy(missing_key_policy) -> MissingKeyPolicy:
     """Validate a ``missing_key_policy`` at construction time, not at lookup time."""
     if missing_key_policy not in _missing_key_policies:
         msg = (
-            f'missing_key_policy must be one of {_missing_key_policies}, '
-            f'not {missing_key_policy!r}'
+            f"missing_key_policy must be one of {_missing_key_policies}, "
+            f"not {missing_key_policy!r}"
         )
         raise ValueError(msg)
     return missing_key_policy
@@ -214,7 +214,7 @@ class SqlBaseKvReader(Mapping):
         value_columns: str | list[str] = None,
         filt=None,
         *,
-        missing_key_policy: MissingKeyPolicy = 'empty',
+        missing_key_policy: MissingKeyPolicy = "empty",
     ):
         self.engine = ensure_engine(engine)
         self.missing_key_policy = _validate_missing_key_policy(missing_key_policy)
@@ -222,7 +222,7 @@ class SqlBaseKvReader(Mapping):
         key_columns = _validate_key_columns(self.engine, self.table_name, key_columns)
         self.metadata = MetaData()
         self.table = Table(self.table_name, self.metadata, autoload_with=self.engine)
-        assert isinstance(key_columns, str), 'Must be a single column name'  # for now!
+        assert isinstance(key_columns, str), "Must be a single column name"  # for now!
         self.key_columns = key_columns
         self._column_names = [col.name for col in self.table.columns]
         if value_columns is None:
@@ -260,7 +260,7 @@ class SqlBaseKvReader(Mapping):
     def __getitem__(self, key):
         query = self._table_selection_query.where(self.table.c[self.key_columns] == key)
         with self.engine.connect() as connection:
-            if self.missing_key_policy == 'raise':
+            if self.missing_key_policy == "raise":
                 rows = connection.execute(query).fetchall()
                 if not rows:
                     raise KeyError(key)
@@ -287,6 +287,7 @@ class SqlBaseKvReader(Mapping):
     # return item_values
     # # return map(self._extract_values, result.fetchall())
 
+
 # TODO: Needs to be made compliant with the "Base" strategy (see SqlBaseKvReader)
 #    For example, perhaps values are not dicts, but lists of rows
 class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
@@ -295,15 +296,11 @@ class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
             return text(f"{self.key_columns} = '{key}'")
         elif isinstance(key, int):  # the key is a tuple of columns
             return text(f"{self.key_columns} = {key}")
-        elif isinstance(key, dict) :
-            return text(
-                ' AND '.join(
-                    f"{col} = '{val}'" for col, val in key.items()
-                )
-            )
+        elif isinstance(key, dict):
+            return text(" AND ".join(f"{col} = '{val}'" for col, val in key.items()))
         else:
             return text(
-                ' AND '.join(
+                " AND ".join(
                     f"{col} = '{val}'" for col, val in zip(self.key_columns, key)
                 )
             )

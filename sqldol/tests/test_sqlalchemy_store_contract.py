@@ -12,9 +12,9 @@ import pytest
 
 from sqldol import SQLAlchemyPersister, SQLAlchemyStore, SQLAlchemyTupleStore
 
-SQLITE_DB_URI = 'sqlite:///:memory:'
-KEY_FIELDS = {'id': SQLAlchemyPersister.TYPE_STRING}
-DATA_FIELDS = {'doc': SQLAlchemyPersister.TYPE_TEXT}
+SQLITE_DB_URI = "sqlite:///:memory:"
+KEY_FIELDS = {"id": SQLAlchemyPersister.TYPE_STRING}
+DATA_FIELDS = {"doc": SQLAlchemyPersister.TYPE_TEXT}
 
 
 def _mk(cls, collection_name):
@@ -27,32 +27,32 @@ def _mk(cls, collection_name):
 
 
 def test_persister_contains_agrees_with_getitem():
-    persister = _mk(SQLAlchemyPersister, 'persister_contains')
-    persister[{'id': 'a'}] = {'doc': 'x'}
+    persister = _mk(SQLAlchemyPersister, "persister_contains")
+    persister[{"id": "a"}] = {"doc": "x"}
 
-    assert {'id': 'a'} in persister
-    assert {'id': 'zzz'} not in persister
-    assert persister[{'id': 'a'}] is not None
+    assert {"id": "a"} in persister
+    assert {"id": "zzz"} not in persister
+    assert persister[{"id": "a"}] is not None
     assert len(persister) == 1
 
 
 def test_store_contains_agrees_with_getitem():
-    store = _mk(SQLAlchemyStore, 'store_contains')
-    store[{'id': 'a'}] = {'doc': 'x'}
+    store = _mk(SQLAlchemyStore, "store_contains")
+    store[{"id": "a"}] = {"doc": "x"}
 
-    assert {'id': 'a'} in store
-    assert {'id': 'zzz'} not in store
-    assert store[{'id': 'a'}] is not None
+    assert {"id": "a"} in store
+    assert {"id": "zzz"} not in store
+    assert store[{"id": "a"}] is not None
     assert len(store) == 1
 
 
 def test_tuple_store_contains_agrees_with_getitem():
-    store = _mk(SQLAlchemyTupleStore, 'tuple_store_contains')
-    store[('a',)] = ('x',)
+    store = _mk(SQLAlchemyTupleStore, "tuple_store_contains")
+    store[("a",)] = ("x",)
 
-    assert ('a',) in store
-    assert ('zzz',) not in store
-    assert store[('a',)] == ('x',)
+    assert ("a",) in store
+    assert ("zzz",) not in store
+    assert store[("a",)] == ("x",)
     assert len(store) == 1
 
 
@@ -64,10 +64,10 @@ def test_tuple_store_iteration_still_yields_keys():
     does ``getattr(obj, field)`` on whatever is yielded, and at least one known
     consumer wraps the row-yielding behaviour.
     """
-    store = _mk(SQLAlchemyTupleStore, 'tuple_store_iter')
-    store[('a',)] = ('x',)
+    store = _mk(SQLAlchemyTupleStore, "tuple_store_iter")
+    store[("a",)] = ("x",)
 
-    assert list(store) == [('a',)]
+    assert list(store) == [("a",)]
 
 
 def test_contains_does_not_raise_on_a_key_it_cannot_query():
@@ -76,8 +76,8 @@ def test_contains_does_not_raise_on_a_key_it_cannot_query():
     ``Container.__contains__`` returned False for these before, so keeping them
     False (rather than propagating a SQLAlchemy/TypeError) preserves behaviour.
     """
-    persister = _mk(SQLAlchemyPersister, 'persister_bad_key')
-    persister[{'id': 'a'}] = {'doc': 'x'}
+    persister = _mk(SQLAlchemyPersister, "persister_bad_key")
+    persister[{"id": "a"}] = {"doc": "x"}
 
-    assert 'not-a-dict' not in persister
-    assert {'no_such_column': 'a'} not in persister
+    assert "not-a-dict" not in persister
+    assert {"no_such_column": "a"} not in persister

@@ -28,7 +28,7 @@ def ensure_engine(engine: EngineSpec) -> Engine:
     return engine
 
 
-DFLT_URI = 'sqlite:///:memory:'
+DFLT_URI = "sqlite:///:memory:"
 
 
 def get_engine_insert_func(engine):
@@ -40,9 +40,9 @@ def get_engine_insert_func(engine):
     import importlib
 
     try:
-        return importlib.import_module(f'sqlalchemy.dialects.{engine_dialect}').insert
+        return importlib.import_module(f"sqlalchemy.dialects.{engine_dialect}").insert
     except ImportError:
-        raise ValueError(f'Unsupported engine dialect: {engine_dialect}')
+        raise ValueError(f"Unsupported engine dialect: {engine_dialect}")
 
 
 @contextmanager
@@ -54,10 +54,10 @@ def rows_iter(table: Table, filt=None, *, engine: Engine = None):
         if not engine:
             raise ValueError(
                 f"You didn't specify an engine, and your table ({table.name})"
-                ' is not bound to an engine or connection.'
+                " is not bound to an engine or connection."
             )
 
-    query = select('*').select_from(table)
+    query = select("*").select_from(table)
 
     if filt is not None:
         query = query.where(filt)
@@ -106,7 +106,7 @@ from sqlalchemy import create_engine, Table, Column, Integer, MetaData, exc, Str
 def _prepare_columns(columns):
     assert isinstance(
         columns, Iterable
-    ), 'Columns must be an iterable of strings or Column objects'
+    ), "Columns must be an iterable of strings or Column objects"
     # Process columns input to handle both string names and Column objects
     for col in columns:
         if isinstance(col, str):
@@ -116,7 +116,7 @@ def _prepare_columns(columns):
             # If it's a fully formed Column object, use it as is
             yield col
         else:
-            raise TypeError('Columns must be either string names or Column objects')
+            raise TypeError("Columns must be either string names or Column objects")
 
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -155,7 +155,7 @@ def create_table_from_dict(
     data,
     *,
     engine: str,
-    table_name: str = 'sqldol_test_table_2',
+    table_name: str = "sqldol_test_table_2",
     delete_table_before_create_if_same_columns: bool = True,
     type_mapping=dflt_type_mapping,
 ):
@@ -169,7 +169,7 @@ def create_table_from_dict(
         # Determine the SQLAlchemy column type based on the first value of each column
         col_type = type_mapping.get(type(values[0]))
         if col_type is None:
-            raise ValueError(f'Unsupported data type for column {col_name}')
+            raise ValueError(f"Unsupported data type for column {col_name}")
         columns.append(Column(col_name, col_type))
 
     column_names = [col.name for col in columns]
