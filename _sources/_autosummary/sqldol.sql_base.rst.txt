@@ -1,0 +1,27 @@
+sqldol.sql\_base
+================
+
+.. automodule:: sqldol.sql_base
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      iter_rows
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      DfSqlDbReader
+      SQLAlchemyPersister
+      SQLAlchemyStore
+      SQLAlchemyTupleStore
+      SqlAlchemyDatabaseCollection
+      SqlAlchemyReader
+      SqlDbCollection
+      SqlDbReader
+      SqlTableRowsCollection
+      SqlTableRowsSequence
+   

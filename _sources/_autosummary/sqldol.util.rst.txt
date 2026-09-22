@@ -1,0 +1,16 @@
+sqldol.util
+===========
+
+.. automodule:: sqldol.util
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      create_table_from_dict
+      ensure_engine
+      get_engine_insert_func
+      get_or_create_table
+      rows_iter
+   

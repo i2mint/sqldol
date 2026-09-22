@@ -1,4 +1,0 @@
-sqldol.tests.mk_test_data
-=========================
-.. automodule:: sqldol.tests.mk_test_data
-   :members:

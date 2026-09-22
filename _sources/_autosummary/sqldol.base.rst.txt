@@ -1,0 +1,24 @@
+sqldol.base
+===========
+
+.. automodule:: sqldol.base
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      ensure_table_and_engine
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      PostgresBaseColumnsReader
+      SqlBaseKvReader
+      SqlBaseKvStore
+      SqlKvStore
+      TableColumnsDol
+      TableRows
+      TablesDol
+   

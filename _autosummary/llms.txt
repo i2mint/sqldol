@@ -1,0 +1,16 @@
+# sqldol
+
+> sql (through sqlalchemy) with a simple (dict-like or list-like) interface
+
+
+## Pages in this subsection
+
+- [sqldol](sqldol.html.md): sql with a simple (dict-like or list-like) interface
+- [sqldol.base](sqldol.base.html.md): Base objects for sqldol
+- [sqldol.sql_base](sqldol.sql_base.html.md): Independent legacy DOLs
+- [sqldol.stores](sqldol.stores.html.md): Higher level stores for sql data
+- [sqldol.util](sqldol.util.html.md): Utils for sqldol
+
+## Optional
+
+- [Top-level llms.txt](../llms.txt): Complete documentation index.

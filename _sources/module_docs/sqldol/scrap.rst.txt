@@ -1,4 +1,0 @@
-sqldol.scrap
-============
-.. automodule:: sqldol.scrap
-   :members:

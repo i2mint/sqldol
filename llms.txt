@@ -1,0 +1,23 @@
+# sqldol
+
+> sql (through sqlalchemy) with a simple (dict-like or list-like) interface
+
+
+## Pages
+
+- [sqldol](index.html.md): SQL (through SQLAlchemy) with a simple (dict-like or list-like) interface
+- [API reference](api.html.md): | &#96;sqldol&#96;   | sql with a simple (dict-like or list-like) interface   |
+- [sqldol](_autosummary/sqldol.html.md): sql with a simple (dict-like or list-like) interface
+- [sqldol.base](_autosummary/sqldol.base.html.md): Base objects for sqldol
+- [sqldol.sql_base](_autosummary/sqldol.sql_base.html.md): Independent legacy DOLs
+- [sqldol.stores](_autosummary/sqldol.stores.html.md): Higher level stores for sql data
+- [sqldol.util](_autosummary/sqldol.util.html.md): Utils for sqldol
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-22 12:54 UTC&#42;&#42; from commit &lt;a href="https://github.com/i2m...
+
+## Optional
+
+- [sqldol.md](sqldol.md): Complete documentation in a single file.
+
+## Build
+
+- [build_info.json](build_info.json): build provenance (commit, version, tool versions, whether the docs match the package)

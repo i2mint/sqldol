@@ -1,4 +1,0 @@
-sqldol
-======
-.. automodule:: sqldol
-   :members:

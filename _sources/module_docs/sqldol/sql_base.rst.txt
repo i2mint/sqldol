@@ -1,4 +1,0 @@
-sqldol.sql_base
-===============
-.. automodule:: sqldol.sql_base
-   :members:

@@ -1,4 +1,0 @@
-sqldol.tests.base_test
-======================
-.. automodule:: sqldol.tests.base_test
-   :members:

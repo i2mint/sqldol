@@ -1,0 +1,16 @@
+sqldol.stores
+=============
+
+.. automodule:: sqldol.stores
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SqlDictReader
+      SqlDictStore
+      SqlDictsReader
+      SqlRowReader
+      SqlRowsReader
+   

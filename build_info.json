@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "built_at": "2026-09-22T12:54:18Z",
+  "package": {
+    "name": "sqldol",
+    "version": "0.1.4",
+    "display_name": "sqldol",
+    "source": "setup.cfg"
+  },
+  "git": {
+    "available": true,
+    "commit": "ea96be56a56a98d625f50ec8b8c88ef388c1461e",
+    "short_commit": "ea96be5",
+    "branch": "master",
+    "tags": [
+      "0.1.4"
+    ],
+    "dirty": false,
+    "remote_url": "https://github.com/i2mint/sqldol",
+    "commit_url": "https://github.com/i2mint/sqldol/commit/ea96be56a56a98d625f50ec8b8c88ef388c1461e",
+    "error": null
+  },
+  "ci": {
+    "provider": "github",
+    "repository": "i2mint/sqldol",
+    "sha": "52bf5619793f0f5d24c8107b49ba836f376badc2",
+    "sha_in_history": true,
+    "ref": "refs/heads/master",
+    "ref_name": "master",
+    "run_id": "35729849199",
+    "run_url": "https://github.com/i2mint/sqldol/actions/runs/35729849199",
+    "server_url": "https://github.com"
+  },
+  "tools": {
+    "epythet": "0.2.12",
+    "sphinx": "9.1.0",
+    "docutils": "0.22.4",
+    "python": "3.12.14"
+  },
+  "config": {
+    "theme": "auto",
+    "html_theme": "sphinxawesome_theme",
+    "accent": "#794f00",
+    "mode": "auto",
+    "api_generator": "autosummary",
+    "ignore": [
+      "tests/",
+      "scrap/",
+      "examples/"
+    ],
+    "agent_outputs": true,
+    "aggregates": [
+      "md"
+    ],
+    "ai_artifacts": true,
+    "provenance": true,
+    "docs_dir": "docsrc"
+  },
+  "site": {
+    "modules_documented": 5,
+    "objects_documented": 29
+  },
+  "pypi": {
+    "checked": true,
+    "latest": "0.1.4",
+    "relation": "same",
+    "error": null
+  },
+  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout ea96be56a56a98d625f50ec8b8c88ef388c1461e\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "warnings": [],
+  "alignment": {
+    "aligned": true,
+    "notes": []
+  }
+}
