@@ -310,9 +310,14 @@ class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
         query = self._table_selection_query.where(filter)
 
         with self.engine.connect() as connection:
-            result = connection.execute(query)
+            # Note: Existence is asked of the rows themselves, not of ``rowcount``,
+            # which a SELECT reports as -1 on drivers that don't pre-buffer results
+            # (SQLite, for one) -- the same trap ``__len__`` used to fall into. Going
+            # by ``rowcount`` there made every write to an existing key an INSERT, so
+            # the table grew a duplicate row and the old value kept being read back.
+            key_is_present = connection.execute(query).first() is not None
 
-            if result.rowcount == 1:
+            if key_is_present:
                 query = update(self.table).values(**value).where(filter)
             else:
                 query = insert(self.table).values(**value)
