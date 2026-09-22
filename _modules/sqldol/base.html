@@ -489,31 +489,36 @@
 </span><span id="line-310">        <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_table_selection_query</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
 </span><span id="line-311">
 </span><span id="line-312">        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
-</span><span id="line-313">            <span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-</span><span id="line-314">
-</span><span id="line-315">            <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="line-316">                <span class="n">query</span> <span class="o">=</span> <span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
-</span><span id="line-317">            <span class="k">else</span><span class="p">:</span>
-</span><span id="line-318">                <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">value</span><span class="p">)</span>
+</span><span id="line-313">            <span class="c1"># Note: Existence is asked of the rows themselves, not of ``rowcount``,</span>
+</span><span id="line-314">            <span class="c1"># which a SELECT reports as -1 on drivers that don't pre-buffer results</span>
+</span><span id="line-315">            <span class="c1"># (SQLite, for one) -- the same trap ``__len__`` used to fall into. Going</span>
+</span><span id="line-316">            <span class="c1"># by ``rowcount`` there made every write to an existing key an INSERT, so</span>
+</span><span id="line-317">            <span class="c1"># the table grew a duplicate row and the old value kept being read back.</span>
+</span><span id="line-318">            <span class="n">key_is_present</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 </span><span id="line-319">
-</span><span id="line-320">            <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-</span><span id="line-321">            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c1"># TODO: Add in the context manager?</span>
-</span><span id="line-322">
-</span><span id="line-323">        <span class="c1"># TODO: Should we return something useful?</span>
+</span><span id="line-320">            <span class="k">if</span> <span class="n">key_is_present</span><span class="p">:</span>
+</span><span id="line-321">                <span class="n">query</span> <span class="o">=</span> <span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
+</span><span id="line-322">            <span class="k">else</span><span class="p">:</span>
+</span><span id="line-323">                <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">value</span><span class="p">)</span>
 </span><span id="line-324">
-</span><span id="line-325">    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="line-326">        <span class="nb">filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mk_column_filter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-</span><span id="line-327">        <span class="n">query</span> <span class="o">=</span> <span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
-</span><span id="line-328">
-</span><span id="line-329">        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
-</span><span id="line-330">            <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-</span><span id="line-331">            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c1"># TODO: Add in the context manager?</span></div>
+</span><span id="line-325">            <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="line-326">            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c1"># TODO: Add in the context manager?</span>
+</span><span id="line-327">
+</span><span id="line-328">        <span class="c1"># TODO: Should we return something useful?</span>
+</span><span id="line-329">
+</span><span id="line-330">    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="line-331">        <span class="nb">filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mk_column_filter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+</span><span id="line-332">        <span class="n">query</span> <span class="o">=</span> <span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
+</span><span id="line-333">
+</span><span id="line-334">        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+</span><span id="line-335">            <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="line-336">            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c1"># TODO: Add in the context manager?</span></div>
 
-</span><span id="line-332">
-</span><span id="line-333">        <span class="c1"># TODO: Should we return something useful?</span>
-</span><span id="line-334">
-</span><span id="line-335">
-</span><span id="line-336"><span class="n">SqlKvStore</span> <span class="o">=</span> <span class="n">SqlBaseKvStore</span>
+</span><span id="line-337">
+</span><span id="line-338">        <span class="c1"># TODO: Should we return something useful?</span>
+</span><span id="line-339">
+</span><span id="line-340">
+</span><span id="line-341"><span class="n">SqlKvStore</span> <span class="o">=</span> <span class="n">SqlBaseKvStore</span>
 </span></code></pre></div>
     </div></div>
           </main>
@@ -527,7 +532,7 @@
 </footer>
     </div>
     
-    <script src="../../_static/documentation_options.js?v=fd825880"></script>
+    <script src="../../_static/documentation_options.js?v=59fadc99"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

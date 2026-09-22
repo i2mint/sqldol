@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-09-22T12:54:18Z",
+  "built_at": "2026-09-22T14:10:55Z",
   "package": {
     "name": "sqldol",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "display_name": "sqldol",
     "source": "setup.cfg"
   },
   "git": {
     "available": true,
-    "commit": "ea96be56a56a98d625f50ec8b8c88ef388c1461e",
-    "short_commit": "ea96be5",
+    "commit": "0121e600cbd51621e765e41d1706d2badd963a82",
+    "short_commit": "0121e60",
     "branch": "master",
     "tags": [
-      "0.1.4"
+      "0.1.5"
     ],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/sqldol",
-    "commit_url": "https://github.com/i2mint/sqldol/commit/ea96be56a56a98d625f50ec8b8c88ef388c1461e",
+    "commit_url": "https://github.com/i2mint/sqldol/commit/0121e600cbd51621e765e41d1706d2badd963a82",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/sqldol",
-    "sha": "52bf5619793f0f5d24c8107b49ba836f376badc2",
+    "sha": "da5c6ed9eb24a529b79cad47e946194eab77b101",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "35729849199",
-    "run_url": "https://github.com/i2mint/sqldol/actions/runs/35729849199",
+    "run_id": "35738310030",
+    "run_url": "https://github.com/i2mint/sqldol/actions/runs/35738310030",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -62,11 +62,11 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.4",
+    "latest": "0.1.5",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout ea96be56a56a98d625f50ec8b8c88ef388c1461e\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout 0121e600cbd51621e765e41d1706d2badd963a82\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,
