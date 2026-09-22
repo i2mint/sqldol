@@ -13,7 +13,7 @@ def _first_value(iterable):
     """
     Get the first element of an iterable.
 
-    >>> _get_first([1, 2])
+    >>> _first_value([1, 2])
     1
 
     """

@@ -1,6 +1,6 @@
 """Base objects for sqldol"""
 
-from typing import Union, List
+from typing import Union, List, Literal
 from collections.abc import Iterable, Iterable, Mapping, Sized, MutableMapping
 from sqlalchemy import (
     Table,
@@ -11,6 +11,7 @@ from sqlalchemy import (
     exists,
     update,
     text,
+    func,
     Engine,
     Column,
 )
@@ -167,6 +168,21 @@ def _validate_key_columns(engine, table_name, key_columns):
     return key_columns
 
 
+MissingKeyPolicy = Literal['empty', 'raise']
+_missing_key_policies = ('empty', 'raise')
+
+
+def _validate_missing_key_policy(missing_key_policy) -> MissingKeyPolicy:
+    """Validate a ``missing_key_policy`` at construction time, not at lookup time."""
+    if missing_key_policy not in _missing_key_policies:
+        msg = (
+            f'missing_key_policy must be one of {_missing_key_policies}, '
+            f'not {missing_key_policy!r}'
+        )
+        raise ValueError(msg)
+    return missing_key_policy
+
+
 # TODO: Make SqlBaseKvReader into a context manager. See https://github.com/i2mint/dol/discussions/49#discussioncomment-8658626
 # TODO: Implement filt. (Needs to filt iter, len, and getitem.
 # TODO: Refactor idea: Make a query class and a query executor class. Two layers below SqlBaseKvReader.
@@ -178,6 +194,16 @@ class SqlBaseKvReader(Mapping):
     """A mapping view of a table,
     where keys are values from a key column and values are values from a value column.
     There's also a filter function that can be used to filter the rows.
+
+    The ``missing_key_policy`` keyword decides what a lookup of an absent key does:
+
+    - ``'empty'`` (the default) returns an empty result. This is the historical
+      behavior, kept as the default for backwards compatibility, but note that it
+      makes the inherited ``__contains__`` and ``get(key, default)`` lie: because
+      ``Mapping`` implements both in terms of ``__getitem__`` raising ``KeyError``,
+      every key looks present and ``get`` never returns its default.
+    - ``'raise'`` raises ``KeyError``, which is what ``collections.abc.Mapping``
+      requires and what makes ``in`` and ``get`` truthful.
     """
 
     def __init__(
@@ -187,8 +213,11 @@ class SqlBaseKvReader(Mapping):
         key_columns: str = None,
         value_columns: str | list[str] = None,
         filt=None,
+        *,
+        missing_key_policy: MissingKeyPolicy = 'empty',
     ):
         self.engine = ensure_engine(engine)
+        self.missing_key_policy = _validate_missing_key_policy(missing_key_policy)
         self.table_name = table_name
         key_columns = _validate_key_columns(self.engine, self.table_name, key_columns)
         self.metadata = MetaData()
@@ -222,17 +251,26 @@ class SqlBaseKvReader(Mapping):
                 yield self._extract_key(row)
 
     def __len__(self):
+        # Note: A SELECT's ``rowcount`` is -1 on drivers that don't pre-buffer
+        # results (SQLite, for one), so the row count has to be asked for directly.
+        query = select(func.count()).select_from(self.table)
         with self.engine.connect() as connection:
-            result = connection.execute(self._table_selection_query)
-            return result.rowcount
+            return connection.execute(query).scalar_one()
 
     def __getitem__(self, key):
         query = self._table_selection_query.where(self.table.c[self.key_columns] == key)
         with self.engine.connect() as connection:
-            try :
+            if self.missing_key_policy == 'raise':
+                rows = connection.execute(query).fetchall()
+                if not rows:
+                    raise KeyError(key)
+                return map(self._extract_values, rows)
+            try:
                 result = connection.execute(query)
                 return map(self._extract_values, result.fetchall())
-            except :
+            except Exception:
+                # Note: Narrowed from a bare ``except`` so that KeyboardInterrupt
+                # and SystemExit are no longer swallowed.
                 return None
 
     # def __getitem__(self, key):
