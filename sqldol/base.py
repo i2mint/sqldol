@@ -10,10 +10,10 @@ from sqlalchemy import (
     insert,
     exists,
     update,
-    text,
     func,
     Engine,
     Column,
+    and_,
 )
 
 from sqlalchemy import Table, Column, MetaData
@@ -291,19 +291,35 @@ class SqlBaseKvReader(Mapping):
 # TODO: Needs to be made compliant with the "Base" strategy (see SqlBaseKvReader)
 #    For example, perhaps values are not dicts, but lists of rows
 class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
-    def _mk_column_filter(self, key):
-        if isinstance(key, str):
-            return text(f"{self.key_columns} = '{key}'")
-        elif isinstance(key, int):  # the key is a tuple of columns
-            return text(f"{self.key_columns} = {key}")
-        elif isinstance(key, dict):
-            return text(" AND ".join(f"{col} = '{val}'" for col, val in key.items()))
-        else:
-            return text(
-                " AND ".join(
-                    f"{col} = '{val}'" for col, val in zip(self.key_columns, key)
-                )
+    def _key_column(self, column_name):
+        """The ``Column`` object named ``column_name``, or an informative ``KeyError``.
+
+        Going through ``self.table.c`` means a column name is never spliced into SQL
+        text: only names the table actually has can be used, and SQLAlchemy quotes
+        them as the dialect requires.
+        """
+        try:
+            return self.table.c[column_name]
+        except KeyError:
+            msg = (
+                f"{column_name!r} is not a column of table {self.table_name!r}. "
+                f"Its columns are {self._column_names}."
             )
+            raise KeyError(msg) from None
+
+    def _mk_column_filter(self, key):
+        """The ``WHERE`` clause selecting the rows of ``key``.
+
+        A ``Mapping`` key is a ``{column_name: value, ...}`` conjunction; any other key
+        is the value of the key column. Values are always bound parameters, never
+        interpolated into SQL text, so keys containing quotes, semicolons or ``--``
+        are matched literally -- the same way ``__getitem__`` matches them.
+        """
+        if isinstance(key, Mapping):
+            if not key:
+                raise ValueError("A mapping key must name at least one column")
+            return and_(*(self._key_column(col) == val for col, val in key.items()))
+        return self._key_column(self.key_columns) == key
 
     def __setitem__(self, key, value):
         filter = self._mk_column_filter(key)
