@@ -167,495 +167,544 @@
 </span><span id="line-2"><span class="sd">sql with a simple (dict-like or list-like) interface</span>
 </span><span id="line-3"><span class="sd">"""</span>
 </span><span id="line-4">
-</span><span id="line-5"><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
-</span><span id="line-6">
-</span><span id="line-7"><span class="kn">import</span><span class="w"> </span><span class="nn">sqlalchemy</span>
-</span><span id="line-8"><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Table</span>
-</span><span id="line-9"><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.ext.declarative</span><span class="w"> </span><span class="kn">import</span> <span class="n">declarative_base</span>
-</span><span id="line-10"><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">sessionmaker</span>
-</span><span id="line-11"><span class="kn">import</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">db</span>
-</span><span id="line-12">
-</span><span id="line-13"><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
-</span><span id="line-14"><span class="kn">from</span><span class="w"> </span><span class="nn">dol.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">KvPersister</span>
-</span><span id="line-15"><span class="kn">from</span><span class="w"> </span><span class="nn">dol.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">KvReader</span>
-</span><span id="line-16"><span class="kn">from</span><span class="w"> </span><span class="nn">dol.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">lazyprop</span><span class="p">,</span> <span class="n">lazyprop_w_sentinel</span>
-</span><span id="line-17">
-</span><span id="line-18"><span class="n">DFLT_SQL_PORT</span> <span class="o">=</span> <span class="mi">1433</span>
-</span><span id="line-19"><span class="n">DFLT_SQL_HOST</span> <span class="o">=</span> <span class="s2">"localhost"</span>
-</span><span id="line-20">
-</span><span id="line-21">
-</span><span id="line-22"><span class="c1"># TODO: decorator to automatically retry (once) if the connection times out</span>
-</span><span id="line-23"><span class="c1"># --&gt; from sqlalchemy.exc import OperationalError</span>
-</span><span id="line-24">
-</span><span id="line-25">
+</span><span id="line-5"><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+</span><span id="line-6"><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+</span><span id="line-7"><span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">index</span>
+</span><span id="line-8">
+</span><span id="line-9"><span class="kn">import</span><span class="w"> </span><span class="nn">sqlalchemy</span>
+</span><span id="line-10"><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Table</span>
+</span><span id="line-11"><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.ext.declarative</span><span class="w"> </span><span class="kn">import</span> <span class="n">declarative_base</span>
+</span><span id="line-12"><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">sessionmaker</span>
+</span><span id="line-13"><span class="kn">import</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">db</span>
+</span><span id="line-14">
+</span><span id="line-15"><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+</span><span id="line-16"><span class="kn">from</span><span class="w"> </span><span class="nn">dol.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">KvPersister</span>
+</span><span id="line-17"><span class="kn">from</span><span class="w"> </span><span class="nn">dol.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">KvReader</span>
+</span><span id="line-18"><span class="kn">from</span><span class="w"> </span><span class="nn">dol.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">lazyprop</span><span class="p">,</span> <span class="n">lazyprop_w_sentinel</span>
+</span><span id="line-19">
+</span><span id="line-20"><span class="n">DFLT_SQL_PORT</span> <span class="o">=</span> <span class="mi">1433</span>
+</span><span id="line-21"><span class="n">DFLT_SQL_HOST</span> <span class="o">=</span> <span class="s2">"localhost"</span>
+</span><span id="line-22">
+</span><span id="line-23"><span class="n">_SQL_IDENTIFIER_PART</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"(?=[\w$]*[^\W\d])[\w$]+"</span>  <span class="c1"># word chars or $, not all digits</span>
+</span><span id="line-24"><span class="n">SQL_IDENTIFIER_PATTERN</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+</span><span id="line-25">    <span class="sa">rf</span><span class="s2">"</span><span class="si">{</span><span class="n">_SQL_IDENTIFIER_PART</span><span class="si">}</span><span class="s2">(\.</span><span class="si">{</span><span class="n">_SQL_IDENTIFIER_PART</span><span class="si">}</span><span class="s2">)?"</span>
+</span><span id="line-26"><span class="p">)</span>
+</span><span id="line-27"><span class="sd">"""What a table name may look like where it is written into raw SQL text: letters</span>
+</span><span id="line-28"><span class="sd">(Unicode included), digits, ``_`` or ``$``, not all digits (MySQL allows e.g.</span>
+</span><span id="line-29"><span class="sd">``2020_sales``), optionally qualified by a schema (``schema.table``). None of these</span>
+</span><span id="line-30"><span class="sd">characters can end an identifier or start a new SQL token."""</span>
+</span><span id="line-31">
+</span><span id="line-32">
+<div class="viewcode-block" id="validate_sql_identifier">
+<a class="viewcode-back" href="../../_autosummary/sqldol.sql_base.html#sqldol.sql_base.validate_sql_identifier">[docs]</a>
+</span><span id="line-33"><span class="k">def</span><span class="w"> </span><span class="nf">validate_sql_identifier</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="n">SQL_IDENTIFIER_PATTERN</span><span class="p">):</span>
+</span><span id="line-34"><span class="w">    </span><span class="sd">"""Return ``name`` if it is safe to write into raw SQL text, else raise ``ValueError``.</span>
+</span><span id="line-35">
+</span><span id="line-36"><span class="sd">    The raw-SQL paths of this module cannot bind a table name as a parameter (no SQL</span>
+</span><span id="line-37"><span class="sd">    dialect allows that), and they may be handed a plain DB-API connection that has no</span>
+</span><span id="line-38"><span class="sd">    quoting helper, so they only accept names matching an allowlist.</span>
+</span><span id="line-39">
+</span><span id="line-40"><span class="sd">    &gt;&gt;&gt; validate_sql_identifier("my_table")</span>
+</span><span id="line-41"><span class="sd">    'my_table'</span>
+</span><span id="line-42"><span class="sd">    &gt;&gt;&gt; validate_sql_identifier("my_schema.my_table")</span>
+</span><span id="line-43"><span class="sd">    'my_schema.my_table'</span>
+</span><span id="line-44"><span class="sd">    &gt;&gt;&gt; validate_sql_identifier("t; SELECT 1")  # doctest: +ELLIPSIS</span>
+</span><span id="line-45"><span class="sd">    Traceback (most recent call last):</span>
+</span><span id="line-46"><span class="sd">        ...</span>
+</span><span id="line-47"><span class="sd">    ValueError: Not a valid SQL table name: 't; SELECT 1'. ...</span>
+</span><span id="line-48"><span class="sd">    """</span>
+</span><span id="line-49">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">pattern</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+</span><span id="line-50">        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="line-51">            <span class="sa">f</span><span class="s2">"Not a valid SQL table name: </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">. "</span>
+</span><span id="line-52">            <span class="sa">f</span><span class="s2">"Expected letters, digits, '_' or '$' (not all digits), "</span>
+</span><span id="line-53">            <span class="sa">f</span><span class="s2">"optionally qualified as 'schema.table'. "</span>
+</span><span id="line-54">            <span class="sa">f</span><span class="s2">"Names that need quoting are not supported here: use the SQLAlchemy-based "</span>
+</span><span id="line-55">            <span class="sa">f</span><span class="s2">"stores (sqldol.base, sqldol.stores), which quote identifiers themselves."</span>
+</span><span id="line-56">        <span class="p">)</span>
+</span><span id="line-57">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</span><span id="line-58">    <span class="k">return</span> <span class="n">name</span></div>
+
+</span><span id="line-59">
+</span><span id="line-60">
+</span><span id="line-61"><span class="c1"># TODO: decorator to automatically retry (once) if the connection times out</span>
+</span><span id="line-62"><span class="c1"># --&gt; from sqlalchemy.exc import OperationalError</span>
+</span><span id="line-63">
+</span><span id="line-64">
 <div class="viewcode-block" id="SqlTableRowsCollection">
 <a class="viewcode-back" href="../../_autosummary/sqldol.sql_base.html#sqldol.sql_base.SqlTableRowsCollection">[docs]</a>
-</span><span id="line-26"><span class="k">class</span><span class="w"> </span><span class="nc">SqlTableRowsCollection</span><span class="p">(</span><span class="n">Collection</span><span class="p">):</span>
-</span><span id="line-27"><span class="w">    </span><span class="sd">"""Base class wrapping an sql table.</span>
-</span><span id="line-28"><span class="sd">    It is Iterable (yields rows (as tuples)) and Sized (i.e. you can call len on it).</span>
-</span><span id="line-29"><span class="sd">    It's also a container, but brute-forced: should probably subclass if you want to perform `row in table` efficiently.</span>
-</span><span id="line-30">
-</span><span id="line-31"><span class="sd">    Note: Be aware of how this object works if you're (1) talking to a table whose contents are changing dynamically.</span>
-</span><span id="line-32"><span class="sd">    * count_rows() will return the current count every time</span>
-</span><span id="line-33"><span class="sd">    * len returns the value of the _row_count lazyprop</span>
-</span><span id="line-34"><span class="sd">    * _row_count returns the length of the _rows cache if it exists, and if not, will return the live count_rows</span>
-</span><span id="line-35"><span class="sd">    * if len (therefore _row_count) is called before the object listed the rows (therefore filling it's cache),</span>
-</span><span id="line-36"><span class="sd">        it will return the current number of rows, but if at the time of listing rows, the number of different,</span>
-</span><span id="line-37"><span class="sd">        the number of rows will be updated to match number of rows cached.</span>
-</span><span id="line-38"><span class="sd">    * column_names is a cached property</span>
-</span><span id="line-39"><span class="sd">    """</span>
-</span><span id="line-40">
-</span><span id="line-41">    <span class="n">_tmpl_count_rows_tmpl</span> <span class="o">=</span> <span class="s2">"SELECT COUNT(*) FROM </span><span class="si">{table_name}</span><span class="s2">"</span>
-</span><span id="line-42">    <span class="n">_tmpl_describe_tmpl</span> <span class="o">=</span> <span class="s2">"DESCRIBE </span><span class="si">{table_name}</span><span class="s2">"</span>
-</span><span id="line-43">    <span class="n">_tmpl_iter_tmpl</span> <span class="o">=</span> <span class="s2">"SELECT * FROM </span><span class="si">{table_name}</span><span class="s2">"</span>
-</span><span id="line-44">
-</span><span id="line-45">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e16</span><span class="p">)):</span>
-</span><span id="line-46">        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connection</span>
-</span><span id="line-47">        <span class="bp">self</span><span class="o">.</span><span class="n">table_name</span> <span class="o">=</span> <span class="n">table_name</span>
-</span><span id="line-48">        <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
-</span><span id="line-49">            <span class="n">iter_rows</span><span class="p">,</span>
-</span><span id="line-50">            <span class="n">connection</span><span class="o">=</span><span class="n">connection</span><span class="p">,</span>
-</span><span id="line-51">            <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
-</span><span id="line-52">            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
-</span><span id="line-53">            <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span>
-</span><span id="line-54">        <span class="p">)</span>
-</span><span id="line-55">
-</span><span id="line-56">    <span class="c1"># Helpers ##########################################################################################################</span>
-</span><span id="line-57">    <span class="c1"># QUESTION: Should helpers (_describe, _columns, etc.) should be methods/properties/lazyprops, and hidden or not?</span>
-</span><span id="line-58">
-</span><span id="line-59">    <span class="k">def</span><span class="w"> </span><span class="nf">count_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-60">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-</span><span id="line-61">            <span class="bp">self</span><span class="o">.</span><span class="n">_tmpl_count_rows_tmpl</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)</span>
-</span><span id="line-62">        <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="line-63">
-</span><span id="line-64">    <span class="nd">@lazyprop</span>
-</span><span id="line-65">    <span class="k">def</span><span class="w"> </span><span class="nf">_row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-66">        <span class="k">if</span> <span class="n">lazyprop_w_sentinel</span><span class="o">.</span><span class="n">cache_is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"_rows"</span><span class="p">):</span>
-</span><span id="line-67">            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rows</span><span class="p">)</span>
-</span><span id="line-68">        <span class="k">else</span><span class="p">:</span>
-</span><span id="line-69">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_rows</span><span class="p">()</span>
-</span><span id="line-70">
-</span><span id="line-71">    <span class="k">def</span><span class="w"> </span><span class="nf">refresh_row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-72">        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_row_count</span>  <span class="c1"># delete current</span>
-</span><span id="line-73">        <span class="k">return</span> <span class="p">(</span>
-</span><span id="line-74">            <span class="bp">self</span><span class="o">.</span><span class="n">_row_count</span>
-</span><span id="line-75">        <span class="p">)</span>  <span class="c1"># return current row count (mainly to refresh the lazyprop</span>
-</span><span id="line-76">
-</span><span id="line-77">    <span class="k">def</span><span class="w"> </span><span class="nf">_describe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-78">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-</span><span id="line-79">            <span class="bp">self</span><span class="o">.</span><span class="n">_tmpl_describe_tmpl</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)</span>
-</span><span id="line-80">        <span class="p">)</span>
-</span><span id="line-81">
-</span><span id="line-82">    <span class="nd">@lazyprop</span>
-</span><span id="line-83">    <span class="k">def</span><span class="w"> </span><span class="nf">column_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-84">        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_describe</span><span class="p">())</span>
-</span><span id="line-85">
-</span><span id="line-86">    <span class="nd">@lazyprop_w_sentinel</span>
-</span><span id="line-87">    <span class="k">def</span><span class="w"> </span><span class="nf">_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-88">        <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-</span><span id="line-89">            <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-</span><span id="line-90">                <span class="bp">self</span><span class="o">.</span><span class="n">_tmpl_iter_tmpl</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)</span>
-</span><span id="line-91">            <span class="p">)</span>
-</span><span id="line-92">        <span class="p">)</span>
-</span><span id="line-93">        <span class="bp">self</span><span class="o">.</span><span class="n">_row_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
-</span><span id="line-94">        <span class="k">return</span> <span class="n">rows</span>
-</span><span id="line-95">
-</span><span id="line-96">    <span class="c1">####################################################################################################################</span>
-</span><span id="line-97">
-</span><span id="line-98">    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-99">        <span class="c1"># Question: difference with `return iter(...)` for `for x in ...: yield x` options</span>
-</span><span id="line-100">        <span class="c1"># Question: Why is the construction of the connection.execute slow for big tables (not a real cursor it seems)</span>
-</span><span id="line-101">        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">()</span>
-</span><span id="line-102">
-</span><span id="line-103">    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-104">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_row_count</span>
-</span><span id="line-105">
-</span><span id="line-106">    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>  <span class="c1"># TODO: Make the ss[:-4] case work too</span>
-</span><span id="line-107">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
-</span><span id="line-108">            <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">idx</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">idx</span><span class="o">.</span><span class="n">step</span>
-</span><span id="line-109">            <span class="n">start</span> <span class="o">=</span> <span class="n">start</span> <span class="ow">or</span> <span class="mi">0</span>
-</span><span id="line-110">            <span class="k">assert</span> <span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"__getitem__ doesn't handle stepped slices"</span>
-</span><span id="line-111">            <span class="k">assert</span> <span class="n">start</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"slice start can't be negative"</span>
-</span><span id="line-112">
-</span><span id="line-113">            <span class="k">if</span> <span class="n">stop</span><span class="p">:</span>
-</span><span id="line-114">                <span class="k">assert</span> <span class="n">stop</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">,</span> <span class="s2">"slice stop must be at least the slice start"</span>
-</span><span id="line-115">                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
-</span><span id="line-116">            <span class="k">elif</span> <span class="n">start</span><span class="p">:</span>
-</span><span id="line-117">                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="n">start</span><span class="p">)</span>
-</span><span id="line-118">            <span class="k">else</span><span class="p">:</span>
-</span><span id="line-119">                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">()</span>
-</span><span id="line-120">        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-</span><span id="line-121">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="line-65"><span class="k">class</span><span class="w"> </span><span class="nc">SqlTableRowsCollection</span><span class="p">(</span><span class="n">Collection</span><span class="p">):</span>
+</span><span id="line-66"><span class="w">    </span><span class="sd">"""Base class wrapping an sql table.</span>
+</span><span id="line-67"><span class="sd">    It is Iterable (yields rows (as tuples)) and Sized (i.e. you can call len on it).</span>
+</span><span id="line-68"><span class="sd">    It's also a container, but brute-forced: should probably subclass if you want to perform `row in table` efficiently.</span>
+</span><span id="line-69">
+</span><span id="line-70"><span class="sd">    Note: Be aware of how this object works if you're (1) talking to a table whose contents are changing dynamically.</span>
+</span><span id="line-71"><span class="sd">    * count_rows() will return the current count every time</span>
+</span><span id="line-72"><span class="sd">    * len returns the value of the _row_count lazyprop</span>
+</span><span id="line-73"><span class="sd">    * _row_count returns the length of the _rows cache if it exists, and if not, will return the live count_rows</span>
+</span><span id="line-74"><span class="sd">    * if len (therefore _row_count) is called before the object listed the rows (therefore filling it's cache),</span>
+</span><span id="line-75"><span class="sd">        it will return the current number of rows, but if at the time of listing rows, the number of different,</span>
+</span><span id="line-76"><span class="sd">        the number of rows will be updated to match number of rows cached.</span>
+</span><span id="line-77"><span class="sd">    * column_names is a cached property</span>
+</span><span id="line-78"><span class="sd">    """</span>
+</span><span id="line-79">
+</span><span id="line-80">    <span class="n">_tmpl_count_rows_tmpl</span> <span class="o">=</span> <span class="s2">"SELECT COUNT(*) FROM </span><span class="si">{table_name}</span><span class="s2">"</span>
+</span><span id="line-81">    <span class="n">_tmpl_describe_tmpl</span> <span class="o">=</span> <span class="s2">"DESCRIBE </span><span class="si">{table_name}</span><span class="s2">"</span>
+</span><span id="line-82">    <span class="n">_tmpl_iter_tmpl</span> <span class="o">=</span> <span class="s2">"SELECT * FROM </span><span class="si">{table_name}</span><span class="s2">"</span>
+</span><span id="line-83">
+</span><span id="line-84">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e16</span><span class="p">)):</span>
+</span><span id="line-85">        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connection</span>
+</span><span id="line-86">        <span class="c1"># Note: table_name is written into raw SQL text (see the _tmpl_* templates),</span>
+</span><span id="line-87">        <span class="c1"># so it has to pass the identifier allowlist.</span>
+</span><span id="line-88">        <span class="bp">self</span><span class="o">.</span><span class="n">table_name</span> <span class="o">=</span> <span class="n">validate_sql_identifier</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+</span><span id="line-89">        <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+</span><span id="line-90">            <span class="n">iter_rows</span><span class="p">,</span>
+</span><span id="line-91">            <span class="n">connection</span><span class="o">=</span><span class="n">connection</span><span class="p">,</span>
+</span><span id="line-92">            <span class="n">table_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+</span><span id="line-93">            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+</span><span id="line-94">            <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span>
+</span><span id="line-95">        <span class="p">)</span>
+</span><span id="line-96">
+</span><span id="line-97">    <span class="c1"># Helpers ##########################################################################################################</span>
+</span><span id="line-98">    <span class="c1"># QUESTION: Should helpers (_describe, _columns, etc.) should be methods/properties/lazyprops, and hidden or not?</span>
+</span><span id="line-99">
+</span><span id="line-100">    <span class="k">def</span><span class="w"> </span><span class="nf">count_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-101">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="line-102">            <span class="bp">self</span><span class="o">.</span><span class="n">_tmpl_count_rows_tmpl</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)</span>
+</span><span id="line-103">        <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="line-104">
+</span><span id="line-105">    <span class="nd">@lazyprop</span>
+</span><span id="line-106">    <span class="k">def</span><span class="w"> </span><span class="nf">_row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-107">        <span class="k">if</span> <span class="n">lazyprop_w_sentinel</span><span class="o">.</span><span class="n">cache_is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"_rows"</span><span class="p">):</span>
+</span><span id="line-108">            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rows</span><span class="p">)</span>
+</span><span id="line-109">        <span class="k">else</span><span class="p">:</span>
+</span><span id="line-110">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_rows</span><span class="p">()</span>
+</span><span id="line-111">
+</span><span id="line-112">    <span class="k">def</span><span class="w"> </span><span class="nf">refresh_row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-113">        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_row_count</span>  <span class="c1"># delete current</span>
+</span><span id="line-114">        <span class="k">return</span> <span class="p">(</span>
+</span><span id="line-115">            <span class="bp">self</span><span class="o">.</span><span class="n">_row_count</span>
+</span><span id="line-116">        <span class="p">)</span>  <span class="c1"># return current row count (mainly to refresh the lazyprop</span>
+</span><span id="line-117">
+</span><span id="line-118">    <span class="k">def</span><span class="w"> </span><span class="nf">_describe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-119">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="line-120">            <span class="bp">self</span><span class="o">.</span><span class="n">_tmpl_describe_tmpl</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)</span>
+</span><span id="line-121">        <span class="p">)</span>
 </span><span id="line-122">
-</span><span id="line-123">    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-124">        <span class="k">return</span> <span class="sa">f</span><span class="s2">"SqlTable(..., table_name=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="si">}</span><span class="s2">)"</span></div>
-
-</span><span id="line-125">
+</span><span id="line-123">    <span class="nd">@lazyprop</span>
+</span><span id="line-124">    <span class="k">def</span><span class="w"> </span><span class="nf">column_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-125">        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_describe</span><span class="p">())</span>
 </span><span id="line-126">
+</span><span id="line-127">    <span class="nd">@lazyprop_w_sentinel</span>
+</span><span id="line-128">    <span class="k">def</span><span class="w"> </span><span class="nf">_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-129">        <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+</span><span id="line-130">            <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="line-131">                <span class="bp">self</span><span class="o">.</span><span class="n">_tmpl_iter_tmpl</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)</span>
+</span><span id="line-132">            <span class="p">)</span>
+</span><span id="line-133">        <span class="p">)</span>
+</span><span id="line-134">        <span class="bp">self</span><span class="o">.</span><span class="n">_row_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+</span><span id="line-135">        <span class="k">return</span> <span class="n">rows</span>
+</span><span id="line-136">
+</span><span id="line-137">    <span class="c1">####################################################################################################################</span>
+</span><span id="line-138">
+</span><span id="line-139">    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-140">        <span class="c1"># Question: difference with `return iter(...)` for `for x in ...: yield x` options</span>
+</span><span id="line-141">        <span class="c1"># Question: Why is the construction of the connection.execute slow for big tables (not a real cursor it seems)</span>
+</span><span id="line-142">        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">()</span>
+</span><span id="line-143">
+</span><span id="line-144">    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-145">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_row_count</span>
+</span><span id="line-146">
+</span><span id="line-147">    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>  <span class="c1"># TODO: Make the ss[:-4] case work too</span>
+</span><span id="line-148">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+</span><span id="line-149">            <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">idx</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">idx</span><span class="o">.</span><span class="n">step</span>
+</span><span id="line-150">            <span class="n">start</span> <span class="o">=</span> <span class="n">start</span> <span class="ow">or</span> <span class="mi">0</span>
+</span><span id="line-151">            <span class="k">assert</span> <span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"__getitem__ doesn't handle stepped slices"</span>
+</span><span id="line-152">            <span class="k">assert</span> <span class="n">start</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"slice start can't be negative"</span>
+</span><span id="line-153">
+</span><span id="line-154">            <span class="k">if</span> <span class="n">stop</span><span class="p">:</span>
+</span><span id="line-155">                <span class="k">assert</span> <span class="n">stop</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">,</span> <span class="s2">"slice stop must be at least the slice start"</span>
+</span><span id="line-156">                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+</span><span id="line-157">            <span class="k">elif</span> <span class="n">start</span><span class="p">:</span>
+</span><span id="line-158">                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="n">start</span><span class="p">)</span>
+</span><span id="line-159">            <span class="k">else</span><span class="p">:</span>
+</span><span id="line-160">                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">()</span>
+</span><span id="line-161">        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+</span><span id="line-162">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="line-163">
+</span><span id="line-164">    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-165">        <span class="k">return</span> <span class="sa">f</span><span class="s2">"SqlTable(..., table_name=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="si">}</span><span class="s2">)"</span></div>
+
+</span><span id="line-166">
+</span><span id="line-167">
 <div class="viewcode-block" id="SqlTableRowsSequence">
 <a class="viewcode-back" href="../../_autosummary/sqldol.sql_base.html#sqldol.sql_base.SqlTableRowsSequence">[docs]</a>
-</span><span id="line-127"><span class="k">class</span><span class="w"> </span><span class="nc">SqlTableRowsSequence</span><span class="p">(</span><span class="n">SqlTableRowsCollection</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
-</span><span id="line-128">    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
-</span><span id="line-129">        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">idx</span><span class="p">))</span></div>
+</span><span id="line-168"><span class="k">class</span><span class="w"> </span><span class="nc">SqlTableRowsSequence</span><span class="p">(</span><span class="n">SqlTableRowsCollection</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
+</span><span id="line-169">    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+</span><span id="line-170">        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">idx</span><span class="p">))</span></div>
 
-</span><span id="line-130">
-</span><span id="line-131">
+</span><span id="line-171">
+</span><span id="line-172">
 <div class="viewcode-block" id="SqlDbCollection">
 <a class="viewcode-back" href="../../_autosummary/sqldol.sql_base.html#sqldol.sql_base.SqlDbCollection">[docs]</a>
-</span><span id="line-132"><span class="k">class</span><span class="w"> </span><span class="nc">SqlDbCollection</span><span class="p">(</span><span class="n">Collection</span><span class="p">):</span>
-</span><span id="line-133"><span class="w">    </span><span class="sd">"""A collection of sql tables names."""</span>
-</span><span id="line-134">
-</span><span id="line-135">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
-</span><span id="line-136">        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connection</span>
-</span><span id="line-137">
-</span><span id="line-138">    <span class="nd">@classmethod</span>
-</span><span id="line-139">    <span class="k">def</span><span class="w"> </span><span class="nf">from_connection</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
-</span><span id="line-140">        <span class="k">pass</span>  <span class="c1"># TODO: Need to make object (with __new__) manually to do this?</span>
-</span><span id="line-141">
-</span><span id="line-142">    <span class="nd">@classmethod</span>
-</span><span id="line-143">    <span class="k">def</span><span class="w"> </span><span class="nf">from_engine</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
-</span><span id="line-144">        <span class="n">connection</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
-</span><span id="line-145">        <span class="n">o</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
-</span><span id="line-146">        <span class="n">o</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span>
-</span><span id="line-147">        <span class="k">return</span> <span class="n">o</span>
-</span><span id="line-148">
-</span><span id="line-149">    <span class="nd">@classmethod</span>
-</span><span id="line-150">    <span class="k">def</span><span class="w"> </span><span class="nf">from_uri</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">uri</span><span class="p">):</span>
-</span><span id="line-151">        <span class="n">engine</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">create_engine</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
-</span><span id="line-152">        <span class="n">o</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_engine</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
-</span><span id="line-153">        <span class="n">o</span><span class="o">.</span><span class="n">uri</span> <span class="o">=</span> <span class="n">uri</span>
-</span><span id="line-154">        <span class="k">return</span> <span class="n">o</span>
-</span><span id="line-155">
-</span><span id="line-156">    <span class="nd">@classmethod</span>
-</span><span id="line-157">    <span class="k">def</span><span class="w"> </span><span class="nf">from_config_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">):</span>
-</span><span id="line-158">        <span class="c1"># handle defaults</span>
-</span><span id="line-159">        <span class="n">config_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">DFLT_SQL_HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">DFLT_SQL_PORT</span><span class="p">),</span> <span class="o">**</span><span class="n">config_dict</span><span class="p">)</span>
-</span><span id="line-160">
-</span><span id="line-161">        <span class="c1"># validate input</span>
-</span><span id="line-162">        <span class="n">expected_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"user"</span><span class="p">,</span> <span class="s2">"pwd"</span><span class="p">,</span> <span class="s2">"host"</span><span class="p">,</span> <span class="s2">"port"</span><span class="p">,</span> <span class="s2">"database"</span><span class="p">}</span>
-</span><span id="line-163">        <span class="k">assert</span> <span class="p">{</span>
-</span><span id="line-164">            <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">expected_keys</span>
-</span><span id="line-165">        <span class="p">}</span> <span class="o">==</span> <span class="n">expected_keys</span><span class="p">,</span> <span class="s2">"incomplete config"</span>
-</span><span id="line-166">
-</span><span id="line-167">        <span class="c1"># make the uri</span>
-</span><span id="line-168">        <span class="n">uri</span> <span class="o">=</span> <span class="s2">"mysql+pymysql://</span><span class="si">{user}</span><span class="s2">:</span><span class="si">{pwd}</span><span class="s2">@</span><span class="si">{host}</span><span class="s2">:</span><span class="si">{port}</span><span class="s2">/</span><span class="si">{database}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-</span><span id="line-169">            <span class="o">**</span><span class="n">config_dict</span>
-</span><span id="line-170">        <span class="p">)</span>  <span class="c1"># connect to database</span>
-</span><span id="line-171">
-</span><span id="line-172">        <span class="c1"># make an instance from uri</span>
-</span><span id="line-173">        <span class="n">o</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
-</span><span id="line-174">        <span class="n">o</span><span class="o">.</span><span class="n">config_dict</span> <span class="o">=</span> <span class="n">config_dict</span>
-</span><span id="line-175">        <span class="k">return</span> <span class="n">o</span>
-</span><span id="line-176">
-</span><span id="line-177">    <span class="nd">@classmethod</span>
-</span><span id="line-178">    <span class="k">def</span><span class="w"> </span><span class="nf">from_configs</span><span class="p">(</span>
-</span><span id="line-179">        <span class="bp">cls</span><span class="p">,</span>
-</span><span id="line-180">        <span class="n">database</span><span class="p">,</span>
-</span><span id="line-181">        <span class="n">user</span><span class="o">=</span><span class="s2">"user"</span><span class="p">,</span>
-</span><span id="line-182">        <span class="n">pwd</span><span class="o">=</span><span class="s2">"password"</span><span class="p">,</span>
-</span><span id="line-183">        <span class="n">port</span><span class="o">=</span><span class="n">DFLT_SQL_PORT</span><span class="p">,</span>
-</span><span id="line-184">        <span class="n">host</span><span class="o">=</span><span class="n">DFLT_SQL_HOST</span><span class="p">,</span>
-</span><span id="line-185">    <span class="p">):</span>
-</span><span id="line-186">        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_config_dict</span><span class="p">(</span>
-</span><span id="line-187">            <span class="nb">dict</span><span class="p">(</span><span class="n">database</span><span class="o">=</span><span class="n">database</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span> <span class="n">pwd</span><span class="o">=</span><span class="n">pwd</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">)</span>
-</span><span id="line-188">        <span class="p">)</span>
+</span><span id="line-173"><span class="k">class</span><span class="w"> </span><span class="nc">SqlDbCollection</span><span class="p">(</span><span class="n">Collection</span><span class="p">):</span>
+</span><span id="line-174"><span class="w">    </span><span class="sd">"""A collection of sql tables names."""</span>
+</span><span id="line-175">
+</span><span id="line-176">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
+</span><span id="line-177">        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connection</span>
+</span><span id="line-178">
+</span><span id="line-179">    <span class="nd">@classmethod</span>
+</span><span id="line-180">    <span class="k">def</span><span class="w"> </span><span class="nf">from_connection</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
+</span><span id="line-181">        <span class="k">pass</span>  <span class="c1"># TODO: Need to make object (with __new__) manually to do this?</span>
+</span><span id="line-182">
+</span><span id="line-183">    <span class="nd">@classmethod</span>
+</span><span id="line-184">    <span class="k">def</span><span class="w"> </span><span class="nf">from_engine</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
+</span><span id="line-185">        <span class="n">connection</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+</span><span id="line-186">        <span class="n">o</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+</span><span id="line-187">        <span class="n">o</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span>
+</span><span id="line-188">        <span class="k">return</span> <span class="n">o</span>
 </span><span id="line-189">
-</span><span id="line-190">    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-191">        <span class="k">yield from</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"show tables"</span><span class="p">))</span></div>
+</span><span id="line-190">    <span class="nd">@classmethod</span>
+</span><span id="line-191">    <span class="k">def</span><span class="w"> </span><span class="nf">from_uri</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">uri</span><span class="p">):</span>
+</span><span id="line-192">        <span class="n">engine</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">create_engine</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+</span><span id="line-193">        <span class="n">o</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_engine</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+</span><span id="line-194">        <span class="n">o</span><span class="o">.</span><span class="n">uri</span> <span class="o">=</span> <span class="n">uri</span>
+</span><span id="line-195">        <span class="k">return</span> <span class="n">o</span>
+</span><span id="line-196">
+</span><span id="line-197">    <span class="nd">@classmethod</span>
+</span><span id="line-198">    <span class="k">def</span><span class="w"> </span><span class="nf">from_config_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">):</span>
+</span><span id="line-199">        <span class="c1"># handle defaults</span>
+</span><span id="line-200">        <span class="n">config_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">DFLT_SQL_HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">DFLT_SQL_PORT</span><span class="p">),</span> <span class="o">**</span><span class="n">config_dict</span><span class="p">)</span>
+</span><span id="line-201">
+</span><span id="line-202">        <span class="c1"># validate input</span>
+</span><span id="line-203">        <span class="n">expected_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"user"</span><span class="p">,</span> <span class="s2">"pwd"</span><span class="p">,</span> <span class="s2">"host"</span><span class="p">,</span> <span class="s2">"port"</span><span class="p">,</span> <span class="s2">"database"</span><span class="p">}</span>
+</span><span id="line-204">        <span class="k">assert</span> <span class="p">{</span>
+</span><span id="line-205">            <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">expected_keys</span>
+</span><span id="line-206">        <span class="p">}</span> <span class="o">==</span> <span class="n">expected_keys</span><span class="p">,</span> <span class="s2">"incomplete config"</span>
+</span><span id="line-207">
+</span><span id="line-208">        <span class="c1"># make the uri</span>
+</span><span id="line-209">        <span class="n">uri</span> <span class="o">=</span> <span class="s2">"mysql+pymysql://</span><span class="si">{user}</span><span class="s2">:</span><span class="si">{pwd}</span><span class="s2">@</span><span class="si">{host}</span><span class="s2">:</span><span class="si">{port}</span><span class="s2">/</span><span class="si">{database}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+</span><span id="line-210">            <span class="o">**</span><span class="n">config_dict</span>
+</span><span id="line-211">        <span class="p">)</span>  <span class="c1"># connect to database</span>
+</span><span id="line-212">
+</span><span id="line-213">        <span class="c1"># make an instance from uri</span>
+</span><span id="line-214">        <span class="n">o</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+</span><span id="line-215">        <span class="n">o</span><span class="o">.</span><span class="n">config_dict</span> <span class="o">=</span> <span class="n">config_dict</span>
+</span><span id="line-216">        <span class="k">return</span> <span class="n">o</span>
+</span><span id="line-217">
+</span><span id="line-218">    <span class="nd">@classmethod</span>
+</span><span id="line-219">    <span class="k">def</span><span class="w"> </span><span class="nf">from_configs</span><span class="p">(</span>
+</span><span id="line-220">        <span class="bp">cls</span><span class="p">,</span>
+</span><span id="line-221">        <span class="n">database</span><span class="p">,</span>
+</span><span id="line-222">        <span class="n">user</span><span class="o">=</span><span class="s2">"user"</span><span class="p">,</span>
+</span><span id="line-223">        <span class="n">pwd</span><span class="o">=</span><span class="s2">"password"</span><span class="p">,</span>
+</span><span id="line-224">        <span class="n">port</span><span class="o">=</span><span class="n">DFLT_SQL_PORT</span><span class="p">,</span>
+</span><span id="line-225">        <span class="n">host</span><span class="o">=</span><span class="n">DFLT_SQL_HOST</span><span class="p">,</span>
+</span><span id="line-226">    <span class="p">):</span>
+</span><span id="line-227">        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_config_dict</span><span class="p">(</span>
+</span><span id="line-228">            <span class="nb">dict</span><span class="p">(</span><span class="n">database</span><span class="o">=</span><span class="n">database</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span> <span class="n">pwd</span><span class="o">=</span><span class="n">pwd</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">)</span>
+</span><span id="line-229">        <span class="p">)</span>
+</span><span id="line-230">
+</span><span id="line-231">    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-232">        <span class="k">yield from</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"show tables"</span><span class="p">))</span></div>
 
-</span><span id="line-192">
-</span><span id="line-193">
+</span><span id="line-233">
+</span><span id="line-234">
 <div class="viewcode-block" id="SqlDbReader">
 <a class="viewcode-back" href="../../_autosummary/sqldol.sql_base.html#sqldol.sql_base.SqlDbReader">[docs]</a>
-</span><span id="line-194"><span class="k">class</span><span class="w"> </span><span class="nc">SqlDbReader</span><span class="p">(</span><span class="n">SqlDbCollection</span><span class="p">,</span> <span class="n">KvReader</span><span class="p">):</span>
-</span><span id="line-195"><span class="w">    </span><span class="sd">"""A KvReader of sql tables. Keys are table names and values are SqlTable objects"""</span>
-</span><span id="line-196">
-</span><span id="line-197">    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
-</span><span id="line-198">        <span class="k">return</span> <span class="n">SqlTableRowsCollection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span></div>
+</span><span id="line-235"><span class="k">class</span><span class="w"> </span><span class="nc">SqlDbReader</span><span class="p">(</span><span class="n">SqlDbCollection</span><span class="p">,</span> <span class="n">KvReader</span><span class="p">):</span>
+</span><span id="line-236"><span class="w">    </span><span class="sd">"""A KvReader of sql tables. Keys are table names and values are SqlTable objects"""</span>
+</span><span id="line-237">
+</span><span id="line-238">    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+</span><span id="line-239">        <span class="k">return</span> <span class="n">SqlTableRowsCollection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span></div>
 
-</span><span id="line-199">
-</span><span id="line-200">
-</span><span id="line-201"><span class="c1"># More explicit aliases</span>
-</span><span id="line-202"><span class="n">SqlAlchemyReader</span> <span class="o">=</span> <span class="n">SqlDbReader</span>
-</span><span id="line-203"><span class="n">SqlAlchemyDatabaseCollection</span> <span class="o">=</span> <span class="n">SqlDbCollection</span>
-</span><span id="line-204">
-</span><span id="line-205">
-</span><span id="line-206"><span class="c1"># class DfSqlDbReader(SqlDbReader):</span>
-</span><span id="line-207"><span class="c1">#     def __getitem__(self, k):</span>
-</span><span id="line-208"><span class="c1">#         with ModuleNotFoundErrorNiceMessage():</span>
-</span><span id="line-209"><span class="c1">#             import pandas as pd</span>
-</span><span id="line-210"><span class="c1">#         table = super().__getitem__(k)</span>
-</span><span id="line-211"><span class="c1">#         return pd.DataFrame(data=list(table), columns=table.column_names)</span>
-</span><span id="line-212">
-</span><span id="line-213"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
-</span><span id="line-214">
-</span><span id="line-215">
-</span><span id="line-216"><span class="k">def</span><span class="w"> </span><span class="nf">_split_uri_into_base_and_collection_name</span><span class="p">(</span><span class="n">uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-</span><span id="line-217"><span class="w">    </span><span class="sd">"""Splits a uri into a base and a collection name.</span>
-</span><span id="line-218">
-</span><span id="line-219"><span class="sd">    &gt;&gt;&gt; _split_uri_into_base_and_collection_name("sqlite:///my_sqlite.db/my_table")</span>
-</span><span id="line-220"><span class="sd">    ('sqlite:///my_sqlite.db', 'my_table')</span>
-</span><span id="line-221">
-</span><span id="line-222"><span class="sd">    """</span>
-</span><span id="line-223">    <span class="n">base</span><span class="p">,</span> <span class="n">collection_name</span> <span class="o">=</span> <span class="n">uri</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span id="line-224">    <span class="k">return</span> <span class="n">base</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="line-225">
-</span><span id="line-226">
+</span><span id="line-240">
+</span><span id="line-241">
+</span><span id="line-242"><span class="c1"># More explicit aliases</span>
+</span><span id="line-243"><span class="n">SqlAlchemyReader</span> <span class="o">=</span> <span class="n">SqlDbReader</span>
+</span><span id="line-244"><span class="n">SqlAlchemyDatabaseCollection</span> <span class="o">=</span> <span class="n">SqlDbCollection</span>
+</span><span id="line-245">
+</span><span id="line-246">
+</span><span id="line-247"><span class="c1"># class DfSqlDbReader(SqlDbReader):</span>
+</span><span id="line-248"><span class="c1">#     def __getitem__(self, k):</span>
+</span><span id="line-249"><span class="c1">#         with ModuleNotFoundErrorNiceMessage():</span>
+</span><span id="line-250"><span class="c1">#             import pandas as pd</span>
+</span><span id="line-251"><span class="c1">#         table = super().__getitem__(k)</span>
+</span><span id="line-252"><span class="c1">#         return pd.DataFrame(data=list(table), columns=table.column_names)</span>
+</span><span id="line-253">
+</span><span id="line-254"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
+</span><span id="line-255">
+</span><span id="line-256">
+</span><span id="line-257"><span class="k">def</span><span class="w"> </span><span class="nf">_split_uri_into_base_and_collection_name</span><span class="p">(</span><span class="n">uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+</span><span id="line-258"><span class="w">    </span><span class="sd">"""Splits a uri into a base and a collection name.</span>
+</span><span id="line-259">
+</span><span id="line-260"><span class="sd">    &gt;&gt;&gt; _split_uri_into_base_and_collection_name("sqlite:///my_sqlite.db/my_table")</span>
+</span><span id="line-261"><span class="sd">    ('sqlite:///my_sqlite.db', 'my_table')</span>
+</span><span id="line-262">
+</span><span id="line-263"><span class="sd">    """</span>
+</span><span id="line-264">    <span class="n">base</span><span class="p">,</span> <span class="n">collection_name</span> <span class="o">=</span> <span class="n">uri</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span><span id="line-265">    <span class="k">return</span> <span class="n">base</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="line-266">
+</span><span id="line-267">
 <div class="viewcode-block" id="SQLAlchemyPersister">
 <a class="viewcode-back" href="../../_autosummary/sqldol.sql_base.html#sqldol.sql_base.SQLAlchemyPersister">[docs]</a>
-</span><span id="line-227"><span class="k">class</span><span class="w"> </span><span class="nc">SQLAlchemyPersister</span><span class="p">(</span><span class="n">KvPersister</span><span class="p">):</span>
-</span><span id="line-228">    <span class="n">TYPE_INTEGER</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">INTEGER</span>
-</span><span id="line-229">    <span class="n">TYPE_STRING</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">String</span>
-</span><span id="line-230">    <span class="n">TYPE_BOOLEAN</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">BOOLEAN</span>
-</span><span id="line-231">    <span class="n">TYPE_BLOB</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">BLOB</span>
-</span><span id="line-232">    <span class="n">TYPE_TEXT</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">TEXT</span>
-</span><span id="line-233">
-</span><span id="line-234"><span class="w">    </span><span class="sd">"""</span>
-</span><span id="line-235"><span class="sd">    A basic SQL DB persister written with SQLAlchemy.</span>
-</span><span id="line-236"><span class="sd">    """</span>
-</span><span id="line-237">
-</span><span id="line-238">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-</span><span id="line-239">        <span class="bp">self</span><span class="p">,</span>
-</span><span id="line-240">        <span class="n">uri</span><span class="o">=</span><span class="s2">"sqlite:///my_sqlite.db"</span><span class="p">,</span>
-</span><span id="line-241">        <span class="n">collection_name</span><span class="o">=</span><span class="s2">"dol_default_table"</span><span class="p">,</span>
-</span><span id="line-242">        <span class="o">*</span><span class="p">,</span>
-</span><span id="line-243">        <span class="n">key_fields</span><span class="o">=</span><span class="p">{</span><span class="s2">"_id"</span><span class="p">:</span> <span class="n">TYPE_INTEGER</span><span class="p">},</span>
-</span><span id="line-244">        <span class="n">data_fields</span><span class="o">=</span><span class="p">{</span><span class="s2">"data"</span><span class="p">:</span> <span class="n">TYPE_STRING</span><span class="p">},</span>
-</span><span id="line-245">        <span class="n">autocommit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="line-246">        <span class="o">**</span><span class="n">db_kwargs</span><span class="p">,</span>
-</span><span id="line-247">    <span class="p">):</span>
-</span><span id="line-248"><span class="w">        </span><span class="sd">"""</span>
-</span><span id="line-249"><span class="sd">        :param uri: Uniform Resource Identifier of a database you would like to use.</span>
-</span><span id="line-250"><span class="sd">            Unix/Mac (note the four leading slashes)</span>
-</span><span id="line-251"><span class="sd">                sqlite:////absolute/path/to/foo.db</span>
-</span><span id="line-252">
-</span><span id="line-253"><span class="sd">            Windows (note 3 leading forward slashes and backslash escapes)</span>
-</span><span id="line-254"><span class="sd">                sqlite:///C:\\absolute\\path\\to\\foo.db</span>
-</span><span id="line-255">
-</span><span id="line-256"><span class="sd">            Or go for in-memory DB with NO PERSISTANCE:</span>
-</span><span id="line-257"><span class="sd">            sqlite:///:memory:</span>
-</span><span id="line-258">
-</span><span id="line-259"><span class="sd">            Other options:</span>
-</span><span id="line-260"><span class="sd">                postgresql://user:password@localhost:5432/my_db</span>
-</span><span id="line-261"><span class="sd">                mysql://user:password@localhost/db</span>
-</span><span id="line-262"><span class="sd">                oracle://user:password:tiger@localhost:1521/sidname</span>
-</span><span id="line-263">
-</span><span id="line-264"><span class="sd">            I.e. in general:</span>
-</span><span id="line-265"><span class="sd">                dialect+driver://username:password@host:port/database</span>
-</span><span id="line-266">
-</span><span id="line-267"><span class="sd">        :param collection_name: name of the table to use, i.e. "my_table".</span>
-</span><span id="line-268"><span class="sd">            If not given, it will be assumed that it's in the uri (i.e. the last part of the uri).</span>
-</span><span id="line-269"><span class="sd">        :param key_fields: indexed keys columns names.</span>
-</span><span id="line-270"><span class="sd">        :param data_fields: non-indexed data columns names.</span>
-</span><span id="line-271"><span class="sd">        :param autocommit: whether each data change should be instantly commited, or not.</span>
-</span><span id="line-272"><span class="sd">            It's off for context manager usecase (tbd).</span>
-</span><span id="line-273">
-</span><span id="line-274"><span class="sd">        :param kwargs: any extra kwargs for SQLAlchemy engine to setup.</span>
-</span><span id="line-275"><span class="sd">        """</span>
-</span><span id="line-276">        <span class="bp">self</span><span class="o">.</span><span class="n">_key_fields</span> <span class="o">=</span> <span class="n">key_fields</span>
-</span><span id="line-277">        <span class="bp">self</span><span class="o">.</span><span class="n">_data_fields</span> <span class="o">=</span> <span class="n">data_fields</span>
-</span><span id="line-278">        <span class="bp">self</span><span class="o">.</span><span class="n">autocommit</span> <span class="o">=</span> <span class="n">autocommit</span>
-</span><span id="line-279">
-</span><span id="line-280">        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="line-281">        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="line-282">        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="line-283">
-</span><span id="line-284">        <span class="c1"># if collection_name is None:</span>
-</span><span id="line-285">        <span class="c1">#     # TODO: Verify this logic and possibly refactor into a function</span>
-</span><span id="line-286">        <span class="c1">#     uri, collection_name = _split_uri_into_base_and_collection_name(uri))</span>
-</span><span id="line-287">
-</span><span id="line-288">        <span class="bp">self</span><span class="o">.</span><span class="n">_uri</span> <span class="o">=</span> <span class="n">uri</span>
-</span><span id="line-289">        <span class="bp">self</span><span class="o">.</span><span class="n">_collection_name</span> <span class="o">=</span> <span class="n">collection_name</span>
-</span><span id="line-290">        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="o">**</span><span class="n">db_kwargs</span><span class="p">)</span>
-</span><span id="line-291">
-</span><span id="line-292">    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_uri</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="o">**</span><span class="n">db_kwargs</span><span class="p">):</span>
-</span><span id="line-293">        <span class="c1"># Setup connection to our DB:</span>
-</span><span id="line-294">        <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">db_uri</span><span class="p">,</span> <span class="o">**</span><span class="n">db_kwargs</span><span class="p">)</span>
-</span><span id="line-295">        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+</span><span id="line-268"><span class="k">class</span><span class="w"> </span><span class="nc">SQLAlchemyPersister</span><span class="p">(</span><span class="n">KvPersister</span><span class="p">):</span>
+</span><span id="line-269">    <span class="n">TYPE_INTEGER</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">INTEGER</span>
+</span><span id="line-270">    <span class="n">TYPE_STRING</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">String</span>
+</span><span id="line-271">    <span class="n">TYPE_BOOLEAN</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">BOOLEAN</span>
+</span><span id="line-272">    <span class="n">TYPE_BLOB</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">BLOB</span>
+</span><span id="line-273">    <span class="n">TYPE_TEXT</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">TEXT</span>
+</span><span id="line-274">
+</span><span id="line-275"><span class="w">    </span><span class="sd">"""</span>
+</span><span id="line-276"><span class="sd">    A basic SQL DB persister written with SQLAlchemy.</span>
+</span><span id="line-277"><span class="sd">    """</span>
+</span><span id="line-278">
+</span><span id="line-279">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="line-280">        <span class="bp">self</span><span class="p">,</span>
+</span><span id="line-281">        <span class="n">uri</span><span class="o">=</span><span class="s2">"sqlite:///my_sqlite.db"</span><span class="p">,</span>
+</span><span id="line-282">        <span class="n">collection_name</span><span class="o">=</span><span class="s2">"dol_default_table"</span><span class="p">,</span>
+</span><span id="line-283">        <span class="o">*</span><span class="p">,</span>
+</span><span id="line-284">        <span class="n">key_fields</span><span class="o">=</span><span class="p">{</span><span class="s2">"_id"</span><span class="p">:</span> <span class="n">TYPE_INTEGER</span><span class="p">},</span>
+</span><span id="line-285">        <span class="n">data_fields</span><span class="o">=</span><span class="p">{</span><span class="s2">"data"</span><span class="p">:</span> <span class="n">TYPE_STRING</span><span class="p">},</span>
+</span><span id="line-286">        <span class="n">autocommit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="line-287">        <span class="o">**</span><span class="n">db_kwargs</span><span class="p">,</span>
+</span><span id="line-288">    <span class="p">):</span>
+</span><span id="line-289"><span class="w">        </span><span class="sd">"""</span>
+</span><span id="line-290"><span class="sd">        :param uri: Uniform Resource Identifier of a database you would like to use.</span>
+</span><span id="line-291"><span class="sd">            Unix/Mac (note the four leading slashes)</span>
+</span><span id="line-292"><span class="sd">                sqlite:////absolute/path/to/foo.db</span>
+</span><span id="line-293">
+</span><span id="line-294"><span class="sd">            Windows (note 3 leading forward slashes and backslash escapes)</span>
+</span><span id="line-295"><span class="sd">                sqlite:///C:\\absolute\\path\\to\\foo.db</span>
 </span><span id="line-296">
-</span><span id="line-297">        <span class="c1"># Create a table (if not there yet)</span>
-</span><span id="line-298">        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_table</span><span class="p">(</span><span class="n">collection_name</span><span class="p">,</span> <span class="n">engine</span><span class="p">)</span>
+</span><span id="line-297"><span class="sd">            Or go for in-memory DB with NO PERSISTANCE:</span>
+</span><span id="line-298"><span class="sd">            sqlite:///:memory:</span>
 </span><span id="line-299">
-</span><span id="line-300">        <span class="c1"># Open ORM session:</span>
-</span><span id="line-301">        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)()</span>
-</span><span id="line-302">
-</span><span id="line-303">    <span class="k">def</span><span class="w"> </span><span class="nf">table_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-304">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DESCRIBE </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span id="line-305">
-</span><span id="line-306">    <span class="k">def</span><span class="w"> </span><span class="nf">teardown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-307">        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</span><span id="line-308">        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</span><span id="line-309">
-</span><span id="line-310">    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-311">        <span class="k">return</span> <span class="bp">self</span>
-</span><span id="line-312">
-</span><span id="line-313">    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
-</span><span id="line-314">        <span class="bp">self</span><span class="o">.</span><span class="n">teardown</span><span class="p">()</span>
-</span><span id="line-315">        <span class="k">return</span> <span class="kc">False</span>
-</span><span id="line-316">
-</span><span id="line-317">    <span class="k">def</span><span class="w"> </span><span class="nf">_create_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
-</span><span id="line-318"><span class="w">        </span><span class="sd">"""Create our data table (if not there yet)."""</span>
-</span><span id="line-319">        <span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+</span><span id="line-300"><span class="sd">            Other options:</span>
+</span><span id="line-301"><span class="sd">                postgresql://user:password@localhost:5432/my_db</span>
+</span><span id="line-302"><span class="sd">                mysql://user:password@localhost/db</span>
+</span><span id="line-303"><span class="sd">                oracle://user:password:tiger@localhost:1521/sidname</span>
+</span><span id="line-304">
+</span><span id="line-305"><span class="sd">            I.e. in general:</span>
+</span><span id="line-306"><span class="sd">                dialect+driver://username:password@host:port/database</span>
+</span><span id="line-307">
+</span><span id="line-308"><span class="sd">        :param collection_name: name of the table to use, i.e. "my_table".</span>
+</span><span id="line-309"><span class="sd">            If not given, it will be assumed that it's in the uri (i.e. the last part of the uri).</span>
+</span><span id="line-310"><span class="sd">        :param key_fields: indexed keys columns names.</span>
+</span><span id="line-311"><span class="sd">        :param data_fields: non-indexed data columns names.</span>
+</span><span id="line-312"><span class="sd">        :param autocommit: whether each data change should be instantly commited, or not.</span>
+</span><span id="line-313"><span class="sd">            It's off for context manager usecase (tbd).</span>
+</span><span id="line-314">
+</span><span id="line-315"><span class="sd">        :param kwargs: any extra kwargs for SQLAlchemy engine to setup.</span>
+</span><span id="line-316"><span class="sd">        """</span>
+</span><span id="line-317">        <span class="bp">self</span><span class="o">.</span><span class="n">_key_fields</span> <span class="o">=</span> <span class="n">key_fields</span>
+</span><span id="line-318">        <span class="bp">self</span><span class="o">.</span><span class="n">_data_fields</span> <span class="o">=</span> <span class="n">data_fields</span>
+</span><span id="line-319">        <span class="bp">self</span><span class="o">.</span><span class="n">autocommit</span> <span class="o">=</span> <span class="n">autocommit</span>
 </span><span id="line-320">
-</span><span id="line-321">        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
-</span><span id="line-322">            <span class="n">table_name</span><span class="p">,</span>
-</span><span id="line-323">            <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
-</span><span id="line-324">            <span class="o">*</span><span class="p">[</span>
-</span><span id="line-325">                <span class="n">Column</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_fields</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="line-326">                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_fields</span>
-</span><span id="line-327">            <span class="p">],</span>
-</span><span id="line-328">            <span class="o">*</span><span class="p">[</span><span class="n">Column</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_fields</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_fields</span><span class="p">],</span>
-</span><span id="line-329">        <span class="p">)</span>
-</span><span id="line-330">        <span class="n">table</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="n">checkfirst</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="line-331">
-</span><span id="line-332">        <span class="c1"># Lets wrap our Table with Base so we'll be able to use ORM features later.</span>
-</span><span id="line-333">        <span class="k">class</span><span class="w"> </span><span class="nc">DeclarativeTable</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-</span><span id="line-334">            <span class="n">__table__</span> <span class="o">=</span> <span class="n">table</span>
-</span><span id="line-335">
-</span><span id="line-336">        <span class="k">return</span> <span class="n">DeclarativeTable</span>
+</span><span id="line-321">        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="line-322">        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="line-323">        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="line-324">
+</span><span id="line-325">        <span class="c1"># if collection_name is None:</span>
+</span><span id="line-326">        <span class="c1">#     # TODO: Verify this logic and possibly refactor into a function</span>
+</span><span id="line-327">        <span class="c1">#     uri, collection_name = _split_uri_into_base_and_collection_name(uri))</span>
+</span><span id="line-328">
+</span><span id="line-329">        <span class="bp">self</span><span class="o">.</span><span class="n">_uri</span> <span class="o">=</span> <span class="n">uri</span>
+</span><span id="line-330">        <span class="bp">self</span><span class="o">.</span><span class="n">_collection_name</span> <span class="o">=</span> <span class="n">collection_name</span>
+</span><span id="line-331">        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="o">**</span><span class="n">db_kwargs</span><span class="p">)</span>
+</span><span id="line-332">
+</span><span id="line-333">    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_uri</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="o">**</span><span class="n">db_kwargs</span><span class="p">):</span>
+</span><span id="line-334">        <span class="c1"># Setup connection to our DB:</span>
+</span><span id="line-335">        <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">db_uri</span><span class="p">,</span> <span class="o">**</span><span class="n">db_kwargs</span><span class="p">)</span>
+</span><span id="line-336">        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 </span><span id="line-337">
-</span><span id="line-338">    <span class="nd">@property</span>
-</span><span id="line-339">    <span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-340">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
-</span><span id="line-341">
-</span><span id="line-342">    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
-</span><span id="line-343">        <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="o">**</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-</span><span id="line-344">        <span class="c1"># todo: think of intuitive way of selecting many by 1 (or some) of many keys</span>
-</span><span id="line-345">        <span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="p">:</span>
-</span><span id="line-346">            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No document found for query: </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span id="line-347">
-</span><span id="line-348">        <span class="k">return</span> <span class="n">doc</span>
-</span><span id="line-349">
-</span><span id="line-350">    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="line-351"><span class="w">        </span><span class="sd">"""True if and only if a row matches the key query ``k``.</span>
-</span><span id="line-352">
-</span><span id="line-353"><span class="sd">        Getitem-based, so it agrees with ``__getitem__``, and it costs one</span>
-</span><span id="line-354"><span class="sd">        query instead of the brute-force scan inherited from</span>
-</span><span id="line-355"><span class="sd">        ``dol.base.Collection``. That inherited scan compared ``k`` against</span>
-</span><span id="line-356"><span class="sd">        whatever ``__iter__`` yields -- ORM row objects, never keys -- and so</span>
-</span><span id="line-357"><span class="sd">        answered False for every key, present or absent.</span>
-</span><span id="line-358">
-</span><span id="line-359"><span class="sd">        A key that cannot name a row at all (not a mapping of field to value,</span>
-</span><span id="line-360"><span class="sd">        or naming a field the table doesn't have) is simply not contained,</span>
-</span><span id="line-361"><span class="sd">        which is what the inherited scan answered too.</span>
-</span><span id="line-362"><span class="sd">        """</span>
-</span><span id="line-363">        <span class="k">try</span><span class="p">:</span>
-</span><span id="line-364">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="o">**</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-</span><span id="line-365">        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">exc</span><span class="o">.</span><span class="n">InvalidRequestError</span><span class="p">):</span>
-</span><span id="line-366">            <span class="k">return</span> <span class="kc">False</span>
-</span><span id="line-367">
-</span><span id="line-368">    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-</span><span id="line-369">        <span class="k">try</span><span class="p">:</span>
-</span><span id="line-370">            <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-</span><span id="line-371">        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-</span><span id="line-372">            <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="o">**</span><span class="n">k</span><span class="p">,</span> <span class="o">**</span><span class="n">v</span><span class="p">)</span>
-</span><span id="line-373">            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-</span><span id="line-374">        <span class="k">else</span><span class="p">:</span>
-</span><span id="line-375">            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="line-376">                <span class="nb">setattr</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-</span><span id="line-377">
-</span><span id="line-378">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autocommit</span><span class="p">:</span>
-</span><span id="line-379">            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="line-380">
-</span><span id="line-381">    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
-</span><span id="line-382">        <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-</span><span id="line-383">        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-</span><span id="line-384">
-</span><span id="line-385">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autocommit</span><span class="p">:</span>
-</span><span id="line-386">            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="line-387">
-</span><span id="line-388">    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-389">        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span>
+</span><span id="line-338">        <span class="c1"># Create a table (if not there yet)</span>
+</span><span id="line-339">        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_table</span><span class="p">(</span><span class="n">collection_name</span><span class="p">,</span> <span class="n">engine</span><span class="p">)</span>
+</span><span id="line-340">
+</span><span id="line-341">        <span class="c1"># Open ORM session:</span>
+</span><span id="line-342">        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)()</span>
+</span><span id="line-343">
+</span><span id="line-344">    <span class="k">def</span><span class="w"> </span><span class="nf">table_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-345">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DESCRIBE </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="line-346">
+</span><span id="line-347">    <span class="k">def</span><span class="w"> </span><span class="nf">teardown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-348">        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="line-349">        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="line-350">
+</span><span id="line-351">    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-352">        <span class="k">return</span> <span class="bp">self</span>
+</span><span id="line-353">
+</span><span id="line-354">    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+</span><span id="line-355">        <span class="bp">self</span><span class="o">.</span><span class="n">teardown</span><span class="p">()</span>
+</span><span id="line-356">        <span class="k">return</span> <span class="kc">False</span>
+</span><span id="line-357">
+</span><span id="line-358">    <span class="k">def</span><span class="w"> </span><span class="nf">_create_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
+</span><span id="line-359"><span class="w">        </span><span class="sd">"""Create our data table (if not there yet)."""</span>
+</span><span id="line-360">        <span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+</span><span id="line-361">
+</span><span id="line-362">        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+</span><span id="line-363">            <span class="n">table_name</span><span class="p">,</span>
+</span><span id="line-364">            <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
+</span><span id="line-365">            <span class="o">*</span><span class="p">[</span>
+</span><span id="line-366">                <span class="n">Column</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_fields</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="line-367">                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_fields</span>
+</span><span id="line-368">            <span class="p">],</span>
+</span><span id="line-369">            <span class="o">*</span><span class="p">[</span><span class="n">Column</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_fields</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_fields</span><span class="p">],</span>
+</span><span id="line-370">        <span class="p">)</span>
+</span><span id="line-371">        <span class="n">table</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="n">checkfirst</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="line-372">
+</span><span id="line-373">        <span class="c1"># Lets wrap our Table with Base so we'll be able to use ORM features later.</span>
+</span><span id="line-374">        <span class="k">class</span><span class="w"> </span><span class="nc">DeclarativeTable</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+</span><span id="line-375">            <span class="n">__table__</span> <span class="o">=</span> <span class="n">table</span>
+</span><span id="line-376">
+</span><span id="line-377">        <span class="k">return</span> <span class="n">DeclarativeTable</span>
+</span><span id="line-378">
+</span><span id="line-379">    <span class="nd">@property</span>
+</span><span id="line-380">    <span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-381">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
+</span><span id="line-382">
+</span><span id="line-383">    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+</span><span id="line-384">        <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="o">**</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</span><span id="line-385">        <span class="c1"># todo: think of intuitive way of selecting many by 1 (or some) of many keys</span>
+</span><span id="line-386">        <span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="p">:</span>
+</span><span id="line-387">            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No document found for query: </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="line-388">
+</span><span id="line-389">        <span class="k">return</span> <span class="n">doc</span>
 </span><span id="line-390">
-</span><span id="line-391">    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-392">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">count</span><span class="p">()</span></div>
-
+</span><span id="line-391">    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="line-392"><span class="w">        </span><span class="sd">"""True if and only if a row matches the key query ``k``.</span>
 </span><span id="line-393">
-</span><span id="line-394">    <span class="c1"># def __del__(self):</span>
-</span><span id="line-395">    <span class="c1">#     self.teardown()</span>
-</span><span id="line-396">
-</span><span id="line-397">
+</span><span id="line-394"><span class="sd">        Getitem-based, so it agrees with ``__getitem__``, and it costs one</span>
+</span><span id="line-395"><span class="sd">        query instead of the brute-force scan inherited from</span>
+</span><span id="line-396"><span class="sd">        ``dol.base.Collection``. That inherited scan compared ``k`` against</span>
+</span><span id="line-397"><span class="sd">        whatever ``__iter__`` yields -- ORM row objects, never keys -- and so</span>
+</span><span id="line-398"><span class="sd">        answered False for every key, present or absent.</span>
+</span><span id="line-399">
+</span><span id="line-400"><span class="sd">        A key that cannot name a row at all (not a mapping of field to value,</span>
+</span><span id="line-401"><span class="sd">        or naming a field the table doesn't have) is simply not contained,</span>
+</span><span id="line-402"><span class="sd">        which is what the inherited scan answered too.</span>
+</span><span id="line-403"><span class="sd">        """</span>
+</span><span id="line-404">        <span class="k">try</span><span class="p">:</span>
+</span><span id="line-405">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="o">**</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span id="line-406">        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">exc</span><span class="o">.</span><span class="n">InvalidRequestError</span><span class="p">):</span>
+</span><span id="line-407">            <span class="k">return</span> <span class="kc">False</span>
+</span><span id="line-408">
+</span><span id="line-409">    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+</span><span id="line-410">        <span class="k">try</span><span class="p">:</span>
+</span><span id="line-411">            <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+</span><span id="line-412">        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+</span><span id="line-413">            <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="o">**</span><span class="n">k</span><span class="p">,</span> <span class="o">**</span><span class="n">v</span><span class="p">)</span>
+</span><span id="line-414">            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+</span><span id="line-415">        <span class="k">else</span><span class="p">:</span>
+</span><span id="line-416">            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="line-417">                <span class="nb">setattr</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</span><span id="line-418">
+</span><span id="line-419">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autocommit</span><span class="p">:</span>
+</span><span id="line-420">            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="line-421">
+</span><span id="line-422">    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+</span><span id="line-423">        <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+</span><span id="line-424">        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+</span><span id="line-425">
+</span><span id="line-426">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autocommit</span><span class="p">:</span>
+</span><span id="line-427">            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="line-428">
+</span><span id="line-429">    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-430">        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span>
+</span><span id="line-431">
+</span><span id="line-432">    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-433">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">count</span><span class="p">()</span></div>
+
+</span><span id="line-434">
+</span><span id="line-435">    <span class="c1"># def __del__(self):</span>
+</span><span id="line-436">    <span class="c1">#     self.teardown()</span>
+</span><span id="line-437">
+</span><span id="line-438">
 <div class="viewcode-block" id="iter_rows">
 <a class="viewcode-back" href="../../_autosummary/sqldol.sql_base.html#sqldol.sql_base.iter_rows">[docs]</a>
-</span><span id="line-398"><span class="k">def</span><span class="w"> </span><span class="nf">iter_rows</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e12</span><span class="p">)):</span>
-</span><span id="line-399"><span class="w">    </span><span class="sd">"""Iterate the over the rows of a table.</span>
-</span><span id="line-400"><span class="sd">    The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.</span>
-</span><span id="line-401"><span class="sd">    """</span>
-</span><span id="line-402">    <span class="n">stop_offset</span> <span class="o">=</span> <span class="n">limit</span> <span class="o">+</span> <span class="n">offset</span>  <span class="c1"># to the range act like like sql limit</span>
-</span><span id="line-403">    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="line-404">    <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">stop_offset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
-</span><span id="line-405">        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">limit</span><span class="p">:</span>
-</span><span id="line-406">            <span class="k">break</span>
-</span><span id="line-407">        <span class="n">r</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-</span><span id="line-408">            <span class="sa">f</span><span class="s2">"SELECT * FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> LIMIT </span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s2"> OFFSET </span><span class="si">{</span><span class="n">offset</span><span class="si">}</span><span class="s2">"</span>
-</span><span id="line-409">        <span class="p">)</span>
-</span><span id="line-410">        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">rowcount</span><span class="p">:</span>
-</span><span id="line-411">            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">fetchall</span><span class="p">(),</span> <span class="n">i</span><span class="p">):</span>
-</span><span id="line-412">                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">:</span>
-</span><span id="line-413">                    <span class="k">yield</span> <span class="n">x</span>
-</span><span id="line-414">                <span class="k">else</span><span class="p">:</span>
-</span><span id="line-415">                    <span class="k">break</span>
-</span><span id="line-416">        <span class="k">else</span><span class="p">:</span>
-</span><span id="line-417">            <span class="k">break</span></div>
+</span><span id="line-439"><span class="k">def</span><span class="w"> </span><span class="nf">iter_rows</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e12</span><span class="p">)):</span>
+</span><span id="line-440"><span class="w">    </span><span class="sd">"""Iterate the over the rows of a table.</span>
+</span><span id="line-441"><span class="sd">    The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.</span>
+</span><span id="line-442">
+</span><span id="line-443"><span class="sd">    ``table_name`` must pass :func:`validate_sql_identifier`, and ``batch_size``,</span>
+</span><span id="line-444"><span class="sd">    ``offset`` and ``limit`` must be integers, because they are written into the SQL text.</span>
+</span><span id="line-445"><span class="sd">    """</span>
+</span><span id="line-446">    <span class="n">table_name</span> <span class="o">=</span> <span class="n">validate_sql_identifier</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+</span><span id="line-447">    <span class="n">batch_size</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">limit</span> <span class="o">=</span> <span class="n">index</span><span class="p">(</span><span class="n">batch_size</span><span class="p">),</span> <span class="n">index</span><span class="p">(</span><span class="n">offset</span><span class="p">),</span> <span class="n">index</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+</span><span id="line-448">    <span class="n">stop_offset</span> <span class="o">=</span> <span class="n">limit</span> <span class="o">+</span> <span class="n">offset</span>  <span class="c1"># to the range act like like sql limit</span>
+</span><span id="line-449">    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="line-450">    <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">stop_offset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+</span><span id="line-451">        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">limit</span><span class="p">:</span>
+</span><span id="line-452">            <span class="k">break</span>
+</span><span id="line-453">        <span class="n">r</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="line-454">            <span class="sa">f</span><span class="s2">"SELECT * FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> LIMIT </span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s2"> OFFSET </span><span class="si">{</span><span class="n">offset</span><span class="si">}</span><span class="s2">"</span>
+</span><span id="line-455">        <span class="p">)</span>
+</span><span id="line-456">        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">rowcount</span><span class="p">:</span>
+</span><span id="line-457">            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">fetchall</span><span class="p">(),</span> <span class="n">i</span><span class="p">):</span>
+</span><span id="line-458">                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">:</span>
+</span><span id="line-459">                    <span class="k">yield</span> <span class="n">x</span>
+</span><span id="line-460">                <span class="k">else</span><span class="p">:</span>
+</span><span id="line-461">                    <span class="k">break</span>
+</span><span id="line-462">        <span class="k">else</span><span class="p">:</span>
+</span><span id="line-463">            <span class="k">break</span></div>
 
-</span><span id="line-418">
-</span><span id="line-419">
-</span><span id="line-420"><span class="c1">####### Stores ########################################################################################################</span>
-</span><span id="line-421">
-</span><span id="line-422"><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">wraps</span>
-</span><span id="line-423"><span class="kn">from</span><span class="w"> </span><span class="nn">dol.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">lazyprop</span>
-</span><span id="line-424"><span class="kn">from</span><span class="w"> </span><span class="nn">dol.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Store</span>
-</span><span id="line-425">
-</span><span id="line-426">
+</span><span id="line-464">
+</span><span id="line-465">
+</span><span id="line-466"><span class="c1">####### Stores ########################################################################################################</span>
+</span><span id="line-467">
+</span><span id="line-468"><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">wraps</span>
+</span><span id="line-469"><span class="kn">from</span><span class="w"> </span><span class="nn">dol.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">lazyprop</span>
+</span><span id="line-470"><span class="kn">from</span><span class="w"> </span><span class="nn">dol.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Store</span>
+</span><span id="line-471">
+</span><span id="line-472">
 <div class="viewcode-block" id="SQLAlchemyStore">
 <a class="viewcode-back" href="../../_autosummary/sqldol.sql_base.html#sqldol.sql_base.SQLAlchemyStore">[docs]</a>
-</span><span id="line-427"><span class="k">class</span><span class="w"> </span><span class="nc">SQLAlchemyStore</span><span class="p">(</span><span class="n">Store</span><span class="p">):</span>
-</span><span id="line-428">    <span class="nd">@wraps</span><span class="p">(</span><span class="n">SQLAlchemyPersister</span><span class="o">.</span><span class="fm">__init__</span><span class="p">)</span>
-</span><span id="line-429">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span id="line-430">        <span class="n">persister</span> <span class="o">=</span> <span class="n">SQLAlchemyPersister</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="line-431">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">persister</span><span class="p">)</span></div>
+</span><span id="line-473"><span class="k">class</span><span class="w"> </span><span class="nc">SQLAlchemyStore</span><span class="p">(</span><span class="n">Store</span><span class="p">):</span>
+</span><span id="line-474">    <span class="nd">@wraps</span><span class="p">(</span><span class="n">SQLAlchemyPersister</span><span class="o">.</span><span class="fm">__init__</span><span class="p">)</span>
+</span><span id="line-475">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="line-476">        <span class="n">persister</span> <span class="o">=</span> <span class="n">SQLAlchemyPersister</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="line-477">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">persister</span><span class="p">)</span></div>
 
-</span><span id="line-432">
-</span><span id="line-433">
+</span><span id="line-478">
+</span><span id="line-479">
 <div class="viewcode-block" id="SQLAlchemyTupleStore">
 <a class="viewcode-back" href="../../_autosummary/sqldol.sql_base.html#sqldol.sql_base.SQLAlchemyTupleStore">[docs]</a>
-</span><span id="line-434"><span class="k">class</span><span class="w"> </span><span class="nc">SQLAlchemyTupleStore</span><span class="p">(</span><span class="n">SQLAlchemyStore</span><span class="p">):</span>
-</span><span id="line-435">    <span class="nd">@lazyprop</span>
-</span><span id="line-436">    <span class="k">def</span><span class="w"> </span><span class="nf">_key_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-437">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">_key_fields</span>
-</span><span id="line-438">
-</span><span id="line-439">    <span class="k">def</span><span class="w"> </span><span class="nf">_id_of_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
-</span><span id="line-440">        <span class="k">return</span> <span class="p">{</span><span class="n">field</span><span class="p">:</span> <span class="n">field_val</span> <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">field_val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_fields</span><span class="p">,</span> <span class="n">k</span><span class="p">)}</span>
-</span><span id="line-441">
-</span><span id="line-442">    <span class="k">def</span><span class="w"> </span><span class="nf">_key_of_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-</span><span id="line-443">        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_fields</span><span class="p">)</span>
-</span><span id="line-444">
-</span><span id="line-445">    <span class="nd">@lazyprop</span>
-</span><span id="line-446">    <span class="k">def</span><span class="w"> </span><span class="nf">_data_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="line-447">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">_data_fields</span>
-</span><span id="line-448">
-</span><span id="line-449">    <span class="k">def</span><span class="w"> </span><span class="nf">_data_of_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-</span><span id="line-450">        <span class="k">return</span> <span class="p">{</span><span class="n">field</span><span class="p">:</span> <span class="n">field_val</span> <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">field_val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_fields</span><span class="p">,</span> <span class="n">data</span><span class="p">)}</span>
-</span><span id="line-451">
-</span><span id="line-452">    <span class="k">def</span><span class="w"> </span><span class="nf">_obj_of_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-</span><span id="line-453">        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_fields</span><span class="p">)</span></div>
+</span><span id="line-480"><span class="k">class</span><span class="w"> </span><span class="nc">SQLAlchemyTupleStore</span><span class="p">(</span><span class="n">SQLAlchemyStore</span><span class="p">):</span>
+</span><span id="line-481">    <span class="nd">@lazyprop</span>
+</span><span id="line-482">    <span class="k">def</span><span class="w"> </span><span class="nf">_key_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-483">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">_key_fields</span>
+</span><span id="line-484">
+</span><span id="line-485">    <span class="k">def</span><span class="w"> </span><span class="nf">_id_of_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+</span><span id="line-486">        <span class="k">return</span> <span class="p">{</span><span class="n">field</span><span class="p">:</span> <span class="n">field_val</span> <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">field_val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_fields</span><span class="p">,</span> <span class="n">k</span><span class="p">)}</span>
+</span><span id="line-487">
+</span><span id="line-488">    <span class="k">def</span><span class="w"> </span><span class="nf">_key_of_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+</span><span id="line-489">        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_fields</span><span class="p">)</span>
+</span><span id="line-490">
+</span><span id="line-491">    <span class="nd">@lazyprop</span>
+</span><span id="line-492">    <span class="k">def</span><span class="w"> </span><span class="nf">_data_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="line-493">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">_data_fields</span>
+</span><span id="line-494">
+</span><span id="line-495">    <span class="k">def</span><span class="w"> </span><span class="nf">_data_of_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+</span><span id="line-496">        <span class="k">return</span> <span class="p">{</span><span class="n">field</span><span class="p">:</span> <span class="n">field_val</span> <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">field_val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_fields</span><span class="p">,</span> <span class="n">data</span><span class="p">)}</span>
+</span><span id="line-497">
+</span><span id="line-498">    <span class="k">def</span><span class="w"> </span><span class="nf">_obj_of_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+</span><span id="line-499">        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_fields</span><span class="p">)</span></div>
 
-</span><span id="line-454">
-</span><span id="line-455">
-</span><span id="line-456"><span class="c1"># Extras ###############################################################################################################</span>
-</span><span id="line-457"><span class="c1"># Note: The stuff below may require extra dependencies</span>
-</span><span id="line-458"><span class="c1">#</span>
-</span><span id="line-459">
-</span><span id="line-460">
-</span><span id="line-461"><span class="c1"># TODO: Move or remove, or add pandas dependency to sql (make a module for it)</span>
+</span><span id="line-500">
+</span><span id="line-501">
+</span><span id="line-502"><span class="c1"># Extras ###############################################################################################################</span>
+</span><span id="line-503"><span class="c1"># Note: The stuff below may require extra dependencies</span>
+</span><span id="line-504"><span class="c1">#</span>
+</span><span id="line-505">
+</span><span id="line-506">
+</span><span id="line-507"><span class="c1"># TODO: Move or remove, or add pandas dependency to sql (make a module for it)</span>
 <div class="viewcode-block" id="DfSqlDbReader">
 <a class="viewcode-back" href="../../_autosummary/sqldol.sql_base.html#sqldol.sql_base.DfSqlDbReader">[docs]</a>
-</span><span id="line-462"><span class="k">class</span><span class="w"> </span><span class="nc">DfSqlDbReader</span><span class="p">(</span><span class="n">SqlDbReader</span><span class="p">):</span>
-</span><span id="line-463">    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
-</span><span id="line-464">        <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-</span><span id="line-465">
-</span><span id="line-466">        <span class="n">table</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
-</span><span id="line-467">        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">table</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="n">table</span><span class="o">.</span><span class="n">column_names</span><span class="p">)</span></div>
+</span><span id="line-508"><span class="k">class</span><span class="w"> </span><span class="nc">DfSqlDbReader</span><span class="p">(</span><span class="n">SqlDbReader</span><span class="p">):</span>
+</span><span id="line-509">    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+</span><span id="line-510">        <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="line-511">
+</span><span id="line-512">        <span class="n">table</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+</span><span id="line-513">        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">table</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="n">table</span><span class="o">.</span><span class="n">column_names</span><span class="p">)</span></div>
 
 </span></code></pre></div>
     </div></div>
@@ -670,7 +719,7 @@
 </footer>
     </div>
     
-    <script src="../../_static/documentation_options.js?v=59fadc99"></script>
+    <script src="../../_static/documentation_options.js?v=6e0256f3"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

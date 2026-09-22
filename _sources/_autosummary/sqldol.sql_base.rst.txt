@@ -4,11 +4,18 @@ sqldol.sql\_base
 .. automodule:: sqldol.sql_base
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SQL_IDENTIFIER_PATTERN
+   
    .. rubric:: Functions
 
    .. autosummary::
    
       iter_rows
+      validate_sql_identifier
    
    .. rubric:: Classes
 

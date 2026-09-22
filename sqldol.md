@@ -1,4 +1,4 @@
-> built 2026-09-22 14:10 UTC from 0121e60 (master) · sqldol 0.1.5. Details: build_info.json
+> built 2026-09-22 14:36 UTC from 0da1a8a (master) · sqldol 0.1.6. Details: build_info.json
 
 # index.html.md
 
@@ -326,10 +326,16 @@ sql with a simple (dict-like or list-like) interface
 Independent legacy DOLs
 sql with a simple (dict-like or list-like) interface
 
+### Module Attributes
+
+| [`SQL_IDENTIFIER_PATTERN`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SQL_IDENTIFIER_PATTERN)   | letters (Unicode included), digits, `_` or `$`, not all digits (MySQL allows e.g. `2020_sales`), optionally qualified by a schema (`schema.table`).   |
+|---------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### Functions
 
-| [`iter_rows`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.iter_rows)(connection, table_name[, ...])   | Iterate the over the rows of a table.   |
-|---------------------------------------------------------------------------------------------|-----------------------------------------|
+| [`iter_rows`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.iter_rows)(connection, table_name[, ...])     | Iterate the over the rows of a table.                                            |
+|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`validate_sql_identifier`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.validate_sql_identifier)(name, \*[, pattern]) | Return `name` if it is safe to write into raw SQL text, else raise `ValueError`. |
 
 ### Classes
 
@@ -383,6 +389,16 @@ Bases: `Store`
 
 Bases: [`SQLAlchemyStore`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SQLAlchemyStore)
 
+### sqldol.sql_base.SQL_IDENTIFIER_PATTERN *= re.compile('(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+(\\\\.(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+)?')*
+
+letters
+(Unicode included), digits, `_` or `$`, not all digits (MySQL allows e.g.
+`2020_sales`), optionally qualified by a schema (`schema.table`). None of these
+characters can end an identifier or start a new SQL token.
+
+* **Type:**
+  What a table name may look like where it is written into raw SQL text
+
 ### sqldol.sql_base.SqlAlchemyDatabaseCollection
 
 alias of [`SqlDbCollection`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlDbCollection)
@@ -430,6 +446,28 @@ Bases: [`SqlTableRowsCollection`](_autosummary/sqldol.sql_base.html.md#sqldol.sq
 
 Iterate the over the rows of a table.
 The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.
+
+`table_name` must pass [`validate_sql_identifier()`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.validate_sql_identifier), and `batch_size`,
+`offset` and `limit` must be integers, because they are written into the SQL text.
+
+### sqldol.sql_base.validate_sql_identifier(name, , pattern=re.compile('(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+(\\\\.(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+)?'))
+
+Return `name` if it is safe to write into raw SQL text, else raise `ValueError`.
+
+The raw-SQL paths of this module cannot bind a table name as a parameter (no SQL
+dialect allows that), and they may be handed a plain DB-API connection that has no
+quoting helper, so they only accept names matching an allowlist.
+
+```pycon
+>>> validate_sql_identifier("my_table")
+'my_table'
+>>> validate_sql_identifier("my_schema.my_table")
+'my_schema.my_table'
+>>> validate_sql_identifier("t; SELECT 1")
+Traceback (most recent call last):
+    ...
+ValueError: Not a valid SQL table name: 't; SELECT 1'. ...
+```
 
 
 # _autosummary/sqldol.stores.html.md
@@ -516,7 +554,7 @@ If the table does not exist, it will be created with the specified columns.
 
 # About this build
 
-This documentation was built on **2026-09-22 14:10 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/0121e600cbd51621e765e41d1706d2badd963a82"><code>0121e60</code></a> on branch <code>master</code>, for **sqldol 0.1.5** (from <code>setup.cfg</code>).
+This documentation was built on **2026-09-22 14:36 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/0da1a8a041edfb1e29f4b2d09041d5b455bce48d"><code>0da1a8a</code></a> on branch <code>master</code>, for **sqldol 0.1.6** (from <code>setup.cfg</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -525,9 +563,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/sqldol/commit/0121e600cbd51621e765e41d1706d2badd963a82"><code>0121e600cbd51621e765e41d1706d2badd963a82</code></a> |
+| Commit              | <a href="https://github.com/i2mint/sqldol/commit/0da1a8a041edfb1e29f4b2d09041d5b455bce48d"><code>0da1a8a041edfb1e29f4b2d09041d5b455bce48d</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.5</code>                                                                                                                                   |
+| Tags at this commit | <code>0.1.6</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/sqldol</code>                                                                                                        |
 
@@ -536,9 +574,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/sqldol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/35738310030">35738310030</a>        |
+| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/35741232216">35741232216</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>da5c6ed9eb24a529b79cad47e946194eab77b101</code> (in the history of the built commit) |
+| Event commit | <code>d8c2d2559c2e925ce6d9954d11f2eb17d2e522d0</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -563,13 +601,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/sqldol/0.1.5/">0.1.5</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/sqldol/0.1.6/">0.1.6</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/sqldol && cd sqldol
-git checkout 0121e600cbd51621e765e41d1706d2badd963a82
+git checkout 0da1a8a041edfb1e29f4b2d09041d5b455bce48d
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

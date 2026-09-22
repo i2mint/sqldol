@@ -119,11 +119,22 @@
 <span id="sqldol-sql-base"></span><h1>sqldol.sql_base<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#module-sqldol.sql_base">¶</a></h1>
 <p>Independent legacy DOLs
 sql with a simple (dict-like or list-like) interface</p>
+<p class="rubric">Module Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.SQL_IDENTIFIER_PATTERN" title="sqldol.sql_base.SQL_IDENTIFIER_PATTERN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SQL_IDENTIFIER_PATTERN</span></code></a></p></td>
+<td><p>letters (Unicode included), digits, <code class="docutils literal notranslate"><span class="pre">_</span></code> or <code class="docutils literal notranslate"><span class="pre">$</span></code>, not all digits (MySQL allows e.g. <code class="docutils literal notranslate"><span class="pre">2020_sales</span></code>), optionally qualified by a schema (<code class="docutils literal notranslate"><span class="pre">schema.table</span></code>).</p></td>
+</tr>
+</tbody>
+</table>
 <p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.iter_rows" title="sqldol.sql_base.iter_rows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_rows</span></code></a>(connection, table_name[, ...])</p></td>
 <td><p>Iterate the over the rows of a table.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.validate_sql_identifier" title="sqldol.sql_base.validate_sql_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_sql_identifier</span></code></a>(name, *[, pattern])</p></td>
+<td><p>Return <code class="docutils literal notranslate"><span class="pre">name</span></code> if it is safe to write into raw SQL text, else raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -208,6 +219,19 @@ sql with a simple (dict-like or list-like) interface</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SQLAlchemyTupleStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sqlite:///my_sqlite.db'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dol_default_table'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'_id':</span> <span class="pre">&lt;class</span> <span class="pre">'sqlalchemy.sql.sqltypes.INTEGER'&gt;}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'data':</span> <span class="pre">&lt;class</span> <span class="pre">'sqlalchemy.sql.sqltypes.String'&gt;}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autocommit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**db_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/sqldol/sql_base.html#SQLAlchemyTupleStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQLAlchemyTupleStore" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQLAlchemyTupleStore'">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqldol.sql_base.SQLAlchemyStore" title="sqldol.sql_base.SQLAlchemyStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">SQLAlchemyStore</span></code></a></p>
 </dd></dl>
+<dl class="py data">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQL_IDENTIFIER_PATTERN">
+<span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SQL_IDENTIFIER_PATTERN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">re.compile('(?=[\\w$]*[^\\W\\d])[\\w$]+(\\.(?=[\\w$]*[^\\W\\d])[\\w$]+)?')</span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQL_IDENTIFIER_PATTERN" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQL_IDENTIFIER_PATTERN'">¶</a></dt>
+<dd><p>letters
+(Unicode included), digits, <code class="docutils literal notranslate"><span class="pre">_</span></code> or <code class="docutils literal notranslate"><span class="pre">$</span></code>, not all digits (MySQL allows e.g.
+<code class="docutils literal notranslate"><span class="pre">2020_sales</span></code>), optionally qualified by a schema (<code class="docutils literal notranslate"><span class="pre">schema.table</span></code>). None of these
+characters can end an identifier or start a new SQL token.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>What a table name may look like where it is written into raw SQL text</p>
+</dd>
+</dl>
+</dd></dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="sqldol.sql_base.SqlAlchemyDatabaseCollection">
 <span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SqlAlchemyDatabaseCollection</span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SqlAlchemyDatabaseCollection" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SqlAlchemyDatabaseCollection'">¶</a></dt>
@@ -264,6 +288,26 @@ the number of rows will be updated to match number of rows cached.</p>
 <span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">iter_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/sqldol/sql_base.html#iter_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.iter_rows" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.iter_rows'">¶</a></dt>
 <dd><p>Iterate the over the rows of a table.
 The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.</p>
+<p><code class="docutils literal notranslate"><span class="pre">table_name</span></code> must pass <a class="reference internal" href="#sqldol.sql_base.validate_sql_identifier" title="sqldol.sql_base.validate_sql_identifier"><code class="xref py py-func docutils literal notranslate"><span class="pre">validate_sql_identifier()</span></code></a>, and <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>,
+<code class="docutils literal notranslate"><span class="pre">offset</span></code> and <code class="docutils literal notranslate"><span class="pre">limit</span></code> must be integers, because they are written into the SQL text.</p>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="sqldol.sql_base.validate_sql_identifier">
+<span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">validate_sql_identifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">re.compile('(?=[\\w$]*[^\\W\\d])[\\w$]+(\\.(?=[\\w$]*[^\\W\\d])[\\w$]+)?')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/sqldol/sql_base.html#validate_sql_identifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.validate_sql_identifier" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.validate_sql_identifier'">¶</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">name</span></code> if it is safe to write into raw SQL text, else raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p>
+<p>The raw-SQL paths of this module cannot bind a table name as a parameter (no SQL
+dialect allows that), and they may be handed a plain DB-API connection that has no
+quoting helper, so they only accept names matching an allowlist.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">validate_sql_identifier</span><span class="p">(</span><span class="s2">"my_table"</span><span class="p">)</span>
+</span><span id="line-2"><span class="go">'my_table'</span>
+</span><span id="line-3"><span class="gp">&gt;&gt;&gt; </span><span class="n">validate_sql_identifier</span><span class="p">(</span><span class="s2">"my_schema.my_table"</span><span class="p">)</span>
+</span><span id="line-4"><span class="go">'my_schema.my_table'</span>
+</span><span id="line-5"><span class="gp">&gt;&gt;&gt; </span><span class="n">validate_sql_identifier</span><span class="p">(</span><span class="s2">"t; SELECT 1"</span><span class="p">)</span>
+</span><span id="line-6"><span class="gt">Traceback (most recent call last):</span>
+</span><span id="line-7"><span class="w">    </span><span class="o">...</span>
+</span><span id="line-8"><span class="gr">ValueError</span>: <span class="n">Not a valid SQL table name: 't; SELECT 1'. ...</span>
+</span></code></pre></div>
+</div>
 </dd></dl>
 </section>
 </div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
@@ -280,6 +324,7 @@ The limit argument is mostly there to avoid an infinite loop, but can also be us
 </li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyStore'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyStore"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyStore</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyTupleStore'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyTupleStore"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyTupleStore</span></code></a></li>
+<li><a :data-current="activeSection === '#sqldol.sql_base.SQL_IDENTIFIER_PATTERN'" class="reference internal" href="#sqldol.sql_base.SQL_IDENTIFIER_PATTERN"><code class="docutils literal notranslate"><span class="pre">SQL_IDENTIFIER_PATTERN</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SqlAlchemyDatabaseCollection'" class="reference internal" href="#sqldol.sql_base.SqlAlchemyDatabaseCollection"><code class="docutils literal notranslate"><span class="pre">SqlAlchemyDatabaseCollection</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SqlAlchemyReader'" class="reference internal" href="#sqldol.sql_base.SqlAlchemyReader"><code class="docutils literal notranslate"><span class="pre">SqlAlchemyReader</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SqlDbCollection'" class="reference internal" href="#sqldol.sql_base.SqlDbCollection"><code class="docutils literal notranslate"><span class="pre">SqlDbCollection</span></code></a></li>
@@ -287,6 +332,7 @@ The limit argument is mostly there to avoid an infinite loop, but can also be us
 <li><a :data-current="activeSection === '#sqldol.sql_base.SqlTableRowsCollection'" class="reference internal" href="#sqldol.sql_base.SqlTableRowsCollection"><code class="docutils literal notranslate"><span class="pre">SqlTableRowsCollection</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SqlTableRowsSequence'" class="reference internal" href="#sqldol.sql_base.SqlTableRowsSequence"><code class="docutils literal notranslate"><span class="pre">SqlTableRowsSequence</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.iter_rows'" class="reference internal" href="#sqldol.sql_base.iter_rows"><code class="docutils literal notranslate"><span class="pre">iter_rows()</span></code></a></li>
+<li><a :data-current="activeSection === '#sqldol.sql_base.validate_sql_identifier'" class="reference internal" href="#sqldol.sql_base.validate_sql_identifier"><code class="docutils literal notranslate"><span class="pre">validate_sql_identifier()</span></code></a></li>
 </ul>
 </div>
 </aside>
@@ -300,7 +346,7 @@ The limit argument is mostly there to avoid an infinite loop, but can also be us
 </div>
 </footer>
 </div>
-<script src="../_static/documentation_options.js?v=59fadc99"></script>
+<script src="../_static/documentation_options.js?v=6e0256f3"></script>
 <script src="../_static/doctools.js?v=fd6eb6e6"></script>
 <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
 <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

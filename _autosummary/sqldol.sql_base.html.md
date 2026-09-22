@@ -3,10 +3,16 @@
 Independent legacy DOLs
 sql with a simple (dict-like or list-like) interface
 
+### Module Attributes
+
+| [`SQL_IDENTIFIER_PATTERN`](#sqldol.sql_base.SQL_IDENTIFIER_PATTERN)   | letters (Unicode included), digits, `_` or `$`, not all digits (MySQL allows e.g. `2020_sales`), optionally qualified by a schema (`schema.table`).   |
+|---------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### Functions
 
-| [`iter_rows`](#sqldol.sql_base.iter_rows)(connection, table_name[, ...])   | Iterate the over the rows of a table.   |
-|---------------------------------------------------------------------------------------------|-----------------------------------------|
+| [`iter_rows`](#sqldol.sql_base.iter_rows)(connection, table_name[, ...])     | Iterate the over the rows of a table.                                            |
+|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`validate_sql_identifier`](#sqldol.sql_base.validate_sql_identifier)(name, \*[, pattern]) | Return `name` if it is safe to write into raw SQL text, else raise `ValueError`. |
 
 ### Classes
 
@@ -60,6 +66,16 @@ Bases: `Store`
 
 Bases: [`SQLAlchemyStore`](#sqldol.sql_base.SQLAlchemyStore)
 
+### sqldol.sql_base.SQL_IDENTIFIER_PATTERN *= re.compile('(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+(\\\\.(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+)?')*
+
+letters
+(Unicode included), digits, `_` or `$`, not all digits (MySQL allows e.g.
+`2020_sales`), optionally qualified by a schema (`schema.table`). None of these
+characters can end an identifier or start a new SQL token.
+
+* **Type:**
+  What a table name may look like where it is written into raw SQL text
+
 ### sqldol.sql_base.SqlAlchemyDatabaseCollection
 
 alias of [`SqlDbCollection`](#sqldol.sql_base.SqlDbCollection)
@@ -107,3 +123,25 @@ Bases: [`SqlTableRowsCollection`](#sqldol.sql_base.SqlTableRowsCollection), [`Se
 
 Iterate the over the rows of a table.
 The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.
+
+`table_name` must pass [`validate_sql_identifier()`](#sqldol.sql_base.validate_sql_identifier), and `batch_size`,
+`offset` and `limit` must be integers, because they are written into the SQL text.
+
+### sqldol.sql_base.validate_sql_identifier(name, , pattern=re.compile('(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+(\\\\.(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+)?'))
+
+Return `name` if it is safe to write into raw SQL text, else raise `ValueError`.
+
+The raw-SQL paths of this module cannot bind a table name as a parameter (no SQL
+dialect allows that), and they may be handed a plain DB-API connection that has no
+quoting helper, so they only accept names matching an allowlist.
+
+```pycon
+>>> validate_sql_identifier("my_table")
+'my_table'
+>>> validate_sql_identifier("my_schema.my_table")
+'my_schema.my_table'
+>>> validate_sql_identifier("t; SELECT 1")
+Traceback (most recent call last):
+    ...
+ValueError: Not a valid SQL table name: 't; SELECT 1'. ...
+```

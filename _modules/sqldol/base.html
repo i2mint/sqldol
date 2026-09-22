@@ -175,10 +175,10 @@
 </span><span id="line-10">    <span class="n">insert</span><span class="p">,</span>
 </span><span id="line-11">    <span class="n">exists</span><span class="p">,</span>
 </span><span id="line-12">    <span class="n">update</span><span class="p">,</span>
-</span><span id="line-13">    <span class="n">text</span><span class="p">,</span>
-</span><span id="line-14">    <span class="n">func</span><span class="p">,</span>
-</span><span id="line-15">    <span class="n">Engine</span><span class="p">,</span>
-</span><span id="line-16">    <span class="n">Column</span><span class="p">,</span>
+</span><span id="line-13">    <span class="n">func</span><span class="p">,</span>
+</span><span id="line-14">    <span class="n">Engine</span><span class="p">,</span>
+</span><span id="line-15">    <span class="n">Column</span><span class="p">,</span>
+</span><span id="line-16">    <span class="n">and_</span><span class="p">,</span>
 </span><span id="line-17"><span class="p">)</span>
 </span><span id="line-18">
 </span><span id="line-19"><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">MetaData</span>
@@ -470,55 +470,87 @@
 <div class="viewcode-block" id="SqlBaseKvStore">
 <a class="viewcode-back" href="../../_autosummary/sqldol.base.html#sqldol.base.SqlBaseKvStore">[docs]</a>
 </span><span id="line-293"><span class="k">class</span><span class="w"> </span><span class="nc">SqlBaseKvStore</span><span class="p">(</span><span class="n">SqlBaseKvReader</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">):</span>
-</span><span id="line-294">    <span class="k">def</span><span class="w"> </span><span class="nf">_mk_column_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-</span><span id="line-295">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="line-296">            <span class="k">return</span> <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="si">}</span><span class="s2"> = '</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
-</span><span id="line-297">        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>  <span class="c1"># the key is a tuple of columns</span>
-</span><span id="line-298">            <span class="k">return</span> <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span id="line-299">        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-</span><span id="line-300">            <span class="k">return</span> <span class="n">text</span><span class="p">(</span><span class="s2">" AND "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> = '</span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">'"</span> <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">key</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
-</span><span id="line-301">        <span class="k">else</span><span class="p">:</span>
-</span><span id="line-302">            <span class="k">return</span> <span class="n">text</span><span class="p">(</span>
-</span><span id="line-303">                <span class="s2">" AND "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-</span><span id="line-304">                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> = '</span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">'"</span> <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-</span><span id="line-305">                <span class="p">)</span>
-</span><span id="line-306">            <span class="p">)</span>
-</span><span id="line-307">
-</span><span id="line-308">    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-</span><span id="line-309">        <span class="nb">filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mk_column_filter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-</span><span id="line-310">        <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_table_selection_query</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
-</span><span id="line-311">
-</span><span id="line-312">        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
-</span><span id="line-313">            <span class="c1"># Note: Existence is asked of the rows themselves, not of ``rowcount``,</span>
-</span><span id="line-314">            <span class="c1"># which a SELECT reports as -1 on drivers that don't pre-buffer results</span>
-</span><span id="line-315">            <span class="c1"># (SQLite, for one) -- the same trap ``__len__`` used to fall into. Going</span>
-</span><span id="line-316">            <span class="c1"># by ``rowcount`` there made every write to an existing key an INSERT, so</span>
-</span><span id="line-317">            <span class="c1"># the table grew a duplicate row and the old value kept being read back.</span>
-</span><span id="line-318">            <span class="n">key_is_present</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-</span><span id="line-319">
-</span><span id="line-320">            <span class="k">if</span> <span class="n">key_is_present</span><span class="p">:</span>
-</span><span id="line-321">                <span class="n">query</span> <span class="o">=</span> <span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
-</span><span id="line-322">            <span class="k">else</span><span class="p">:</span>
-</span><span id="line-323">                <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">value</span><span class="p">)</span>
-</span><span id="line-324">
-</span><span id="line-325">            <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-</span><span id="line-326">            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c1"># TODO: Add in the context manager?</span>
-</span><span id="line-327">
-</span><span id="line-328">        <span class="c1"># TODO: Should we return something useful?</span>
-</span><span id="line-329">
-</span><span id="line-330">    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="line-331">        <span class="nb">filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mk_column_filter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-</span><span id="line-332">        <span class="n">query</span> <span class="o">=</span> <span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
-</span><span id="line-333">
-</span><span id="line-334">        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
-</span><span id="line-335">            <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-</span><span id="line-336">            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c1"># TODO: Add in the context manager?</span></div>
-
-</span><span id="line-337">
-</span><span id="line-338">        <span class="c1"># TODO: Should we return something useful?</span>
+</span><span id="line-294">    <span class="k">def</span><span class="w"> </span><span class="nf">_key_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column_name</span><span class="p">):</span>
+</span><span id="line-295"><span class="w">        </span><span class="sd">"""The ``Column`` object named ``column_name``, or an informative ``ValueError``.</span>
+</span><span id="line-296">
+</span><span id="line-297"><span class="sd">        Going through ``self.table.c`` means a column name is never spliced into SQL</span>
+</span><span id="line-298"><span class="sd">        text: only names the table actually has can be used, and SQLAlchemy quotes</span>
+</span><span id="line-299"><span class="sd">        them as the dialect requires. As with unquoted names in SQL, a name that</span>
+</span><span id="line-300"><span class="sd">        matches no column exactly but exactly one column case-insensitively</span>
+</span><span id="line-301"><span class="sd">        resolves to that column.</span>
+</span><span id="line-302">
+</span><span id="line-303"><span class="sd">        An unknown column is a ``ValueError``, not a ``KeyError``, so that a typo is</span>
+</span><span id="line-304"><span class="sd">        not mistaken for "that key is absent" by callers catching ``KeyError``.</span>
+</span><span id="line-305"><span class="sd">        """</span>
+</span><span id="line-306">        <span class="k">if</span> <span class="n">column_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="p">:</span>
+</span><span id="line-307">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span>
+</span><span id="line-308">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="line-309">            <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">c</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">column_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+</span><span id="line-310">            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="line-311">                <span class="k">return</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="line-312">        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="line-313">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">column_name</span><span class="si">!r}</span><span class="s2"> is not a column of table </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="si">!r}</span><span class="s2">. "</span>
+</span><span id="line-314">            <span class="sa">f</span><span class="s2">"Its columns are </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_column_names</span><span class="si">}</span><span class="s2">."</span>
+</span><span id="line-315">        <span class="p">)</span>
+</span><span id="line-316">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</span><span id="line-317">
+</span><span id="line-318">    <span class="k">def</span><span class="w"> </span><span class="nf">_mk_column_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+</span><span id="line-319"><span class="w">        </span><span class="sd">"""The ``WHERE`` clause selecting the rows of ``key``.</span>
+</span><span id="line-320">
+</span><span id="line-321"><span class="sd">        A ``Mapping`` key is a ``{column_name: value, ...}`` conjunction; any other key</span>
+</span><span id="line-322"><span class="sd">        is the value of the (single) key column. Values are always bound parameters,</span>
+</span><span id="line-323"><span class="sd">        never interpolated into SQL text, so keys containing quotes, semicolons or</span>
+</span><span id="line-324"><span class="sd">        ``--`` are matched literally. For non-mapping keys this is the same</span>
+</span><span id="line-325"><span class="sd">        comparison ``__getitem__`` makes.</span>
+</span><span id="line-326"><span class="sd">        """</span>
+</span><span id="line-327">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+</span><span id="line-328">            <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="p">:</span>
+</span><span id="line-329">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"A mapping key must name at least one column"</span><span class="p">)</span>
+</span><span id="line-330">            <span class="k">return</span> <span class="n">and_</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_column</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="o">==</span> <span class="n">val</span> <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">key</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+</span><span id="line-331">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+</span><span id="line-332">            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="line-333">                <span class="sa">f</span><span class="s2">"Only a single key column (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="si">!r}</span><span class="s2">) is supported, so a "</span>
+</span><span id="line-334">                <span class="sa">f</span><span class="s2">"key can't be a </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">. To match several columns, use "</span>
+</span><span id="line-335">                <span class="sa">f</span><span class="s2">"a mapping key: </span><span class="se">{{</span><span class="s2">column_name: value, ...</span><span class="se">}}</span><span class="s2">."</span>
+</span><span id="line-336">            <span class="p">)</span>
+</span><span id="line-337">            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</span><span id="line-338">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_columns</span><span class="p">)</span> <span class="o">==</span> <span class="n">key</span>
 </span><span id="line-339">
-</span><span id="line-340">
-</span><span id="line-341"><span class="n">SqlKvStore</span> <span class="o">=</span> <span class="n">SqlBaseKvStore</span>
+</span><span id="line-340">    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="line-341">        <span class="nb">filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mk_column_filter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+</span><span id="line-342">        <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_table_selection_query</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
+</span><span id="line-343">
+</span><span id="line-344">        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+</span><span id="line-345">            <span class="c1"># Note: Existence is asked of the rows themselves, not of ``rowcount``,</span>
+</span><span id="line-346">            <span class="c1"># which a SELECT reports as -1 on drivers that don't pre-buffer results</span>
+</span><span id="line-347">            <span class="c1"># (SQLite, for one) -- the same trap ``__len__`` used to fall into. Going</span>
+</span><span id="line-348">            <span class="c1"># by ``rowcount`` there made every write to an existing key an INSERT, so</span>
+</span><span id="line-349">            <span class="c1"># the table grew a duplicate row and the old value kept being read back.</span>
+</span><span id="line-350">            <span class="n">key_is_present</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span id="line-351">
+</span><span id="line-352">            <span class="k">if</span> <span class="n">key_is_present</span><span class="p">:</span>
+</span><span id="line-353">                <span class="n">query</span> <span class="o">=</span> <span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
+</span><span id="line-354">            <span class="k">else</span><span class="p">:</span>
+</span><span id="line-355">                <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">value</span><span class="p">)</span>
+</span><span id="line-356">
+</span><span id="line-357">            <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="line-358">            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c1"># TODO: Add in the context manager?</span>
+</span><span id="line-359">
+</span><span id="line-360">        <span class="c1"># TODO: Should we return something useful?</span>
+</span><span id="line-361">
+</span><span id="line-362">    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="line-363">        <span class="nb">filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mk_column_filter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+</span><span id="line-364">        <span class="n">query</span> <span class="o">=</span> <span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">filter</span><span class="p">)</span>
+</span><span id="line-365">
+</span><span id="line-366">        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+</span><span id="line-367">            <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="line-368">            <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c1"># TODO: Add in the context manager?</span></div>
+
+</span><span id="line-369">
+</span><span id="line-370">        <span class="c1"># TODO: Should we return something useful?</span>
+</span><span id="line-371">
+</span><span id="line-372">
+</span><span id="line-373"><span class="n">SqlKvStore</span> <span class="o">=</span> <span class="n">SqlBaseKvStore</span>
 </span></code></pre></div>
     </div></div>
           </main>
@@ -532,7 +564,7 @@
 </footer>
     </div>
     
-    <script src="../../_static/documentation_options.js?v=59fadc99"></script>
+    <script src="../../_static/documentation_options.js?v=6e0256f3"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
