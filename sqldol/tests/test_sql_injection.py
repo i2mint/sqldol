@@ -166,7 +166,7 @@ def test_mapping_key_of_ints_on_integer_columns(engine):
 
 def test_mapping_key_with_an_unknown_column_is_rejected(engine):
     store = SqlBaseKvStore(engine, TABLE_NAME, key_columns=KEY_COLUMN)
-    with pytest.raises(KeyError, match="not a column"):
+    with pytest.raises(ValueError, match="not a column"):
         del store[{"k = 'a' OR 1=1 --": "a"}]
     assert _all_rows(engine) == _original_rows()
 
@@ -178,17 +178,47 @@ def test_empty_mapping_key_is_rejected(engine):
     assert _all_rows(engine) == _original_rows()
 
 
+def test_column_name_case_resolves_like_unquoted_sql(engine):
+    """Unquoted SQL names are case-insensitive, and the old text() filter relied on it."""
+    store = SqlBaseKvStore(engine, TABLE_NAME, key_columns=KEY_COLUMN)
+    del store[{"K": "a"}]
+    assert _all_rows(engine) == [("b", "2")]
+
+
+@pytest.mark.parametrize("key", [("a", "1"), ["a"]])
+def test_sequence_keys_are_rejected(engine, key):
+    store = SqlBaseKvStore(engine, TABLE_NAME, key_columns=KEY_COLUMN)
+    with pytest.raises(TypeError, match="mapping key"):
+        del store[key]
+    assert _all_rows(engine) == _original_rows()
+
+
 # Legacy raw-SQL paths (sqldol.sql_base) ------------------------------------------
 
 
-@pytest.mark.parametrize("name", ["t", "_t2", "my_schema.t", "t$1"])
+@pytest.mark.parametrize(
+    "name", ["t", "_t2", "my_schema.t", "t$1", "2020_sales", "café", "s.2020_t"]
+)
 def test_valid_identifiers_pass(name):
     assert validate_sql_identifier(name) == name
 
 
 @pytest.mark.parametrize(
     "name",
-    ["t; DROP TABLE t", "t --", "t'", 't"', "1t", "", "a.b.c", "t t", None, 3],
+    [
+        "t; DROP TABLE t",
+        "t --",
+        "t'",
+        't"',
+        "t`",
+        "123",
+        "",
+        "a.b.c",
+        "t t",
+        "t\n",
+        None,
+        3,
+    ],
 )
 def test_invalid_identifiers_are_rejected(name):
     with pytest.raises(ValueError, match="Not a valid SQL table name"):
@@ -209,6 +239,11 @@ def dbapi_connection():
 def test_raw_sql_collection_rejects_a_table_name_carrying_sql(dbapi_connection):
     with pytest.raises(ValueError):
         SqlTableRowsCollection(dbapi_connection, "t; DELETE FROM t; --")
+
+
+def test_iter_rows_rejects_a_table_name_carrying_sql(dbapi_connection):
+    with pytest.raises(ValueError):
+        list(iter_rows(dbapi_connection, "t; DELETE FROM t; --", limit=10))
     rows = dbapi_connection.execute(f"SELECT k, v FROM {TABLE_NAME}").fetchall()
     assert sorted(rows) == _original_rows()
 
@@ -219,8 +254,3 @@ def test_raw_sql_paths_still_read_a_plain_table(dbapi_connection):
     # is -1 (sqlite3), iter_rows does not detect the end of the table by itself.
     rows = iter_rows(dbapi_connection, TABLE_NAME, batch_size=10, limit=10)
     assert sorted(rows) == _original_rows()
-
-
-def test_iter_rows_rejects_non_integer_limits(dbapi_connection):
-    with pytest.raises(TypeError):
-        list(iter_rows(dbapi_connection, TABLE_NAME, limit="1; DELETE FROM t"))

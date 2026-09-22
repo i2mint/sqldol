@@ -20,11 +20,14 @@ from dol.util import lazyprop, lazyprop_w_sentinel
 DFLT_SQL_PORT = 1433
 DFLT_SQL_HOST = "localhost"
 
+_SQL_IDENTIFIER_PART = r"(?=[\w$]*[^\W\d])[\w$]+"  # word chars or $, not all digits
 SQL_IDENTIFIER_PATTERN = re.compile(
-    r"[A-Za-z_][A-Za-z0-9_$]*(\.[A-Za-z_][A-Za-z0-9_$]*)?"
+    rf"{_SQL_IDENTIFIER_PART}(\.{_SQL_IDENTIFIER_PART})?"
 )
-"""What a table name may look like where it is written into raw SQL text: a plain
-identifier, optionally qualified by a schema (``schema.table``)."""
+"""What a table name may look like where it is written into raw SQL text: letters
+(Unicode included), digits, ``_`` or ``$``, not all digits (MySQL allows e.g.
+``2020_sales``), optionally qualified by a schema (``schema.table``). None of these
+characters can end an identifier or start a new SQL token."""
 
 
 def validate_sql_identifier(name, *, pattern=SQL_IDENTIFIER_PATTERN):
@@ -46,7 +49,7 @@ def validate_sql_identifier(name, *, pattern=SQL_IDENTIFIER_PATTERN):
     if not isinstance(name, str) or not pattern.fullmatch(name):
         msg = (
             f"Not a valid SQL table name: {name!r}. "
-            f"Expected letters, digits, '_' or '$' (not starting with a digit), "
+            f"Expected letters, digits, '_' or '$' (not all digits), "
             f"optionally qualified as 'schema.table'. "
             f"Names that need quoting are not supported here: use the SQLAlchemy-based "
             f"stores (sqldol.base, sqldol.stores), which quote identifiers themselves."
