@@ -131,7 +131,7 @@ sql with a simple (dict-like or list-like) interface</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.iter_rows" title="sqldol.sql_base.iter_rows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_rows</span></code></a>(connection, table_name[, ...])</p></td>
-<td><p>Iterate the over the rows of a table.</p></td>
+<td><p>Iterate over the rows of a table, fetching <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> rows per query.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.validate_sql_identifier" title="sqldol.sql_base.validate_sql_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_sql_identifier</span></code></a>(name, *[, pattern])</p></td>
 <td><p>Return <code class="docutils literal notranslate"><span class="pre">name</span></code> if it is safe to write into raw SQL text, else raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p></td>
@@ -286,10 +286,24 @@ the number of rows will be updated to match number of rows cached.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="sqldol.sql_base.iter_rows">
 <span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">iter_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/sqldol/sql_base.html#iter_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.iter_rows" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.iter_rows'">¶</a></dt>
-<dd><p>Iterate the over the rows of a table.
-The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.</p>
+<dd><p>Iterate over the rows of a table, fetching <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> rows per query.</p>
+<p>Yields at most <code class="docutils literal notranslate"><span class="pre">limit</span></code> rows, starting at row <code class="docutils literal notranslate"><span class="pre">offset</span></code> (like SQL’s
+<code class="docutils literal notranslate"><span class="pre">LIMIT</span></code>/<code class="docutils literal notranslate"><span class="pre">OFFSET</span></code>), and stops at the end of the table: a page shorter than
+the one requested means there is nothing after it.</p>
 <p><code class="docutils literal notranslate"><span class="pre">table_name</span></code> must pass <a class="reference internal" href="#sqldol.sql_base.validate_sql_identifier" title="sqldol.sql_base.validate_sql_identifier"><code class="xref py py-func docutils literal notranslate"><span class="pre">validate_sql_identifier()</span></code></a>, and <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>,
-<code class="docutils literal notranslate"><span class="pre">offset</span></code> and <code class="docutils literal notranslate"><span class="pre">limit</span></code> must be integers, because they are written into the SQL text.</p>
+<code class="docutils literal notranslate"><span class="pre">offset</span></code> and <code class="docutils literal notranslate"><span class="pre">limit</span></code> must be integers, because they are written into the SQL text
+(<code class="docutils literal notranslate"><span class="pre">batch_size</span></code> positive, <code class="docutils literal notranslate"><span class="pre">offset</span></code> and <code class="docutils literal notranslate"><span class="pre">limit</span></code> non-negative). Invalid arguments
+raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> at call time, before any row is requested.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="n">con</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">":memory:"</span><span class="p">)</span>
+</span><span id="line-3"><span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"CREATE TABLE t (x INTEGER)"</span><span class="p">)</span>
+</span><span id="line-4"><span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">"INSERT INTO t VALUES (?)"</span><span class="p">,</span> <span class="p">[(</span><span class="n">i</span><span class="p">,)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)])</span>
+</span><span id="line-5"><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">con</span><span class="p">,</span> <span class="s2">"t"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+</span><span id="line-6"><span class="go">[(0,), (1,), (2,), (3,), (4,)]</span>
+</span><span id="line-7"><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">con</span><span class="p">,</span> <span class="s2">"t"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+</span><span id="line-8"><span class="go">[(1,), (2,), (3,)]</span>
+</span></code></pre></div>
+</div>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="sqldol.sql_base.validate_sql_identifier">
@@ -346,7 +360,7 @@ quoting helper, so they only accept names matching an allowlist.</p>
 </div>
 </footer>
 </div>
-<script src="../_static/documentation_options.js?v=ca7ad2ea"></script>
+<script src="../_static/documentation_options.js?v=22607128"></script>
 <script src="../_static/doctools.js?v=fd6eb6e6"></script>
 <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
 <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

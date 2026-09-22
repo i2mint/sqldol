@@ -10,7 +10,7 @@ sql with a simple (dict-like or list-like) interface
 
 ### Functions
 
-| [`iter_rows`](#sqldol.sql_base.iter_rows)(connection, table_name[, ...])     | Iterate the over the rows of a table.                                            |
+| [`iter_rows`](#sqldol.sql_base.iter_rows)(connection, table_name[, ...])     | Iterate over the rows of a table, fetching `batch_size` rows per query.          |
 |-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
 | [`validate_sql_identifier`](#sqldol.sql_base.validate_sql_identifier)(name, \*[, pattern]) | Return `name` if it is safe to write into raw SQL text, else raise `ValueError`. |
 
@@ -121,11 +121,27 @@ Bases: [`SqlTableRowsCollection`](#sqldol.sql_base.SqlTableRowsCollection), [`Se
 
 ### sqldol.sql_base.iter_rows(connection, table_name, batch_size=1000, offset=0, limit=1000000000000)
 
-Iterate the over the rows of a table.
-The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.
+Iterate over the rows of a table, fetching `batch_size` rows per query.
+
+Yields at most `limit` rows, starting at row `offset` (like SQL’s
+`LIMIT`/`OFFSET`), and stops at the end of the table: a page shorter than
+the one requested means there is nothing after it.
 
 `table_name` must pass [`validate_sql_identifier()`](#sqldol.sql_base.validate_sql_identifier), and `batch_size`,
-`offset` and `limit` must be integers, because they are written into the SQL text.
+`offset` and `limit` must be integers, because they are written into the SQL text
+(`batch_size` positive, `offset` and `limit` non-negative). Invalid arguments
+raise `ValueError` at call time, before any row is requested.
+
+```pycon
+>>> import sqlite3
+>>> con = sqlite3.connect(":memory:")
+>>> _ = con.execute("CREATE TABLE t (x INTEGER)")
+>>> _ = con.executemany("INSERT INTO t VALUES (?)", [(i,) for i in range(5)])
+>>> list(iter_rows(con, "t", batch_size=2))
+[(0,), (1,), (2,), (3,), (4,)]
+>>> list(iter_rows(con, "t", batch_size=2, offset=1, limit=3))
+[(1,), (2,), (3,)]
+```
 
 ### sqldol.sql_base.validate_sql_identifier(name, , pattern=re.compile('(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+(\\\\.(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+)?'))
 

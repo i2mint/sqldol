@@ -1,4 +1,4 @@
-> built 2026-09-22 15:02 UTC from e9c1f10 (master) · sqldol 0.1.7. Details: build_info.json
+> built 2026-09-22 15:30 UTC from ab805e1 (master) · sqldol 0.1.8. Details: build_info.json
 
 # index.html.md
 
@@ -333,7 +333,7 @@ sql with a simple (dict-like or list-like) interface
 
 ### Functions
 
-| [`iter_rows`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.iter_rows)(connection, table_name[, ...])     | Iterate the over the rows of a table.                                            |
+| [`iter_rows`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.iter_rows)(connection, table_name[, ...])     | Iterate over the rows of a table, fetching `batch_size` rows per query.          |
 |-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
 | [`validate_sql_identifier`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.validate_sql_identifier)(name, \*[, pattern]) | Return `name` if it is safe to write into raw SQL text, else raise `ValueError`. |
 
@@ -444,11 +444,27 @@ Bases: [`SqlTableRowsCollection`](_autosummary/sqldol.sql_base.html.md#sqldol.sq
 
 ### sqldol.sql_base.iter_rows(connection, table_name, batch_size=1000, offset=0, limit=1000000000000)
 
-Iterate the over the rows of a table.
-The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.
+Iterate over the rows of a table, fetching `batch_size` rows per query.
+
+Yields at most `limit` rows, starting at row `offset` (like SQL’s
+`LIMIT`/`OFFSET`), and stops at the end of the table: a page shorter than
+the one requested means there is nothing after it.
 
 `table_name` must pass [`validate_sql_identifier()`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.validate_sql_identifier), and `batch_size`,
-`offset` and `limit` must be integers, because they are written into the SQL text.
+`offset` and `limit` must be integers, because they are written into the SQL text
+(`batch_size` positive, `offset` and `limit` non-negative). Invalid arguments
+raise `ValueError` at call time, before any row is requested.
+
+```pycon
+>>> import sqlite3
+>>> con = sqlite3.connect(":memory:")
+>>> _ = con.execute("CREATE TABLE t (x INTEGER)")
+>>> _ = con.executemany("INSERT INTO t VALUES (?)", [(i,) for i in range(5)])
+>>> list(iter_rows(con, "t", batch_size=2))
+[(0,), (1,), (2,), (3,), (4,)]
+>>> list(iter_rows(con, "t", batch_size=2, offset=1, limit=3))
+[(1,), (2,), (3,)]
+```
 
 ### sqldol.sql_base.validate_sql_identifier(name, , pattern=re.compile('(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+(\\\\.(?=[\\\\w$]\*[^\\\\W\\\\d])[\\\\w$]+)?'))
 
@@ -554,20 +570,18 @@ If the table does not exist, it will be created with the specified columns.
 
 # About this build
 
-This documentation was built on **2026-09-22 15:02 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/e9c1f101e3733d0e01f5142bf504fb048730feca"><code>e9c1f10</code></a> on branch <code>master</code>, for **sqldol 0.1.7** (from <code>setup.cfg</code>).
+This documentation was built on **2026-09-22 15:30 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/ab805e12b0376a053b91e4cf1cf9aaf90ec20a53"><code>ab805e1</code></a> on branch <code>master</code>, for **sqldol 0.1.8** (from <code>setup.cfg</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.7) is ahead of the latest release on PyPI (0.1.6): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/sqldol/commit/e9c1f101e3733d0e01f5142bf504fb048730feca"><code>e9c1f101e3733d0e01f5142bf504fb048730feca</code></a> |
+| Commit              | <a href="https://github.com/i2mint/sqldol/commit/ab805e12b0376a053b91e4cf1cf9aaf90ec20a53"><code>ab805e12b0376a053b91e4cf1cf9aaf90ec20a53</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.7</code>                                                                                                                                   |
+| Tags at this commit | <code>0.1.8</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/sqldol</code>                                                                                                        |
 
@@ -576,9 +590,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/sqldol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/35744293424">35744293424</a>        |
+| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/35747699374">35747699374</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>088c99cf852287259b158d0e575ad78fd097001d</code> (in the history of the built commit) |
+| Event commit | <code>d746553dab767f48b06275698f078f3c9b003c55</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -603,13 +617,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/sqldol/0.1.6/">0.1.6</a>, older than the documented version (0.1.7).
+Latest release: <a href="https://pypi.org/project/sqldol/0.1.8/">0.1.8</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/sqldol && cd sqldol
-git checkout e9c1f101e3733d0e01f5142bf504fb048730feca
+git checkout ab805e12b0376a053b91e4cf1cf9aaf90ec20a53
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

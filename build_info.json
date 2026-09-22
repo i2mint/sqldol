@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-09-22T15:02:04Z",
+  "built_at": "2026-09-22T15:30:56Z",
   "package": {
     "name": "sqldol",
-    "version": "0.1.7",
+    "version": "0.1.8",
     "display_name": "sqldol",
     "source": "setup.cfg"
   },
   "git": {
     "available": true,
-    "commit": "e9c1f101e3733d0e01f5142bf504fb048730feca",
-    "short_commit": "e9c1f10",
+    "commit": "ab805e12b0376a053b91e4cf1cf9aaf90ec20a53",
+    "short_commit": "ab805e1",
     "branch": "master",
     "tags": [
-      "0.1.7"
+      "0.1.8"
     ],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/sqldol",
-    "commit_url": "https://github.com/i2mint/sqldol/commit/e9c1f101e3733d0e01f5142bf504fb048730feca",
+    "commit_url": "https://github.com/i2mint/sqldol/commit/ab805e12b0376a053b91e4cf1cf9aaf90ec20a53",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/sqldol",
-    "sha": "088c99cf852287259b158d0e575ad78fd097001d",
+    "sha": "d746553dab767f48b06275698f078f3c9b003c55",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "35744293424",
-    "run_url": "https://github.com/i2mint/sqldol/actions/runs/35744293424",
+    "run_id": "35747699374",
+    "run_url": "https://github.com/i2mint/sqldol/actions/runs/35747699374",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -62,16 +62,14 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.6",
-    "relation": "ahead",
+    "latest": "0.1.8",
+    "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout e9c1f101e3733d0e01f5142bf504fb048730feca\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout ab805e12b0376a053b91e4cf1cf9aaf90ec20a53\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": false,
-    "notes": [
-      "The documented version (0.1.7) is ahead of the latest release on PyPI (0.1.6): these docs describe unreleased code."
-    ]
+    "aligned": true,
+    "notes": []
   }
 }

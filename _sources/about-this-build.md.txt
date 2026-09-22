@@ -5,21 +5,19 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-09-22 15:02 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/e9c1f101e3733d0e01f5142bf504fb048730feca"><code>e9c1f10</code></a> on branch <code>master</code>, for **sqldol 0.1.7** (from <code>setup.cfg</code>).
+This documentation was built on **2026-09-22 15:30 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/ab805e12b0376a053b91e4cf1cf9aaf90ec20a53"><code>ab805e1</code></a> on branch <code>master</code>, for **sqldol 0.1.8** (from <code>setup.cfg</code>).
 
-:::{warning}
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.7) is ahead of the latest release on PyPI (0.1.6): these docs describe unreleased code.
+:::{note}
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 :::
 
 ## Source
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/i2mint/sqldol/commit/e9c1f101e3733d0e01f5142bf504fb048730feca"><code>e9c1f101e3733d0e01f5142bf504fb048730feca</code></a> |
+| Commit | <a href="https://github.com/i2mint/sqldol/commit/ab805e12b0376a053b91e4cf1cf9aaf90ec20a53"><code>ab805e12b0376a053b91e4cf1cf9aaf90ec20a53</code></a> |
 | Branch | <code>master</code> |
-| Tags at this commit | <code>0.1.7</code> |
+| Tags at this commit | <code>0.1.8</code> |
 | Working tree | clean |
 | Remote | <code>https://github.com/i2mint/sqldol</code> |
 
@@ -28,9 +26,9 @@ The documentation and the package may be misaligned:
 | | |
 |---|---|
 | Repository | <code>i2mint/sqldol</code> |
-| Run | <a href="https://github.com/i2mint/sqldol/actions/runs/35744293424">35744293424</a> |
+| Run | <a href="https://github.com/i2mint/sqldol/actions/runs/35747699374">35747699374</a> |
 | Ref | <code>refs/heads/master</code> |
-| Event commit | <code>088c99cf852287259b158d0e575ad78fd097001d</code> (in the history of the built commit) |
+| Event commit | <code>d746553dab767f48b06275698f078f3c9b003c55</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -55,13 +53,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/sqldol/0.1.6/">0.1.6</a>, older than the documented version (0.1.7).
+Latest release: <a href="https://pypi.org/project/sqldol/0.1.8/">0.1.8</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/sqldol && cd sqldol
-git checkout e9c1f101e3733d0e01f5142bf504fb048730feca
+git checkout ab805e12b0376a053b91e4cf1cf9aaf90ec20a53
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
