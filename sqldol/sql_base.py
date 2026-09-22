@@ -467,6 +467,7 @@ def iter_rows(connection, table_name, batch_size=1000, offset=0, limit=int(1e12)
         raise ValueError(
             f"offset and limit must be non-negative, got offset={offset}, limit={limit}"
         )
+
     def pages():
         # Note: The end of the table is detected from the rows actually fetched,
         # never from ``rowcount``: for a SELECT that is -1 on DB-API drivers that
