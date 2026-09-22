@@ -2,7 +2,9 @@
 sql with a simple (dict-like or list-like) interface
 """
 
+import re
 from functools import partial
+from operator import index
 
 import sqlalchemy
 from sqlalchemy import create_engine, Column, String, Table
@@ -17,6 +19,43 @@ from dol.util import lazyprop, lazyprop_w_sentinel
 
 DFLT_SQL_PORT = 1433
 DFLT_SQL_HOST = "localhost"
+
+_SQL_IDENTIFIER_PART = r"(?=[\w$]*[^\W\d])[\w$]+"  # word chars or $, not all digits
+SQL_IDENTIFIER_PATTERN = re.compile(
+    rf"{_SQL_IDENTIFIER_PART}(\.{_SQL_IDENTIFIER_PART})?"
+)
+"""What a table name may look like where it is written into raw SQL text: letters
+(Unicode included), digits, ``_`` or ``$``, not all digits (MySQL allows e.g.
+``2020_sales``), optionally qualified by a schema (``schema.table``). None of these
+characters can end an identifier or start a new SQL token."""
+
+
+def validate_sql_identifier(name, *, pattern=SQL_IDENTIFIER_PATTERN):
+    """Return ``name`` if it is safe to write into raw SQL text, else raise ``ValueError``.
+
+    The raw-SQL paths of this module cannot bind a table name as a parameter (no SQL
+    dialect allows that), and they may be handed a plain DB-API connection that has no
+    quoting helper, so they only accept names matching an allowlist.
+
+    >>> validate_sql_identifier("my_table")
+    'my_table'
+    >>> validate_sql_identifier("my_schema.my_table")
+    'my_schema.my_table'
+    >>> validate_sql_identifier("t; SELECT 1")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+        ...
+    ValueError: Not a valid SQL table name: 't; SELECT 1'. ...
+    """
+    if not isinstance(name, str) or not pattern.fullmatch(name):
+        msg = (
+            f"Not a valid SQL table name: {name!r}. "
+            f"Expected letters, digits, '_' or '$' (not all digits), "
+            f"optionally qualified as 'schema.table'. "
+            f"Names that need quoting are not supported here: use the SQLAlchemy-based "
+            f"stores (sqldol.base, sqldol.stores), which quote identifiers themselves."
+        )
+        raise ValueError(msg)
+    return name
 
 
 # TODO: decorator to automatically retry (once) if the connection times out
@@ -44,7 +83,9 @@ class SqlTableRowsCollection(Collection):
 
     def __init__(self, connection, table_name, batch_size=2000, limit=int(1e16)):
         self.connection = connection
-        self.table_name = table_name
+        # Note: table_name is written into raw SQL text (see the _tmpl_* templates),
+        # so it has to pass the identifier allowlist.
+        self.table_name = validate_sql_identifier(table_name)
         self.iter_rows = partial(
             iter_rows,
             connection=connection,
@@ -398,7 +439,12 @@ class SQLAlchemyPersister(KvPersister):
 def iter_rows(connection, table_name, batch_size=1000, offset=0, limit=int(1e12)):
     """Iterate the over the rows of a table.
     The limit argument is mostly there to avoid an infinite loop, but can also be used to get ranges.
+
+    ``table_name`` must pass :func:`validate_sql_identifier`, and ``batch_size``,
+    ``offset`` and ``limit`` must be integers, because they are written into the SQL text.
     """
+    table_name = validate_sql_identifier(table_name)
+    batch_size, offset, limit = index(batch_size), index(offset), index(limit)
     stop_offset = limit + offset  # to the range act like like sql limit
     i = 0
     for offset in range(offset, stop_offset, batch_size):

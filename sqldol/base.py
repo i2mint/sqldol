@@ -10,10 +10,10 @@ from sqlalchemy import (
     insert,
     exists,
     update,
-    text,
     func,
     Engine,
     Column,
+    and_,
 )
 
 from sqlalchemy import Table, Column, MetaData
@@ -291,19 +291,51 @@ class SqlBaseKvReader(Mapping):
 # TODO: Needs to be made compliant with the "Base" strategy (see SqlBaseKvReader)
 #    For example, perhaps values are not dicts, but lists of rows
 class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
+    def _key_column(self, column_name):
+        """The ``Column`` object named ``column_name``, or an informative ``ValueError``.
+
+        Going through ``self.table.c`` means a column name is never spliced into SQL
+        text: only names the table actually has can be used, and SQLAlchemy quotes
+        them as the dialect requires. As with unquoted names in SQL, a name that
+        matches no column exactly but exactly one column case-insensitively
+        resolves to that column.
+
+        An unknown column is a ``ValueError``, not a ``KeyError``, so that a typo is
+        not mistaken for "that key is absent" by callers catching ``KeyError``.
+        """
+        if column_name in self.table.c:
+            return self.table.c[column_name]
+        if isinstance(column_name, str):
+            matches = [c for c in self.table.c if c.name.lower() == column_name.lower()]
+            if len(matches) == 1:
+                return matches[0]
+        msg = (
+            f"{column_name!r} is not a column of table {self.table_name!r}. "
+            f"Its columns are {self._column_names}."
+        )
+        raise ValueError(msg)
+
     def _mk_column_filter(self, key):
-        if isinstance(key, str):
-            return text(f"{self.key_columns} = '{key}'")
-        elif isinstance(key, int):  # the key is a tuple of columns
-            return text(f"{self.key_columns} = {key}")
-        elif isinstance(key, dict):
-            return text(" AND ".join(f"{col} = '{val}'" for col, val in key.items()))
-        else:
-            return text(
-                " AND ".join(
-                    f"{col} = '{val}'" for col, val in zip(self.key_columns, key)
-                )
+        """The ``WHERE`` clause selecting the rows of ``key``.
+
+        A ``Mapping`` key is a ``{column_name: value, ...}`` conjunction; any other key
+        is the value of the (single) key column. Values are always bound parameters,
+        never interpolated into SQL text, so keys containing quotes, semicolons or
+        ``--`` are matched literally. For non-mapping keys this is the same
+        comparison ``__getitem__`` makes.
+        """
+        if isinstance(key, Mapping):
+            if not key:
+                raise ValueError("A mapping key must name at least one column")
+            return and_(*(self._key_column(col) == val for col, val in key.items()))
+        if isinstance(key, (tuple, list)):
+            msg = (
+                f"Only a single key column ({self.key_columns!r}) is supported, so a "
+                f"key can't be a {type(key).__name__}. To match several columns, use "
+                f"a mapping key: {{column_name: value, ...}}."
             )
+            raise TypeError(msg)
+        return self._key_column(self.key_columns) == key
 
     def __setitem__(self, key, value):
         filter = self._mk_column_filter(key)
@@ -327,7 +359,7 @@ class SqlBaseKvStore(SqlBaseKvReader, MutableMapping):
 
         # TODO: Should we return something useful?
 
-    def __delitem__(self, key: str) -> None:
+    def __delitem__(self, key) -> None:
         filter = self._mk_column_filter(key)
         query = delete(self.table).where(filter)
 
