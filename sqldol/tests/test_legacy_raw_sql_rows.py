@@ -73,9 +73,19 @@ def test_iter_rows_offset_and_limit_act_like_a_slice(
     assert connection.queries <= math.ceil(limit / batch_size) + 1
 
 
-def test_iter_rows_rejects_a_non_positive_batch_size(connection):
-    with pytest.raises(ValueError, match="batch_size"):
-        list(iter_rows(connection, TABLE, batch_size=0))
+@pytest.mark.parametrize(
+    "kwargs, match",
+    [
+        (dict(batch_size=0), "batch_size"),
+        (dict(batch_size=-1), "batch_size"),
+        (dict(offset=-1), "non-negative"),
+        (dict(limit=-1), "non-negative"),
+    ],
+)
+def test_iter_rows_rejects_bad_arguments_when_called(connection, kwargs, match):
+    with pytest.raises(ValueError, match=match):
+        iter_rows(connection, TABLE, **kwargs)  # not even iterated
+    assert connection.queries == 0
 
 
 def test_rows_collection_counts_iterates_and_slices(connection):
@@ -86,6 +96,8 @@ def test_rows_collection_counts_iterates_and_slices(connection):
     assert list(rows[2:5]) == ALL_ROWS[2:5]
     assert list(rows[4:]) == ALL_ROWS[4:]
     assert list(rows[3]) == [ALL_ROWS[3]]
+    assert list(rows[2:2]) == []
+    assert list(rows[:0]) == []
 
 
 def test_rows_sequence_indexes_like_a_list(connection):

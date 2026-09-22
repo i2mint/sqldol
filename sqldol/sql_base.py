@@ -98,9 +98,8 @@ class SqlTableRowsCollection(Collection):
     # QUESTION: Should helpers (_describe, _columns, etc.) should be methods/properties/lazyprops, and hidden or not?
 
     def count_rows(self):
-        # Note: ``fetchone`` is DB-API, so this works on a plain DB-API connection
-        # (whose ``execute`` returns a cursor, which has no ``first``) as well as on
-        # a SQLAlchemy result.
+        # Note: ``fetchone``, not ``first``: on a DB-API connection (the kind these
+        # raw-SQL paths run on) ``execute`` returns a cursor, which has no ``first``.
         return self.connection.execute(
             self._tmpl_count_rows_tmpl.format(table_name=self.table_name)
         ).fetchone()[0]
@@ -154,7 +153,7 @@ class SqlTableRowsCollection(Collection):
             assert step is None, "__getitem__ doesn't handle stepped slices"
             assert start >= 0, "slice start can't be negative"
 
-            if stop:
+            if stop is not None:
                 assert stop >= start, "slice stop must be at least the slice start"
                 return self.iter_rows(offset=start, limit=stop - start)
             elif start:
@@ -447,7 +446,9 @@ def iter_rows(connection, table_name, batch_size=1000, offset=0, limit=int(1e12)
     the one requested means there is nothing after it.
 
     ``table_name`` must pass :func:`validate_sql_identifier`, and ``batch_size``,
-    ``offset`` and ``limit`` must be integers, because they are written into the SQL text.
+    ``offset`` and ``limit`` must be integers, because they are written into the SQL text
+    (``batch_size`` positive, ``offset`` and ``limit`` non-negative). Invalid arguments
+    raise ``ValueError`` at call time, before any row is requested.
 
     >>> import sqlite3
     >>> con = sqlite3.connect(":memory:")
@@ -462,21 +463,30 @@ def iter_rows(connection, table_name, batch_size=1000, offset=0, limit=int(1e12)
     batch_size, offset, limit = index(batch_size), index(offset), index(limit)
     if batch_size < 1:
         raise ValueError(f"batch_size must be a positive integer, got {batch_size}")
-    # Note: The end of the table is detected from the rows actually fetched, never
-    # from ``rowcount``: for a SELECT that is -1 on DB-API drivers that don't
-    # pre-buffer (sqlite3), so testing it made this loop request empty pages until
-    # ``limit`` ran out.
-    remaining = limit
-    while remaining > 0:
-        page_size = min(batch_size, remaining)
-        rows = connection.execute(
-            f"SELECT * FROM {table_name} LIMIT {page_size} OFFSET {offset}"
-        ).fetchall()
-        yield from rows
-        if len(rows) < page_size:
-            break
-        remaining -= page_size
-        offset += page_size
+    if offset < 0 or limit < 0:
+        raise ValueError(
+            f"offset and limit must be non-negative, got offset={offset}, limit={limit}"
+        )
+    def pages():
+        # Note: The end of the table is detected from the rows actually fetched,
+        # never from ``rowcount``: for a SELECT that is -1 on DB-API drivers that
+        # don't pre-buffer (sqlite3), so testing it made this loop request empty
+        # pages until ``limit`` ran out.
+        start, remaining = offset, limit
+        while remaining > 0:
+            page_size = min(batch_size, remaining)
+            rows = connection.execute(
+                f"SELECT * FROM {table_name} LIMIT {page_size} OFFSET {start}"
+            ).fetchall()
+            yield from rows
+            if len(rows) < page_size:
+                break
+            remaining -= page_size
+            start += page_size
+
+    # Note: Not itself a generator, so bad arguments raise when ``iter_rows`` is
+    # called; the rows are still fetched lazily, page by page.
+    return pages()
 
 
 ####### Stores ########################################################################################################
