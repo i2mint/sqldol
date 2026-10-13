@@ -1,4 +1,4 @@
-> built 2026-10-13 09:41 UTC from 57bfad4 (master) · sqldol 0.1.9. Details: build_info.json
+> built 2026-10-13 11:10 UTC from c6db050 (master) · sqldol 0.1.10. Details: build_info.json
 
 # index.html.md
 
@@ -409,6 +409,10 @@ In either case, this is followed by: for k in F:  D[k] = F[k]
 
 Bases: `KvPersister`
 
+#### ItemsView
+
+alias of `_PrefetchingItemsView`
+
 #### TYPE_BLOB
 
 alias of `BLOB`
@@ -429,7 +433,16 @@ alias of `String`
 
 A basic SQL DB persister written with SQLAlchemy.
 
+`store.items()` and `store.values()` (also through `dol` wrappers) read the table
+with one query per batch of keys (500) instead of one per key. Each batch is a snapshot
+taken when it starts; rows handed out stay in the session, as with any lookup. `dict(store)` does not (it asks `keys()` and
+then `store[k]` per key): use `dict(store.items())`.
+
 alias of `TEXT`
+
+#### ValuesView
+
+alias of `_PrefetchingValuesView`
 
 #### iter_rows()
 
@@ -624,7 +637,7 @@ If the table does not exist, it will be created with the specified columns.
 
 # About this build
 
-This documentation was built on **2026-10-13 09:41 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/57bfad4a2c0b9cb751ebb694e701f5ed633bb83a"><code>57bfad4</code></a> on branch <code>master</code>, for **sqldol 0.1.9** (from <code>setup.cfg</code>).
+This documentation was built on **2026-10-13 11:10 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/c6db050e9698adff800ed717816109a797670b24"><code>c6db050</code></a> on branch <code>master</code>, for **sqldol 0.1.10** (from <code>setup.cfg</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -633,9 +646,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/sqldol/commit/57bfad4a2c0b9cb751ebb694e701f5ed633bb83a"><code>57bfad4a2c0b9cb751ebb694e701f5ed633bb83a</code></a> |
+| Commit              | <a href="https://github.com/i2mint/sqldol/commit/c6db050e9698adff800ed717816109a797670b24"><code>c6db050e9698adff800ed717816109a797670b24</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.9</code>                                                                                                                                   |
+| Tags at this commit | <code>0.1.10</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/sqldol</code>                                                                                                        |
 
@@ -644,9 +657,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/sqldol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/38377987162">38377987162</a>        |
+| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/38388172015">38388172015</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>f5ee6d417ab5f4c9ef333c16e30d88282f5765cf</code> (in the history of the built commit) |
+| Event commit | <code>b6322c5a5e52a1daf41ca6b91ef5513f41c9a4a8</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -671,13 +684,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/sqldol/0.1.9/">0.1.9</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/sqldol/0.1.10/">0.1.10</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/sqldol && cd sqldol
-git checkout 57bfad4a2c0b9cb751ebb694e701f5ed633bb83a
+git checkout c6db050e9698adff800ed717816109a797670b24
 pip install "epythet==0.2.15"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

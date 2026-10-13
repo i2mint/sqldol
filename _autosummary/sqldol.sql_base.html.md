@@ -86,6 +86,10 @@ In either case, this is followed by: for k in F:  D[k] = F[k]
 
 Bases: `KvPersister`
 
+#### ItemsView
+
+alias of `_PrefetchingItemsView`
+
 #### TYPE_BLOB
 
 alias of `BLOB`
@@ -106,7 +110,16 @@ alias of `String`
 
 A basic SQL DB persister written with SQLAlchemy.
 
+`store.items()` and `store.values()` (also through `dol` wrappers) read the table
+with one query per batch of keys (500) instead of one per key. Each batch is a snapshot
+taken when it starts; rows handed out stay in the session, as with any lookup. `dict(store)` does not (it asks `keys()` and
+then `store[k]` per key): use `dict(store.items())`.
+
 alias of `TEXT`
+
+#### ValuesView
+
+alias of `_PrefetchingValuesView`
 
 #### iter_rows()
 

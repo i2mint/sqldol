@@ -237,6 +237,11 @@ In either case, this is followed by: for k in F:  D[k] = F[k]</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SQLAlchemyPersister</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sqlite:///my_sqlite.db'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dol_default_table'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'_id':</span> <span class="pre">&lt;class</span> <span class="pre">'sqlalchemy.sql.sqltypes.INTEGER'&gt;}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'data':</span> <span class="pre">&lt;class</span> <span class="pre">'sqlalchemy.sql.sqltypes.String'&gt;}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autocommit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**db_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/sqldol/sql_base.html#SQLAlchemyPersister"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQLAlchemyPersister" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQLAlchemyPersister'">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">KvPersister</span></code></p>
 <dl class="py attribute">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.ItemsView">
+<span class="sig-name descname"><span class="pre">ItemsView</span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQLAlchemyPersister.ItemsView" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQLAlchemyPersister.ItemsView'">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">_PrefetchingItemsView</span></code></p>
+</dd></dl>
+<dl class="py attribute">
 <dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.TYPE_BLOB">
 <span class="sig-name descname"><span class="pre">TYPE_BLOB</span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_BLOB" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQLAlchemyPersister.TYPE_BLOB'">¶</a></dt>
 <dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">BLOB</span></code></p>
@@ -260,7 +265,16 @@ In either case, this is followed by: for k in F:  D[k] = F[k]</p>
 <dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT">
 <span class="sig-name descname"><span class="pre">TYPE_TEXT</span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT'">¶</a></dt>
 <dd><p>A basic SQL DB persister written with SQLAlchemy.</p>
+<p><code class="docutils literal notranslate"><span class="pre">store.items()</span></code> and <code class="docutils literal notranslate"><span class="pre">store.values()</span></code> (also through <code class="docutils literal notranslate"><span class="pre">dol</span></code> wrappers) read the table
+with one query per batch of keys (500) instead of one per key. Each batch is a snapshot
+taken when it starts; rows handed out stay in the session, as with any lookup. <code class="docutils literal notranslate"><span class="pre">dict(store)</span></code> does not (it asks <code class="docutils literal notranslate"><span class="pre">keys()</span></code> and
+then <code class="docutils literal notranslate"><span class="pre">store[k]</span></code> per key): use <code class="docutils literal notranslate"><span class="pre">dict(store.items())</span></code>.</p>
 <p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TEXT</span></code></p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.ValuesView">
+<span class="sig-name descname"><span class="pre">ValuesView</span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQLAlchemyPersister.ValuesView" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQLAlchemyPersister.ValuesView'">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">_PrefetchingValuesView</span></code></p>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.iter_rows">
@@ -396,11 +410,13 @@ quoting helper, so they only accept names matching an allowlist.</p>
 </ul>
 </li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister</span></code></a><ul>
+<li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.ItemsView'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.ItemsView"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.ItemsView</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.TYPE_BLOB'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_BLOB"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_BLOB</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.TYPE_BOOLEAN'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_BOOLEAN"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_BOOLEAN</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.TYPE_INTEGER'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_INTEGER"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_INTEGER</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.TYPE_STRING'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_STRING"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_STRING</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_TEXT</span></code></a></li>
+<li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.ValuesView'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.ValuesView"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.ValuesView</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.iter_rows'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.iter_rows"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.iter_rows()</span></code></a></li>
 </ul>
 </li>
@@ -428,7 +444,7 @@ quoting helper, so they only accept names matching an allowlist.</p>
 </div>
 </footer>
 </div>
-<script src="../_static/documentation_options.js?v=8618f531"></script>
+<script src="../_static/documentation_options.js?v=bafade30"></script>
 <script src="../_static/doctools.js?v=fd6eb6e6"></script>
 <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
 <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
