@@ -393,6 +393,12 @@ class SQLAlchemyPersister(KvPersister):
     with one query per batch of keys (500) instead of one per key. Each batch is a snapshot
     taken when it starts; rows handed out stay in the session, as with any lookup. ``dict(store)`` does not (it asks ``keys()`` and
     then ``store[k]`` per key): use ``dict(store.items())``.
+
+    ``table``, ``session`` and ``connection`` are the SQLAlchemy objects the persister is
+    built on. ``dol`` wrappers serve them unchanged, so through a wrapper they are leaf
+    escape hatches (the persister's coordinates, not the store's). The table's ``Query`` is
+    ``sqldol.ops.query(store)``; ``query`` and ``setup`` are not methods any more
+    (i2mint/sqldol#3).
     """
 
     def __init__(
@@ -447,9 +453,24 @@ class SQLAlchemyPersister(KvPersister):
 
         self._uri = uri
         self._collection_name = collection_name
-        self.setup(uri, collection_name, **db_kwargs)
+        self._setup(uri, collection_name, **db_kwargs)
 
-    def setup(self, db_uri, collection_name, **db_kwargs):
+    def setup(self, *args, **kwargs):
+        """Removed: build a new store (``SQLAlchemyPersister(uri, collection_name, ...)``).
+
+        A whole-store rebind cannot be intercepted or vetoed by the ``dol`` wrappers above
+        the persister, which delegate public attributes to it, so under a wrapper it
+        silently repointed the store at another database and table (i2mint/sqldol#3).
+        """
+        raise AttributeError(
+            "SQLAlchemyPersister.setup was removed: it rebinds the whole store, below any "
+            "dol wrapper. Build a new SQLAlchemyPersister (or store) for the other "
+            "uri / collection_name instead (i2mint/sqldol#3)."
+        )
+
+    def _setup(self, db_uri, collection_name, **db_kwargs):
+        self._uri = db_uri
+        self._collection_name = collection_name
         # Setup connection to our DB:
         engine = create_engine(db_uri, **db_kwargs)
         self.connection = engine.connect()
@@ -496,8 +517,21 @@ class SQLAlchemyPersister(KvPersister):
         return DeclarativeTable
 
     @property
-    def query(self):
+    def _query(self):
         return self.session.query(self.table)
+
+    @property
+    def query(self):
+        """Removed: use ``sqldol.ops.query(store)``.
+
+        A public ``query`` is delegated by every ``dol`` wrapper, so ``SQLAlchemyTupleStore.query``
+        handed back ORM rows while the store itself speaks tuples (i2mint/sqldol#3).
+        """
+        raise AttributeError(
+            "SQLAlchemyPersister.query was removed: it answers in the persister's "
+            "coordinates (ORM rows), whatever store wraps it. Use sqldol.ops.query(store) "
+            "(i2mint/sqldol#3)."
+        )
 
     _prefetch_batch = _PREFETCH_BATCH
     _prefetch = None  # {identity: row} while a view is looking up the rows it just read
@@ -527,7 +561,7 @@ class SQLAlchemyPersister(KvPersister):
                     if len(columns) == 1
                     else sqlalchemy.tuple_(*columns).in_(part)
                 )
-                for row in self.query.filter(cond):
+                for row in self._query.filter(cond):
                     rows[self._ident_of_row(row)] = row
             except (TypeError, sqlalchemy.exc.SQLAlchemyError):
                 continue  # keys the database cannot compare: looked up one by one
@@ -573,7 +607,7 @@ class SQLAlchemyPersister(KvPersister):
         return row if state.persistent and state.identity == ident else None
 
     def __getitem__(self, k):
-        doc = self._prefetched_row(k) or self.query.filter_by(**k).first()
+        doc = self._prefetched_row(k) or self._query.filter_by(**k).first()
         # todo: think of intuitive way of selecting many by 1 (or some) of many keys
         if not doc:
             raise KeyError(f"No document found for query: {k}")
@@ -594,7 +628,7 @@ class SQLAlchemyPersister(KvPersister):
         which is what the inherited scan answered too.
         """
         try:
-            return self.query.filter_by(**k).first() is not None
+            return self._query.filter_by(**k).first() is not None
         except (TypeError, sqlalchemy.exc.InvalidRequestError):
             return False
 
@@ -632,10 +666,10 @@ class SQLAlchemyPersister(KvPersister):
 
     def iter_rows(self):
         """Iterate the ORM row objects (what ``__iter__`` used to yield)."""
-        yield from self.query
+        yield from self._query
 
     def __len__(self):
-        return self.query.count()
+        return self._query.count()
 
     # def __del__(self):
     #     self.teardown()

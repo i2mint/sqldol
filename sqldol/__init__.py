@@ -31,3 +31,5 @@ from sqldol.stores import (
     SqlDictStore,
 )
 from sqldol.util import create_table_from_dict, rows_iter
+
+from sqldol import ops
