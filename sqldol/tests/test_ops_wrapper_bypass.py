@@ -89,5 +89,7 @@ def test_teardown_drops_nothing(tmp_path):
     store[("a",)] = ("one",)
     store.teardown()
     con = sqlite3.connect(tmp_path / "a.db")
-    assert con.execute("select name from sqlite_master where type='table'").fetchall() == [("tbl",)]
+    assert con.execute(
+        "select name from sqlite_master where type='table'"
+    ).fetchall() == [("tbl",)]
     con.close()
