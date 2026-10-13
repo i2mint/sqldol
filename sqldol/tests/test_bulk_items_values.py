@@ -184,3 +184,43 @@ def test_rows_are_read_in_batches_not_all_at_once(tmp_path):
 
     assert len(list(islice(p.items(), 3))) == 3
     assert counter.n <= 2
+
+
+@pytest.mark.parametrize("change", ["delete", "rekey"])
+def test_uncommitted_change_in_the_loop_is_seen_like_a_plain_lookup(tmp_path, change):
+    """The batch must not yield a row the session has deleted or re-keyed (unflushed)."""
+    p = _filled(tmp_path)
+    p.autocommit = False
+    seen = []
+    with pytest.raises(KeyError):  # what the plain per-key lookup does
+        for key, row in p.items():
+            seen.append(key["id"])
+            if key["id"] == "k001":
+                if change == "delete":
+                    del p[{"id": "k005"}]
+                else:
+                    p[{"id": "k005"}] = {"id": "zzz", "doc": "moved"}
+    assert "k005" not in seen
+
+
+def test_expired_row_deleted_elsewhere_raises_keyerror_not_objectdeleted(tmp_path):
+    a, b = _filled(tmp_path), _file_persister(tmp_path)
+    with pytest.raises(KeyError):
+        for key, _ in a.items():
+            if key["id"] == "k001":
+                a[{"id": "k002"}] = {"doc": "x"}  # commit: expires every row
+                del b[{"id": "k005"}]
+
+
+def test_primary_key_bulk_update_then_commit_in_the_loop(tmp_path):
+    p = _filled(tmp_path)
+    with pytest.raises(KeyError):
+        for key, _ in p.items():
+            if key["id"] == "k001":
+                p.session.query(p.table).filter_by(id="k005").update({"id": "zzz"})
+                p.session.commit()
+
+
+def test_unhashable_key_value_falls_back_to_a_plain_lookup(tmp_path):
+    p = _filled(tmp_path, 3)
+    assert p._load_rows([{"id": ["not", "hashable"]}]) == {}

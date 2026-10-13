@@ -390,7 +390,8 @@ class SQLAlchemyPersister(KvPersister):
     A basic SQL DB persister written with SQLAlchemy.
 
     ``store.items()`` and ``store.values()`` (also through ``dol`` wrappers) read the table
-    with one query instead of one per key. ``dict(store)`` does not (it asks ``keys()`` and
+    with one query per batch of keys (500) instead of one per key. Each batch is a snapshot
+    taken when it starts; rows handed out stay in the session, as with any lookup. ``dict(store)`` does not (it asks ``keys()`` and
     then ``store[k]`` per key): use ``dict(store.items())``.
     """
 
@@ -507,7 +508,12 @@ class SQLAlchemyPersister(KvPersister):
         idents = []
         for k in keys:
             if isinstance(k, Mapping) and set(k) == set(names):
-                idents.append(tuple(k[name] for name in names))
+                ident = tuple(k[name] for name in names)
+                try:
+                    hash(ident)
+                except TypeError:  # unhashable value: looked up one by one
+                    continue
+                idents.append(ident)
         if not idents:
             return {}
         columns = [getattr(self.table, name) for name in names]
@@ -541,8 +547,11 @@ class SQLAlchemyPersister(KvPersister):
     def _prefetched_row(self, k):
         """The prefetched row for key ``k`` (a mapping of exactly the key fields), or None.
 
-        Only a row that is still persistent in the session under that identity counts: one
-        deleted, detached or re-keyed meanwhile is a miss.
+        Only a row that is still persistent in the session under that identity, and not
+        expired (a commit expires every row: its state in the database is unknown), counts:
+        one deleted, detached, re-keyed or expired meanwhile is a miss and is looked up in
+        the database, as a plain lookup does. Pending changes of the session are flushed
+        first, as a plain lookup's query would.
         """
         if not self._prefetch or not isinstance(k, Mapping):
             return None
@@ -555,7 +564,12 @@ class SQLAlchemyPersister(KvPersister):
             return None
         if row is None:
             return None
+        session = self.session
+        if session.autoflush and (session.new or session.dirty or session.deleted):
+            session.flush()
         state = sqlalchemy.inspect(row)
+        if state.expired or state.expired_attributes:
+            return None
         return row if state.persistent and state.identity == ident else None
 
     def __getitem__(self, k):
