@@ -1,4 +1,4 @@
-> built 2026-10-13 11:10 UTC from c6db050 (master) · sqldol 0.1.10. Details: build_info.json
+> built 2026-10-13 23:13 UTC from cb59111 (master) · sqldol 0.1.11. Details: build_info.json
 
 # index.html.md
 
@@ -200,8 +200,15 @@ persister = SQLAlchemyPersister(
     data_fields={'timestamp': SQLAlchemyPersister.TYPE_STRING, 'data': SQLAlchemyPersister.TYPE_TEXT}
 )
 
-# Direct access to SQLAlchemy session and query objects
-query_result = persister.query.filter_by(event_id='EVT001').first()
+# Direct access to the SQLAlchemy query of the table (a free function, not a method:
+# a method would be served unchanged by every dol wrapper, in the persister's coordinates)
+from sqldol import ops
+
+query_result = ops.query(persister).filter_by(event_id='EVT001').first()
+
+# Under a wrapper (e.g. SQLAlchemyTupleStore) the rows are the persister's ORM rows, not
+# the store's tuples: ops.query refuses unless you say so
+# ops.query(tuple_store, leaf_coordinates=True)
 ```
 
 ## Testing
@@ -312,11 +319,93 @@ sql with a simple (dict-like or list-like) interface
 
 ### Modules
 
-| [`base`](_autosummary/sqldol.base.html.md#module-sqldol.base)         | Base objects for sqldol                                                      |
-|----------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`sql_base`](_autosummary/sqldol.sql_base.html.md#module-sqldol.sql_base) | Independent legacy DOLs sql with a simple (dict-like or list-like) interface |
-| [`stores`](_autosummary/sqldol.stores.html.md#module-sqldol.stores)     | Higher level stores for sql data                                             |
-| [`util`](_autosummary/sqldol.util.html.md#module-sqldol.util)         | Utils for sqldol                                                             |
+| [`base`](_autosummary/sqldol.base.html.md#module-sqldol.base)         | Base objects for sqldol                                                              |
+|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`ops`](_autosummary/sqldol.ops.html.md#module-sqldol.ops)           | Leaf-level operations, as free functions over the caller's (possibly wrapped) store. |
+| [`sql_base`](_autosummary/sqldol.sql_base.html.md#module-sqldol.sql_base) | Independent legacy DOLs sql with a simple (dict-like or list-like) interface         |
+| [`stores`](_autosummary/sqldol.stores.html.md#module-sqldol.stores)     | Higher level stores for sql data                                                     |
+| [`util`](_autosummary/sqldol.util.html.md#module-sqldol.util)         | Utils for sqldol                                                                     |
+
+
+# _autosummary/sqldol.ops.html.md
+
+# sqldol.ops
+
+Leaf-level operations, as free functions over the caller’s (possibly wrapped) store.
+
+`dol` wraps stores by delegation, so a public *attribute* of a persister is served by every
+wrapper above it unchanged, in the persister’s own coordinates (i2mint/sqldol#3, i2mint/dol#83).
+`SQLAlchemyPersister.query` was such an attribute: on a `SQLAlchemyTupleStore` (which speaks
+tuples) it handed back ORM rows, and anything filtered through it was in a different coordinate
+system than the store, with nothing raising. A free function is handed the caller’s store itself,
+so it can tell whether wrappers sit between the caller and the persister, and say so.
+
+- [`query()`](_autosummary/sqldol.ops.html.md#sqldol.ops.query) `(store)` is the SQLAlchemy `Query` over the persister’s table. On a bare
+  persister that is the store’s own coordinates. Under a wrapper it is not, so it is refused
+  with [`WrappedStoreError`](_autosummary/sqldol.ops.html.md#sqldol.ops.WrappedStoreError) unless `leaf_coordinates=True` states that you want the
+  persister’s rows and keys.
+
+The removed `SQLAlchemyPersister.query` property and `SQLAlchemyPersister.setup` method
+raise an `AttributeError` naming their replacement (`setup`, a whole-store rebind that no
+wrapper could veto, has none: build a new store). The same design as cosmodol.ops, sshdol.ops
+and s3dol’s ADR-0011.
+
+`table`, `session` and `connection` are still plain attributes of the persister (they are
+the SQLAlchemy objects it is built on). Through a wrapper they too are the persister’s, not the
+store’s: treat them as leaf escape hatches.
+
+```pycon
+>>> import sqlalchemy
+>>> from sqldol import SQLAlchemyTupleStore
+>>> store = SQLAlchemyTupleStore(
+...     "sqlite:///:memory:", "t",
+...     key_fields={"id": sqlalchemy.String}, data_fields={"data": sqlalchemy.String},
+... )
+>>> store[("a",)] = ("one",)
+>>> list(store)
+[('a',)]
+>>> query(store)
+Traceback (most recent call last):
+  ...
+sqldol.ops.WrappedStoreError: SQLAlchemyTupleStore is not a bare SQLAlchemyPersister...
+>>> [(row.id, row.data) for row in query(store, leaf_coordinates=True)]
+[('a', 'one')]
+```
+
+### Functions
+
+| [`query`](_autosummary/sqldol.ops.html.md#sqldol.ops.query)(store, \*[, leaf_coordinates])   | The SQLAlchemy `Query` over the table of `store`'s persister (rows are ORM objects).   |
+|-----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+
+### Exceptions
+
+| [`WrappedStoreError`](_autosummary/sqldol.ops.html.md#sqldol.ops.WrappedStoreError)   | An operation that answers in the persister's coordinates was given a wrapped store (i2mint/sqldol#3).   |
+|----------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+
+### *exception* sqldol.ops.WrappedStoreError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+An operation that answers in the persister’s coordinates was given a wrapped store (i2mint/sqldol#3).
+
+### sqldol.ops.query(store, , leaf_coordinates=False)
+
+The SQLAlchemy `Query` over the table of `store`’s persister (rows are ORM objects).
+
+The rows are the persister’s: their keys and values are *not* mapped by any `dol`
+wrapper between you and the persister. If `store` is such a wrapper (a
+`SQLAlchemyTupleStore`, a key codec, a `filt_iter` view…), a `Query` could neither
+honour its scope nor speak its keys, so `WrappedStoreError` is raised unless you pass
+`leaf_coordinates=True`, which says you know.
+
+A *subclass* of `SQLAlchemyPersister` counts as bare, even if it maps keys or values
+itself: `query` cannot know.
+
+* **Parameters:**
+  * **store** – a `SQLAlchemyPersister`, wrapped or not
+  * **leaf_coordinates** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool)) – accept a wrapped `store` and return the persister’s query
+* **Raises:**
+  [**WrappedStoreError**](_autosummary/sqldol.ops.html.md#sqldol.ops.WrappedStoreError) – if `store` is wrapped and `leaf_coordinates` is not set
 
 
 # _autosummary/sqldol.sql_base.html.md
@@ -438,6 +527,12 @@ with one query per batch of keys (500) instead of one per key. Each batch is a s
 taken when it starts; rows handed out stay in the session, as with any lookup. `dict(store)` does not (it asks `keys()` and
 then `store[k]` per key): use `dict(store.items())`.
 
+`table`, `session` and `connection` are the SQLAlchemy objects the persister is
+built on. `dol` wrappers serve them unchanged, so through a wrapper they are leaf
+escape hatches (the persister’s coordinates, not the store’s). The table’s `Query` is
+`sqldol.ops.query(store)`; `query` and `setup` are not methods any more
+(i2mint/sqldol#3).
+
 alias of `TEXT`
 
 #### ValuesView
@@ -447,6 +542,24 @@ alias of `_PrefetchingValuesView`
 #### iter_rows()
 
 Iterate the ORM row objects (what `__iter__` used to yield).
+
+#### *property* query
+
+use `sqldol.ops.query(store)`.
+
+A public `query` is delegated by every `dol` wrapper, so `SQLAlchemyTupleStore.query`
+handed back ORM rows while the store itself speaks tuples (i2mint/sqldol#3).
+
+* **Type:**
+  Removed
+
+#### setup(\*args, \*\*kwargs)
+
+Removed: build a new store (`SQLAlchemyPersister(uri, collection_name, ...)`).
+
+A whole-store rebind cannot be intercepted or vetoed by the `dol` wrappers above
+the persister, which delegate public attributes to it, so under a wrapper it
+silently repointed the store at another database and table (i2mint/sqldol#3).
 
 ### *class* sqldol.sql_base.SQLAlchemyStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
 
@@ -637,7 +750,7 @@ If the table does not exist, it will be created with the specified columns.
 
 # About this build
 
-This documentation was built on **2026-10-13 11:10 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/c6db050e9698adff800ed717816109a797670b24"><code>c6db050</code></a> on branch <code>master</code>, for **sqldol 0.1.10** (from <code>setup.cfg</code>).
+This documentation was built on **2026-10-13 23:13 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/cb5911144b2e7d6c8dfc956be54945f12f9bed93"><code>cb59111</code></a> on branch <code>master</code>, for **sqldol 0.1.11** (from <code>setup.cfg</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -646,9 +759,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/sqldol/commit/c6db050e9698adff800ed717816109a797670b24"><code>c6db050e9698adff800ed717816109a797670b24</code></a> |
+| Commit              | <a href="https://github.com/i2mint/sqldol/commit/cb5911144b2e7d6c8dfc956be54945f12f9bed93"><code>cb5911144b2e7d6c8dfc956be54945f12f9bed93</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.10</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.11</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/sqldol</code>                                                                                                        |
 
@@ -657,15 +770,15 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/sqldol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/38388172015">38388172015</a>        |
+| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/38482687412">38482687412</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>b6322c5a5e52a1daf41ca6b91ef5513f41c9a4a8</code> (in the history of the built commit) |
+| Event commit | <code>9ca4862aef5f603371c2a7a37a039dbb87fe82e7</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.15  |
+| epythet  | 0.2.17  |
 | Sphinx   | 9.1.0   |
 | docutils | 0.22.4  |
 | Python   | 3.12.15 |
@@ -684,14 +797,14 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/sqldol/0.1.10/">0.1.10</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/sqldol/0.1.11/">0.1.11</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/sqldol && cd sqldol
-git checkout c6db050e9698adff800ed717816109a797670b24
-pip install "epythet==0.2.15"
+git checkout cb5911144b2e7d6c8dfc956be54945f12f9bed93
+pip install "epythet==0.2.17"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

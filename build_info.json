@@ -1,38 +1,38 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-13T11:10:01Z",
+  "built_at": "2026-10-13T23:13:08Z",
   "package": {
     "name": "sqldol",
-    "version": "0.1.10",
+    "version": "0.1.11",
     "display_name": "sqldol",
     "source": "setup.cfg"
   },
   "git": {
     "available": true,
-    "commit": "c6db050e9698adff800ed717816109a797670b24",
-    "short_commit": "c6db050",
+    "commit": "cb5911144b2e7d6c8dfc956be54945f12f9bed93",
+    "short_commit": "cb59111",
     "branch": "master",
     "tags": [
-      "0.1.10"
+      "0.1.11"
     ],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/sqldol",
-    "commit_url": "https://github.com/i2mint/sqldol/commit/c6db050e9698adff800ed717816109a797670b24",
+    "commit_url": "https://github.com/i2mint/sqldol/commit/cb5911144b2e7d6c8dfc956be54945f12f9bed93",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/sqldol",
-    "sha": "b6322c5a5e52a1daf41ca6b91ef5513f41c9a4a8",
+    "sha": "9ca4862aef5f603371c2a7a37a039dbb87fe82e7",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "38388172015",
-    "run_url": "https://github.com/i2mint/sqldol/actions/runs/38388172015",
+    "run_id": "38482687412",
+    "run_url": "https://github.com/i2mint/sqldol/actions/runs/38482687412",
     "server_url": "https://github.com"
   },
   "tools": {
-    "epythet": "0.2.15",
+    "epythet": "0.2.17",
     "sphinx": "9.1.0",
     "docutils": "0.22.4",
     "python": "3.12.15"
@@ -57,16 +57,16 @@
     "docs_dir": "docsrc"
   },
   "site": {
-    "modules_documented": 5,
-    "objects_documented": 40
+    "modules_documented": 6,
+    "objects_documented": 44
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.10",
+    "latest": "0.1.11",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout c6db050e9698adff800ed717816109a797670b24\npip install \"epythet==0.2.15\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout cb5911144b2e7d6c8dfc956be54945f12f9bed93\npip install \"epythet==0.2.17\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

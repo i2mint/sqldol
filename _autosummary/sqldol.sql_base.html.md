@@ -115,6 +115,12 @@ with one query per batch of keys (500) instead of one per key. Each batch is a s
 taken when it starts; rows handed out stay in the session, as with any lookup. `dict(store)` does not (it asks `keys()` and
 then `store[k]` per key): use `dict(store.items())`.
 
+`table`, `session` and `connection` are the SQLAlchemy objects the persister is
+built on. `dol` wrappers serve them unchanged, so through a wrapper they are leaf
+escape hatches (the persister’s coordinates, not the store’s). The table’s `Query` is
+`sqldol.ops.query(store)`; `query` and `setup` are not methods any more
+(i2mint/sqldol#3).
+
 alias of `TEXT`
 
 #### ValuesView
@@ -124,6 +130,24 @@ alias of `_PrefetchingValuesView`
 #### iter_rows()
 
 Iterate the ORM row objects (what `__iter__` used to yield).
+
+#### *property* query
+
+use `sqldol.ops.query(store)`.
+
+A public `query` is delegated by every `dol` wrapper, so `SQLAlchemyTupleStore.query`
+handed back ORM rows while the store itself speaks tuples (i2mint/sqldol#3).
+
+* **Type:**
+  Removed
+
+#### setup(\*args, \*\*kwargs)
+
+Removed: build a new store (`SQLAlchemyPersister(uri, collection_name, ...)`).
+
+A whole-store rebind cannot be intercepted or vetoed by the `dol` wrappers above
+the persister, which delegate public attributes to it, so under a wrapper it
+silently repointed the store at another database and table (i2mint/sqldol#3).
 
 ### *class* sqldol.sql_base.SQLAlchemyStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
 

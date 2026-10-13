@@ -35,7 +35,7 @@
 <link href="../search.html" rel="search" title="Search"/>
 <link href="../genindex.html" rel="index" title="Index"/>
 <link href="sqldol.stores.html" rel="next" title="sqldol.stores"/>
-<link href="sqldol.base.html" rel="prev" title="sqldol.base"/>
+<link href="sqldol.ops.html" rel="prev" title="sqldol.ops"/>
 </head>
 <body :class="{ 'overflow-hidden': showSidebar }" class="min-h-screen font-sans antialiased bg-background text-foreground" x-data="{ showSidebar: false, showScrollTop: false }">
 <div @click.self="showSidebar = false" class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden" x-cloak="" x-show="showSidebar"></div><div class="relative flex flex-col min-h-screen" id="page"><a class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100" href="#content">
@@ -84,6 +84,7 @@
 <li class="toctree-l1 current" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="../api.html">API reference<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul class="current" x-show="expanded">
 <li class="toctree-l2 current" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="sqldol.html">sqldol<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul class="current" x-show="expanded">
 <li class="toctree-l3"><a class="reference internal" href="sqldol.base.html">sqldol.base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sqldol.ops.html">sqldol.ops</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">sqldol.sql_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sqldol.stores.html">sqldol.stores</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sqldol.util.html">sqldol.util</a></li>
@@ -269,6 +270,11 @@ In either case, this is followed by: for k in F:  D[k] = F[k]</p>
 with one query per batch of keys (500) instead of one per key. Each batch is a snapshot
 taken when it starts; rows handed out stay in the session, as with any lookup. <code class="docutils literal notranslate"><span class="pre">dict(store)</span></code> does not (it asks <code class="docutils literal notranslate"><span class="pre">keys()</span></code> and
 then <code class="docutils literal notranslate"><span class="pre">store[k]</span></code> per key): use <code class="docutils literal notranslate"><span class="pre">dict(store.items())</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">table</span></code>, <code class="docutils literal notranslate"><span class="pre">session</span></code> and <code class="docutils literal notranslate"><span class="pre">connection</span></code> are the SQLAlchemy objects the persister is
+built on. <code class="docutils literal notranslate"><span class="pre">dol</span></code> wrappers serve them unchanged, so through a wrapper they are leaf
+escape hatches (the persister’s coordinates, not the store’s). The table’s <code class="docutils literal notranslate"><span class="pre">Query</span></code> is
+<code class="docutils literal notranslate"><span class="pre">sqldol.ops.query(store)</span></code>; <code class="docutils literal notranslate"><span class="pre">query</span></code> and <code class="docutils literal notranslate"><span class="pre">setup</span></code> are not methods any more
+(i2mint/sqldol#3).</p>
 <p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TEXT</span></code></p>
 </dd></dl>
 <dl class="py attribute">
@@ -280,6 +286,26 @@ then <code class="docutils literal notranslate"><span class="pre">store[k]</span
 <dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.iter_rows">
 <span class="sig-name descname"><span class="pre">iter_rows</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/sqldol/sql_base.html#SQLAlchemyPersister.iter_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQLAlchemyPersister.iter_rows" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQLAlchemyPersister.iter_rows'">¶</a></dt>
 <dd><p>Iterate the ORM row objects (what <code class="docutils literal notranslate"><span class="pre">__iter__</span></code> used to yield).</p>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.query">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">query</span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQLAlchemyPersister.query" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQLAlchemyPersister.query'">¶</a></dt>
+<dd><p>use <code class="docutils literal notranslate"><span class="pre">sqldol.ops.query(store)</span></code>.</p>
+<p>A public <code class="docutils literal notranslate"><span class="pre">query</span></code> is delegated by every <code class="docutils literal notranslate"><span class="pre">dol</span></code> wrapper, so <code class="docutils literal notranslate"><span class="pre">SQLAlchemyTupleStore.query</span></code>
+handed back ORM rows while the store itself speaks tuples (i2mint/sqldol#3).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Removed</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/sqldol/sql_base.html#SQLAlchemyPersister.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQLAlchemyPersister.setup" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQLAlchemyPersister.setup'">¶</a></dt>
+<dd><p>Removed: build a new store (<code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister(uri,</span> <span class="pre">collection_name,</span> <span class="pre">...)</span></code>).</p>
+<p>A whole-store rebind cannot be intercepted or vetoed by the <code class="docutils literal notranslate"><span class="pre">dol</span></code> wrappers above
+the persister, which delegate public attributes to it, so under a wrapper it
+silently repointed the store at another database and table (i2mint/sqldol#3).</p>
 </dd></dl>
 </dd></dl>
 <dl class="py class">
@@ -418,6 +444,8 @@ quoting helper, so they only accept names matching an allowlist.</p>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_TEXT</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.ValuesView'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.ValuesView"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.ValuesView</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.iter_rows'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.iter_rows"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.iter_rows()</span></code></a></li>
+<li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.query'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.query"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.query</span></code></a></li>
+<li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.setup'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.setup"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.setup()</span></code></a></li>
 </ul>
 </li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyStore'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyStore"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyStore</span></code></a></li>
@@ -444,7 +472,7 @@ quoting helper, so they only accept names matching an allowlist.</p>
 </div>
 </footer>
 </div>
-<script src="../_static/documentation_options.js?v=bafade30"></script>
+<script src="../_static/documentation_options.js?v=1e825a29"></script>
 <script src="../_static/doctools.js?v=fd6eb6e6"></script>
 <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
 <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

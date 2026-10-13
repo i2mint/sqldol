@@ -11,6 +11,7 @@
    :recursive:
 
    base
+   ops
    sql_base
    stores
    util

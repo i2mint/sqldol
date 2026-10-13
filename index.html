@@ -83,6 +83,7 @@
 <li class="toctree-l1" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="api.html">API reference<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-cloak="" x-show="expanded">
 <li class="toctree-l2" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="_autosummary/sqldol.html">sqldol<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-cloak="" x-show="expanded">
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.base.html">sqldol.base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.ops.html">sqldol.ops</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.sql_base.html">sqldol.sql_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.stores.html">sqldol.stores</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.util.html">sqldol.util</a></li>
@@ -303,8 +304,15 @@
 </span><span id="line-8">    <span class="n">data_fields</span><span class="o">=</span><span class="p">{</span><span class="s1">'timestamp'</span><span class="p">:</span> <span class="n">SQLAlchemyPersister</span><span class="o">.</span><span class="n">TYPE_STRING</span><span class="p">,</span> <span class="s1">'data'</span><span class="p">:</span> <span class="n">SQLAlchemyPersister</span><span class="o">.</span><span class="n">TYPE_TEXT</span><span class="p">}</span>
 </span><span id="line-9"><span class="p">)</span>
 </span><span id="line-10">
-</span><span id="line-11"><span class="c1"># Direct access to SQLAlchemy session and query objects</span>
-</span><span id="line-12"><span class="n">query_result</span> <span class="o">=</span> <span class="n">persister</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">event_id</span><span class="o">=</span><span class="s1">'EVT001'</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</span><span id="line-11"><span class="c1"># Direct access to the SQLAlchemy query of the table (a free function, not a method:</span>
+</span><span id="line-12"><span class="c1"># a method would be served unchanged by every dol wrapper, in the persister's coordinates)</span>
+</span><span id="line-13"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">ops</span>
+</span><span id="line-14">
+</span><span id="line-15"><span class="n">query_result</span> <span class="o">=</span> <span class="n">ops</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">persister</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">event_id</span><span class="o">=</span><span class="s1">'EVT001'</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</span><span id="line-16">
+</span><span id="line-17"><span class="c1"># Under a wrapper (e.g. SQLAlchemyTupleStore) the rows are the persister's ORM rows, not</span>
+</span><span id="line-18"><span class="c1"># the store's tuples: ops.query refuses unless you say so</span>
+</span><span id="line-19"><span class="c1"># ops.query(tuple_store, leaf_coordinates=True)</span>
 </span></code></pre></div>
 </div>
 </section>
@@ -349,7 +357,7 @@
 
 </section>
 </section>
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-10-13 11:10 UTC from <a href="https://github.com/i2mint/sqldol/commit/c6db050e9698adff800ed717816109a797670b24">c6db050</a> (master) · sqldol 0.1.10 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-10-13 23:13 UTC from <a href="https://github.com/i2mint/sqldol/commit/cb5911144b2e7d6c8dfc956be54945f12f9bed93">cb59111</a> (master) · sqldol 0.1.11 · <a href="about-this-build.html">about this build</a></p>
 </div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
 <div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] h-full overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
 <ul>
@@ -397,7 +405,7 @@
 </div>
 </footer>
 </div>
-<script src="_static/documentation_options.js?v=bafade30"></script>
+<script src="_static/documentation_options.js?v=1e825a29"></script>
 <script src="_static/doctools.js?v=fd6eb6e6"></script>
 <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
 <script src="_static/clipboard.min.js?v=a7894cd8"></script>

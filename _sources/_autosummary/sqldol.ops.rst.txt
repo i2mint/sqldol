@@ -1,0 +1,18 @@
+sqldol.ops
+==========
+
+.. automodule:: sqldol.ops
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      query
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      WrappedStoreError
+   
