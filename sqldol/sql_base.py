@@ -12,7 +12,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy as db
 
-from collections.abc import Sequence
+from collections.abc import ItemsView, Mapping, Sequence, ValuesView
+from contextlib import contextmanager
+from dol import inner_most_key
 from dol.base import KvPersister
 from dol.base import Collection, KvReader
 from dol.util import lazyprop, lazyprop_w_sentinel
@@ -308,7 +310,76 @@ class RowKey(dict):
         return (RowKey, (dict(self),))
 
 
+def _leaf_persister(store):
+    """The ``SQLAlchemyPersister`` under any number of ``dol`` wrappers (``None`` if none)."""
+    seen = set()
+    while store is not None and id(store) not in seen:
+        if isinstance(store, SQLAlchemyPersister):
+            return store
+        seen.add(id(store))
+        store = getattr(store, "store", None)
+
+
+_PREFETCH_BATCH = 500  # rows read per query by items()/values()
+_MAX_QUERY_PARAMS = 900  # stay under the oldest SQLite limit on bound variables
+
+
+def _chunks(iterable, size):
+    chunk = []
+    for x in iterable:
+        chunk.append(x)
+        if len(chunk) >= size:
+            yield chunk
+            chunk = []
+    if chunk:
+        yield chunk
+
+
+class _PrefetchingViewMixin:
+    """Iterate ``(key, value)`` pairs of the caller's store a batch at a time, one query per batch.
+
+    ``Mapping`` builds ``items()``/``values()`` from ``store[key]`` for every key, i.e. one
+    query per row. Here the keys of a batch are resolved to the persister's own keys
+    (``inner_most_key``), their rows are read by one query, and only while ``store[key]``
+    runs are lookups of those keys answered from them. The lookups still go through the
+    caller's own store, so key/value codecs and ``filt_iter`` scopes keep applying
+    (i2mint/sqldol#11); nothing is cached while the caller's code runs between pairs.
+    """
+
+    def _pairs(self):
+        mapping = self._mapping
+        persister = _leaf_persister(mapping)
+        if persister is None:
+            for key in mapping:
+                yield key, mapping[key]
+            return
+        for keys in _chunks(mapping, persister._prefetch_batch):
+            rows = persister._load_rows(
+                keys
+                if mapping is persister
+                else [inner_most_key(mapping, key, default=None) for key in keys]
+            )
+            for key in keys:
+                with persister._using_rows(rows):
+                    value = mapping[key]
+                yield key, value
+
+
+class _PrefetchingItemsView(_PrefetchingViewMixin, ItemsView):
+    def __iter__(self):
+        yield from self._pairs()
+
+
+class _PrefetchingValuesView(_PrefetchingViewMixin, ValuesView):
+    def __iter__(self):
+        for _, value in self._pairs():
+            yield value
+
+
 class SQLAlchemyPersister(KvPersister):
+    ItemsView = _PrefetchingItemsView
+    ValuesView = _PrefetchingValuesView
+
     TYPE_INTEGER = sqlalchemy.INTEGER
     TYPE_STRING = sqlalchemy.String
     TYPE_BOOLEAN = sqlalchemy.BOOLEAN
@@ -317,6 +388,11 @@ class SQLAlchemyPersister(KvPersister):
 
     """
     A basic SQL DB persister written with SQLAlchemy.
+
+    ``store.items()`` and ``store.values()`` (also through ``dol`` wrappers) read the table
+    with one query per batch of keys (500) instead of one per key. Each batch is a snapshot
+    taken when it starts; rows handed out stay in the session, as with any lookup. ``dict(store)`` does not (it asks ``keys()`` and
+    then ``store[k]`` per key): use ``dict(store.items())``.
     """
 
     def __init__(
@@ -423,8 +499,81 @@ class SQLAlchemyPersister(KvPersister):
     def query(self):
         return self.session.query(self.table)
 
+    _prefetch_batch = _PREFETCH_BATCH
+    _prefetch = None  # {identity: row} while a view is looking up the rows it just read
+
+    def _load_rows(self, keys):
+        """``{identity: row}`` for the ``keys`` that name rows by exactly the key fields, by one query."""
+        names = list(self._key_fields)
+        idents = []
+        for k in keys:
+            if isinstance(k, Mapping) and set(k) == set(names):
+                ident = tuple(k[name] for name in names)
+                try:
+                    hash(ident)
+                except TypeError:  # unhashable value: looked up one by one
+                    continue
+                idents.append(ident)
+        if not idents:
+            return {}
+        columns = [getattr(self.table, name) for name in names]
+        # distinct, and in batches that keep the number of bound parameters small
+        idents = list(dict.fromkeys(idents))
+        rows = {}
+        for part in _chunks(idents, max(1, _MAX_QUERY_PARAMS // len(names))):
+            try:
+                cond = (
+                    columns[0].in_([i[0] for i in part])
+                    if len(columns) == 1
+                    else sqlalchemy.tuple_(*columns).in_(part)
+                )
+                for row in self.query.filter(cond):
+                    rows[self._ident_of_row(row)] = row
+            except (TypeError, sqlalchemy.exc.SQLAlchemyError):
+                continue  # keys the database cannot compare: looked up one by one
+        return rows
+
+    @contextmanager
+    def _using_rows(self, rows):
+        previous, self._prefetch = self._prefetch, rows
+        try:
+            yield
+        finally:
+            self._prefetch = previous
+
+    def _ident_of_row(self, row):
+        return tuple(getattr(row, name) for name in self._key_fields)
+
+    def _prefetched_row(self, k):
+        """The prefetched row for key ``k`` (a mapping of exactly the key fields), or None.
+
+        Only a row that is still persistent in the session under that identity, and not
+        expired (a commit expires every row: its state in the database is unknown), counts:
+        one deleted, detached, re-keyed or expired meanwhile is a miss and is looked up in
+        the database, as a plain lookup does. Pending changes of the session are flushed
+        first, as a plain lookup's query would.
+        """
+        if not self._prefetch or not isinstance(k, Mapping):
+            return None
+        if set(k) != set(self._key_fields):
+            return None
+        try:
+            ident = tuple(k[name] for name in self._key_fields)
+            row = self._prefetch.get(ident)
+        except TypeError:  # unhashable key value
+            return None
+        if row is None:
+            return None
+        session = self.session
+        if session.autoflush and (session.new or session.dirty or session.deleted):
+            session.flush()
+        state = sqlalchemy.inspect(row)
+        if state.expired or state.expired_attributes:
+            return None
+        return row if state.persistent and state.identity == ident else None
+
     def __getitem__(self, k):
-        doc = self.query.filter_by(**k).first()
+        doc = self._prefetched_row(k) or self.query.filter_by(**k).first()
         # todo: think of intuitive way of selecting many by 1 (or some) of many keys
         if not doc:
             raise KeyError(f"No document found for query: {k}")
