@@ -113,7 +113,10 @@ def test_multi_field_keys():
     store = SQLAlchemyStore(
         uri=SQLITE_DB_URI,
         collection_name="iter_multi",
-        key_fields={"a": SQLAlchemyPersister.TYPE_STRING, "n": SQLAlchemyPersister.TYPE_INTEGER},
+        key_fields={
+            "a": SQLAlchemyPersister.TYPE_STRING,
+            "n": SQLAlchemyPersister.TYPE_INTEGER,
+        },
         data_fields=DATA_FIELDS,
     )
     store[{"a": "x", "n": 1}] = {"doc": "d"}
