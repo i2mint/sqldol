@@ -5,6 +5,7 @@ sql with a simple (dict-like or list-like) interface
 from sqldol.sql_base import (
     DfSqlDbReader,
     SQLAlchemyPersister,
+    RowKey,
     SQLAlchemyStore,
     SQLAlchemyTupleStore,
     SqlAlchemyDatabaseCollection,
