@@ -22,6 +22,7 @@ sqldol.sql\_base
    .. autosummary::
    
       DfSqlDbReader
+      RowKey
       SQLAlchemyPersister
       SQLAlchemyStore
       SQLAlchemyTupleStore

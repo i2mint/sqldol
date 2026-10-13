@@ -16,21 +16,71 @@ sql with a simple (dict-like or list-like) interface
 
 ### Classes
 
-| [`DfSqlDbReader`](#sqldol.sql_base.DfSqlDbReader)(connection)                         |                                   |
-|----------------------------------------------------------------------------------------------------|-----------------------------------|
-| [`SQLAlchemyPersister`](#sqldol.sql_base.SQLAlchemyPersister)([uri, collection_name, ...])  |                                   |
-| [`SQLAlchemyStore`](#sqldol.sql_base.SQLAlchemyStore)([uri, collection_name, ...])      |                                   |
-| [`SQLAlchemyTupleStore`](#sqldol.sql_base.SQLAlchemyTupleStore)([uri, collection_name, ...]) |                                   |
-| [`SqlAlchemyDatabaseCollection`](#sqldol.sql_base.SqlAlchemyDatabaseCollection)                      |                                   |
-| [`SqlAlchemyReader`](#sqldol.sql_base.SqlAlchemyReader)                                  |                                   |
-| [`SqlDbCollection`](#sqldol.sql_base.SqlDbCollection)(connection)                       | A collection of sql tables names. |
-| [`SqlDbReader`](#sqldol.sql_base.SqlDbReader)(connection)                           | A KvReader of sql tables.         |
-| [`SqlTableRowsCollection`](#sqldol.sql_base.SqlTableRowsCollection)(connection, table_name)    | Base class wrapping an sql table. |
-| [`SqlTableRowsSequence`](#sqldol.sql_base.SqlTableRowsSequence)(connection, table_name)      |                                   |
+| [`DfSqlDbReader`](#sqldol.sql_base.DfSqlDbReader)(connection)                         |                                                                                                 |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| [`RowKey`](#sqldol.sql_base.RowKey)                                            | A hashable, immutable `{key_field: value}` dict: the key of one row of a `SQLAlchemyPersister`. |
+| [`SQLAlchemyPersister`](#sqldol.sql_base.SQLAlchemyPersister)([uri, collection_name, ...])  |                                                                                                 |
+| [`SQLAlchemyStore`](#sqldol.sql_base.SQLAlchemyStore)([uri, collection_name, ...])      |                                                                                                 |
+| [`SQLAlchemyTupleStore`](#sqldol.sql_base.SQLAlchemyTupleStore)([uri, collection_name, ...]) |                                                                                                 |
+| [`SqlAlchemyDatabaseCollection`](#sqldol.sql_base.SqlAlchemyDatabaseCollection)                      |                                                                                                 |
+| [`SqlAlchemyReader`](#sqldol.sql_base.SqlAlchemyReader)                                  |                                                                                                 |
+| [`SqlDbCollection`](#sqldol.sql_base.SqlDbCollection)(connection)                       | A collection of sql tables names.                                                               |
+| [`SqlDbReader`](#sqldol.sql_base.SqlDbReader)(connection)                           | A KvReader of sql tables.                                                                       |
+| [`SqlTableRowsCollection`](#sqldol.sql_base.SqlTableRowsCollection)(connection, table_name)    | Base class wrapping an sql table.                                                               |
+| [`SqlTableRowsSequence`](#sqldol.sql_base.SqlTableRowsSequence)(connection, table_name)      |                                                                                                 |
 
 ### *class* sqldol.sql_base.DfSqlDbReader(connection)
 
 Bases: [`SqlDbReader`](#sqldol.sql_base.SqlDbReader)
+
+### *class* sqldol.sql_base.RowKey
+
+Bases: [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+A hashable, immutable `{key_field: value}` dict: the key of one row of a `SQLAlchemyPersister`.
+
+It *is* a `dict` (so it works anywhere the persister takes a key – `store[key]`,
+`key in store` – and equals the plain dict with the same items), but, unlike a plain
+dict, it is hashable, as a `Mapping` key must be (`set(store)`, `dict(store)`,
+`store.keys() & other`), and so cannot be mutated. Key fields can also be read as
+attributes (`key.id`), so code written for the ORM rows that `__iter__` used to yield
+(`row.id`) keeps working.
+
+```pycon
+>>> k = RowKey(id='a')
+>>> k == {'id': 'a'}, hash(k) == hash(RowKey(id='a')), {k: 1}[RowKey(id='a')], k.id
+(True, True, 1, 'a')
+>>> k['id'] = 'b'
+Traceback (most recent call last):
+  ...
+TypeError: RowKey is immutable (it is hashable): build a new one
+```
+
+#### clear() → None.  Remove all items from D.
+
+#### pop(k) → v, remove specified key and return the corresponding value.
+
+If the key is not found, return the default if given; otherwise,
+raise a KeyError.
+
+#### popitem(\*args, \*\*kwargs)
+
+Remove and return a (key, value) pair as a 2-tuple.
+
+Pairs are returned in LIFO (last-in, first-out) order.
+Raises KeyError if the dict is empty.
+
+#### setdefault(\*args, \*\*kwargs)
+
+Insert key with a value of default if key is not in the dictionary.
+
+Return the value for key if key is in the dictionary, else default.
+
+#### update(\*\*F) → None.  Update D from mapping/iterable E and F.
+
+If E is present and has a .keys() method, then does:  for k in E.keys(): D[k] = E[k]
+If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
+In either case, this is followed by: for k in F:  D[k] = F[k]
 
 ### *class* sqldol.sql_base.SQLAlchemyPersister(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
 
@@ -57,6 +107,10 @@ alias of `String`
 A basic SQL DB persister written with SQLAlchemy.
 
 alias of `TEXT`
+
+#### iter_rows()
+
+Iterate the ORM row objects (what `__iter__` used to yield).
 
 ### *class* sqldol.sql_base.SQLAlchemyStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
 

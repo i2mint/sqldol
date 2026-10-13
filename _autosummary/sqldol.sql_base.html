@@ -144,31 +144,34 @@ sql with a simple (dict-like or list-like) interface</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.DfSqlDbReader" title="sqldol.sql_base.DfSqlDbReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DfSqlDbReader</span></code></a>(connection)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister" title="sqldol.sql_base.SQLAlchemyPersister"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SQLAlchemyPersister</span></code></a>([uri, collection_name, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.RowKey" title="sqldol.sql_base.RowKey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RowKey</span></code></a></p></td>
+<td><p>A hashable, immutable <code class="docutils literal notranslate"><span class="pre">{key_field:</span> <span class="pre">value}</span></code> dict: the key of one row of a <code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister" title="sqldol.sql_base.SQLAlchemyPersister"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SQLAlchemyPersister</span></code></a>([uri, collection_name, ...])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyStore" title="sqldol.sql_base.SQLAlchemyStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SQLAlchemyStore</span></code></a>([uri, collection_name, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyStore" title="sqldol.sql_base.SQLAlchemyStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SQLAlchemyStore</span></code></a>([uri, collection_name, ...])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyTupleStore" title="sqldol.sql_base.SQLAlchemyTupleStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SQLAlchemyTupleStore</span></code></a>([uri, collection_name, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.SQLAlchemyTupleStore" title="sqldol.sql_base.SQLAlchemyTupleStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SQLAlchemyTupleStore</span></code></a>([uri, collection_name, ...])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlAlchemyDatabaseCollection" title="sqldol.sql_base.SqlAlchemyDatabaseCollection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlAlchemyDatabaseCollection</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlAlchemyDatabaseCollection" title="sqldol.sql_base.SqlAlchemyDatabaseCollection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlAlchemyDatabaseCollection</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlAlchemyReader" title="sqldol.sql_base.SqlAlchemyReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlAlchemyReader</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlAlchemyReader" title="sqldol.sql_base.SqlAlchemyReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlAlchemyReader</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlDbCollection" title="sqldol.sql_base.SqlDbCollection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlDbCollection</span></code></a>(connection)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlDbCollection" title="sqldol.sql_base.SqlDbCollection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlDbCollection</span></code></a>(connection)</p></td>
 <td><p>A collection of sql tables names.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlDbReader" title="sqldol.sql_base.SqlDbReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlDbReader</span></code></a>(connection)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlDbReader" title="sqldol.sql_base.SqlDbReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlDbReader</span></code></a>(connection)</p></td>
 <td><p>A KvReader of sql tables.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlTableRowsCollection" title="sqldol.sql_base.SqlTableRowsCollection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlTableRowsCollection</span></code></a>(connection, table_name)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlTableRowsCollection" title="sqldol.sql_base.SqlTableRowsCollection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlTableRowsCollection</span></code></a>(connection, table_name)</p></td>
 <td><p>Base class wrapping an sql table.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlTableRowsSequence" title="sqldol.sql_base.SqlTableRowsSequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlTableRowsSequence</span></code></a>(connection, table_name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#sqldol.sql_base.SqlTableRowsSequence" title="sqldol.sql_base.SqlTableRowsSequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqlTableRowsSequence</span></code></a>(connection, table_name)</p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -177,6 +180,57 @@ sql with a simple (dict-like or list-like) interface</p>
 <dt class="sig sig-object py" id="sqldol.sql_base.DfSqlDbReader">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">DfSqlDbReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/sqldol/sql_base.html#DfSqlDbReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.DfSqlDbReader" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.DfSqlDbReader'">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqldol.sql_base.SqlDbReader" title="sqldol.sql_base.SqlDbReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">SqlDbReader</span></code></a></p>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="sqldol.sql_base.RowKey">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">RowKey</span></span><a class="reference internal" href="../_modules/sqldol/sql_base.html#RowKey"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.RowKey" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.RowKey'">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" rel="nofollow noopener" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code><svg fill="currentColor" height="1em" stroke="none" viewbox="0 96 960 960" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M188 868q-11-11-11-28t11-28l436-436H400q-17 0-28.5-11.5T360 336q0-17 11.5-28.5T400 296h320q17 0 28.5 11.5T760 336v320q0 17-11.5 28.5T720 696q-17 0-28.5-11.5T680 656V432L244 868q-11 11-28 11t-28-11Z"></path></svg></a></p>
+<p>A hashable, immutable <code class="docutils literal notranslate"><span class="pre">{key_field:</span> <span class="pre">value}</span></code> dict: the key of one row of a <code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister</span></code>.</p>
+<p>It <em>is</em> a <code class="docutils literal notranslate"><span class="pre">dict</span></code> (so it works anywhere the persister takes a key – <code class="docutils literal notranslate"><span class="pre">store[key]</span></code>,
+<code class="docutils literal notranslate"><span class="pre">key</span> <span class="pre">in</span> <span class="pre">store</span></code> – and equals the plain dict with the same items), but, unlike a plain
+dict, it is hashable, as a <code class="docutils literal notranslate"><span class="pre">Mapping</span></code> key must be (<code class="docutils literal notranslate"><span class="pre">set(store)</span></code>, <code class="docutils literal notranslate"><span class="pre">dict(store)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">store.keys()</span> <span class="pre">&amp;</span> <span class="pre">other</span></code>), and so cannot be mutated. Key fields can also be read as
+attributes (<code class="docutils literal notranslate"><span class="pre">key.id</span></code>), so code written for the ORM rows that <code class="docutils literal notranslate"><span class="pre">__iter__</span></code> used to yield
+(<code class="docutils literal notranslate"><span class="pre">row.id</span></code>) keeps working.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">=</span> <span class="n">RowKey</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">'a'</span><span class="p">)</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">==</span> <span class="p">{</span><span class="s1">'id'</span><span class="p">:</span> <span class="s1">'a'</span><span class="p">},</span> <span class="nb">hash</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="n">RowKey</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">'a'</span><span class="p">)),</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="mi">1</span><span class="p">}[</span><span class="n">RowKey</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">'a'</span><span class="p">)],</span> <span class="n">k</span><span class="o">.</span><span class="n">id</span>
+</span><span id="line-3"><span class="go">(True, True, 1, 'a')</span>
+</span><span id="line-4"><span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'b'</span>
+</span><span id="line-5"><span class="gt">Traceback (most recent call last):</span>
+</span><span id="line-6"><span class="w">  </span><span class="c">...</span>
+</span><span id="line-7"><span class="gr">TypeError</span>: <span class="n">RowKey is immutable (it is hashable): build a new one</span>
+</span></code></pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="sqldol.sql_base.RowKey.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">None.</span>  <span class="pre">Remove</span> <span class="pre">all</span> <span class="pre">items</span> <span class="pre">from</span> <span class="pre">D.</span></span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.RowKey.clear" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.RowKey.clear'">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="sqldol.sql_base.RowKey.pop">
+<span class="sig-name descname"><span class="pre">pop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="optional">]</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">v,</span> <span class="pre">remove</span> <span class="pre">specified</span> <span class="pre">key</span> <span class="pre">and</span> <span class="pre">return</span> <span class="pre">the</span> <span class="pre">corresponding</span> <span class="pre">value.</span></span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.RowKey.pop" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.RowKey.pop'">¶</a></dt>
+<dd><p>If the key is not found, return the default if given; otherwise,
+raise a KeyError.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="sqldol.sql_base.RowKey.popitem">
+<span class="sig-name descname"><span class="pre">popitem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.RowKey.popitem" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.RowKey.popitem'">¶</a></dt>
+<dd><p>Remove and return a (key, value) pair as a 2-tuple.</p>
+<p>Pairs are returned in LIFO (last-in, first-out) order.
+Raises KeyError if the dict is empty.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="sqldol.sql_base.RowKey.setdefault">
+<span class="sig-name descname"><span class="pre">setdefault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.RowKey.setdefault" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.RowKey.setdefault'">¶</a></dt>
+<dd><p>Insert key with a value of default if key is not in the dictionary.</p>
+<p>Return the value for key if key is in the dictionary, else default.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="sqldol.sql_base.RowKey.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">**F</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">None.</span>  <span class="pre">Update</span> <span class="pre">D</span> <span class="pre">from</span> <span class="pre">mapping/iterable</span> <span class="pre">E</span> <span class="pre">and</span> <span class="pre">F.</span></span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.RowKey.update" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.RowKey.update'">¶</a></dt>
+<dd><p>If E is present and has a .keys() method, then does:  for k in E.keys(): D[k] = E[k]
+If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
+In either case, this is followed by: for k in F:  D[k] = F[k]</p>
+</dd></dl>
 </dd></dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister">
@@ -207,6 +261,11 @@ sql with a simple (dict-like or list-like) interface</p>
 <span class="sig-name descname"><span class="pre">TYPE_TEXT</span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT'">¶</a></dt>
 <dd><p>A basic SQL DB persister written with SQLAlchemy.</p>
 <p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TEXT</span></code></p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="sqldol.sql_base.SQLAlchemyPersister.iter_rows">
+<span class="sig-name descname"><span class="pre">iter_rows</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/sqldol/sql_base.html#SQLAlchemyPersister.iter_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SQLAlchemyPersister.iter_rows" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SQLAlchemyPersister.iter_rows'">¶</a></dt>
+<dd><p>Iterate the ORM row objects (what <code class="docutils literal notranslate"><span class="pre">__iter__</span></code> used to yield).</p>
 </dd></dl>
 </dd></dl>
 <dl class="py class">
@@ -281,7 +340,7 @@ the number of rows will be updated to match number of rows cached.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="sqldol.sql_base.SqlTableRowsSequence">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">sqldol.sql_base.</span></span><span class="sig-name descname"><span class="pre">SqlTableRowsSequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000000000000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/sqldol/sql_base.html#SqlTableRowsSequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldol.sql_base.SqlTableRowsSequence" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#sqldol.sql_base.SqlTableRowsSequence'">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#sqldol.sql_base.SqlTableRowsCollection" title="sqldol.sql_base.SqlTableRowsCollection"><code class="xref py py-class docutils literal notranslate"><span class="pre">SqlTableRowsCollection</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" rel="nofollow noopener" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code><svg fill="currentColor" height="1em" stroke="none" viewbox="0 96 960 960" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M188 868q-11-11-11-28t11-28l436-436H400q-17 0-28.5-11.5T360 336q0-17 11.5-28.5T400 296h320q17 0 28.5 11.5T760 336v320q0 17-11.5 28.5T720 696q-17 0-28.5-11.5T680 656V432L244 868q-11 11-28 11t-28-11Z"></path></svg></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqldol.sql_base.SqlTableRowsCollection" title="sqldol.sql_base.SqlTableRowsCollection"><code class="xref py py-class docutils literal notranslate"><span class="pre">SqlTableRowsCollection</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" rel="nofollow noopener" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code><svg fill="currentColor" height="1em" stroke="none" viewbox="0 96 960 960" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M188 868q-11-11-11-28t11-28l436-436H400q-17 0-28.5-11.5T360 336q0-17 11.5-28.5T400 296h320q17 0 28.5 11.5T760 336v320q0 17-11.5 28.5T720 696q-17 0-28.5-11.5T680 656V432L244 868q-11 11-28 11t-28-11Z"></path></svg></a></p>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="sqldol.sql_base.iter_rows">
@@ -328,12 +387,21 @@ quoting helper, so they only accept names matching an allowlist.</p>
 <div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] h-full overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
 <ul>
 <li><a :data-current="activeSection === '#sqldol.sql_base.DfSqlDbReader'" class="reference internal" href="#sqldol.sql_base.DfSqlDbReader"><code class="docutils literal notranslate"><span class="pre">DfSqlDbReader</span></code></a></li>
+<li><a :data-current="activeSection === '#sqldol.sql_base.RowKey'" class="reference internal" href="#sqldol.sql_base.RowKey"><code class="docutils literal notranslate"><span class="pre">RowKey</span></code></a><ul>
+<li><a :data-current="activeSection === '#sqldol.sql_base.RowKey.clear'" class="reference internal" href="#sqldol.sql_base.RowKey.clear"><code class="docutils literal notranslate"><span class="pre">RowKey.clear()</span></code></a></li>
+<li><a :data-current="activeSection === '#sqldol.sql_base.RowKey.pop'" class="reference internal" href="#sqldol.sql_base.RowKey.pop"><code class="docutils literal notranslate"><span class="pre">RowKey.pop()</span></code></a></li>
+<li><a :data-current="activeSection === '#sqldol.sql_base.RowKey.popitem'" class="reference internal" href="#sqldol.sql_base.RowKey.popitem"><code class="docutils literal notranslate"><span class="pre">RowKey.popitem()</span></code></a></li>
+<li><a :data-current="activeSection === '#sqldol.sql_base.RowKey.setdefault'" class="reference internal" href="#sqldol.sql_base.RowKey.setdefault"><code class="docutils literal notranslate"><span class="pre">RowKey.setdefault()</span></code></a></li>
+<li><a :data-current="activeSection === '#sqldol.sql_base.RowKey.update'" class="reference internal" href="#sqldol.sql_base.RowKey.update"><code class="docutils literal notranslate"><span class="pre">RowKey.update()</span></code></a></li>
+</ul>
+</li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister</span></code></a><ul>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.TYPE_BLOB'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_BLOB"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_BLOB</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.TYPE_BOOLEAN'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_BOOLEAN"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_BOOLEAN</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.TYPE_INTEGER'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_INTEGER"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_INTEGER</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.TYPE_STRING'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_STRING"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_STRING</span></code></a></li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.TYPE_TEXT"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.TYPE_TEXT</span></code></a></li>
+<li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyPersister.iter_rows'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyPersister.iter_rows"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister.iter_rows()</span></code></a></li>
 </ul>
 </li>
 <li><a :data-current="activeSection === '#sqldol.sql_base.SQLAlchemyStore'" class="reference internal" href="#sqldol.sql_base.SQLAlchemyStore"><code class="docutils literal notranslate"><span class="pre">SQLAlchemyStore</span></code></a></li>
@@ -360,7 +428,7 @@ quoting helper, so they only accept names matching an allowlist.</p>
 </div>
 </footer>
 </div>
-<script src="../_static/documentation_options.js?v=22607128"></script>
+<script src="../_static/documentation_options.js?v=8618f531"></script>
 <script src="../_static/doctools.js?v=fd6eb6e6"></script>
 <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
 <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

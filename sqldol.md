@@ -1,4 +1,4 @@
-> built 2026-09-22 15:30 UTC from ab805e1 (master) · sqldol 0.1.8. Details: build_info.json
+> built 2026-10-13 09:41 UTC from 57bfad4 (master) · sqldol 0.1.9. Details: build_info.json
 
 # index.html.md
 
@@ -339,21 +339,71 @@ sql with a simple (dict-like or list-like) interface
 
 ### Classes
 
-| [`DfSqlDbReader`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.DfSqlDbReader)(connection)                         |                                   |
-|----------------------------------------------------------------------------------------------------|-----------------------------------|
-| [`SQLAlchemyPersister`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SQLAlchemyPersister)([uri, collection_name, ...])  |                                   |
-| [`SQLAlchemyStore`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SQLAlchemyStore)([uri, collection_name, ...])      |                                   |
-| [`SQLAlchemyTupleStore`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SQLAlchemyTupleStore)([uri, collection_name, ...]) |                                   |
-| [`SqlAlchemyDatabaseCollection`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlAlchemyDatabaseCollection)                      |                                   |
-| [`SqlAlchemyReader`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlAlchemyReader)                                  |                                   |
-| [`SqlDbCollection`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlDbCollection)(connection)                       | A collection of sql tables names. |
-| [`SqlDbReader`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlDbReader)(connection)                           | A KvReader of sql tables.         |
-| [`SqlTableRowsCollection`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlTableRowsCollection)(connection, table_name)    | Base class wrapping an sql table. |
-| [`SqlTableRowsSequence`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlTableRowsSequence)(connection, table_name)      |                                   |
+| [`DfSqlDbReader`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.DfSqlDbReader)(connection)                         |                                                                                                 |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| [`RowKey`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.RowKey)                                            | A hashable, immutable `{key_field: value}` dict: the key of one row of a `SQLAlchemyPersister`. |
+| [`SQLAlchemyPersister`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SQLAlchemyPersister)([uri, collection_name, ...])  |                                                                                                 |
+| [`SQLAlchemyStore`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SQLAlchemyStore)([uri, collection_name, ...])      |                                                                                                 |
+| [`SQLAlchemyTupleStore`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SQLAlchemyTupleStore)([uri, collection_name, ...]) |                                                                                                 |
+| [`SqlAlchemyDatabaseCollection`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlAlchemyDatabaseCollection)                      |                                                                                                 |
+| [`SqlAlchemyReader`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlAlchemyReader)                                  |                                                                                                 |
+| [`SqlDbCollection`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlDbCollection)(connection)                       | A collection of sql tables names.                                                               |
+| [`SqlDbReader`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlDbReader)(connection)                           | A KvReader of sql tables.                                                                       |
+| [`SqlTableRowsCollection`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlTableRowsCollection)(connection, table_name)    | Base class wrapping an sql table.                                                               |
+| [`SqlTableRowsSequence`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlTableRowsSequence)(connection, table_name)      |                                                                                                 |
 
 ### *class* sqldol.sql_base.DfSqlDbReader(connection)
 
 Bases: [`SqlDbReader`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SqlDbReader)
+
+### *class* sqldol.sql_base.RowKey
+
+Bases: [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+A hashable, immutable `{key_field: value}` dict: the key of one row of a `SQLAlchemyPersister`.
+
+It *is* a `dict` (so it works anywhere the persister takes a key – `store[key]`,
+`key in store` – and equals the plain dict with the same items), but, unlike a plain
+dict, it is hashable, as a `Mapping` key must be (`set(store)`, `dict(store)`,
+`store.keys() & other`), and so cannot be mutated. Key fields can also be read as
+attributes (`key.id`), so code written for the ORM rows that `__iter__` used to yield
+(`row.id`) keeps working.
+
+```pycon
+>>> k = RowKey(id='a')
+>>> k == {'id': 'a'}, hash(k) == hash(RowKey(id='a')), {k: 1}[RowKey(id='a')], k.id
+(True, True, 1, 'a')
+>>> k['id'] = 'b'
+Traceback (most recent call last):
+  ...
+TypeError: RowKey is immutable (it is hashable): build a new one
+```
+
+#### clear() → None.  Remove all items from D.
+
+#### pop(k) → v, remove specified key and return the corresponding value.
+
+If the key is not found, return the default if given; otherwise,
+raise a KeyError.
+
+#### popitem(\*args, \*\*kwargs)
+
+Remove and return a (key, value) pair as a 2-tuple.
+
+Pairs are returned in LIFO (last-in, first-out) order.
+Raises KeyError if the dict is empty.
+
+#### setdefault(\*args, \*\*kwargs)
+
+Insert key with a value of default if key is not in the dictionary.
+
+Return the value for key if key is in the dictionary, else default.
+
+#### update(\*\*F) → None.  Update D from mapping/iterable E and F.
+
+If E is present and has a .keys() method, then does:  for k in E.keys(): D[k] = E[k]
+If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
+In either case, this is followed by: for k in F:  D[k] = F[k]
 
 ### *class* sqldol.sql_base.SQLAlchemyPersister(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
 
@@ -380,6 +430,10 @@ alias of `String`
 A basic SQL DB persister written with SQLAlchemy.
 
 alias of `TEXT`
+
+#### iter_rows()
+
+Iterate the ORM row objects (what `__iter__` used to yield).
 
 ### *class* sqldol.sql_base.SQLAlchemyStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
 
@@ -570,7 +624,7 @@ If the table does not exist, it will be created with the specified columns.
 
 # About this build
 
-This documentation was built on **2026-09-22 15:30 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/ab805e12b0376a053b91e4cf1cf9aaf90ec20a53"><code>ab805e1</code></a> on branch <code>master</code>, for **sqldol 0.1.8** (from <code>setup.cfg</code>).
+This documentation was built on **2026-10-13 09:41 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/57bfad4a2c0b9cb751ebb694e701f5ed633bb83a"><code>57bfad4</code></a> on branch <code>master</code>, for **sqldol 0.1.9** (from <code>setup.cfg</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -579,9 +633,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/sqldol/commit/ab805e12b0376a053b91e4cf1cf9aaf90ec20a53"><code>ab805e12b0376a053b91e4cf1cf9aaf90ec20a53</code></a> |
+| Commit              | <a href="https://github.com/i2mint/sqldol/commit/57bfad4a2c0b9cb751ebb694e701f5ed633bb83a"><code>57bfad4a2c0b9cb751ebb694e701f5ed633bb83a</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.8</code>                                                                                                                                   |
+| Tags at this commit | <code>0.1.9</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/sqldol</code>                                                                                                        |
 
@@ -590,18 +644,18 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/sqldol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/35747699374">35747699374</a>        |
+| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/38377987162">38377987162</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>d746553dab767f48b06275698f078f3c9b003c55</code> (in the history of the built commit) |
+| Event commit | <code>f5ee6d417ab5f4c9ef333c16e30d88282f5765cf</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.12  |
+| epythet  | 0.2.15  |
 | Sphinx   | 9.1.0   |
 | docutils | 0.22.4  |
-| Python   | 3.12.14 |
+| Python   | 3.12.15 |
 
 ## Configuration as resolved
 
@@ -617,14 +671,14 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/sqldol/0.1.8/">0.1.8</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/sqldol/0.1.9/">0.1.9</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/sqldol && cd sqldol
-git checkout ab805e12b0376a053b91e4cf1cf9aaf90ec20a53
-pip install "epythet==0.2.12"
+git checkout 57bfad4a2c0b9cb751ebb694e701f5ed633bb83a
+pip install "epythet==0.2.15"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 
