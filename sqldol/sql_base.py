@@ -267,23 +267,42 @@ def _split_uri_into_base_and_collection_name(uri: str) -> tuple[str, str]:
     return base, collection_name.split(".")[0]
 
 
+def _immutable(self, *args, **kwargs):
+    raise TypeError("RowKey is immutable (it is hashable): build a new one")
+
+
 class RowKey(dict):
-    """A hashable ``{key_field: value}`` dict: the key of one row of a ``SQLAlchemyPersister``.
+    """A hashable, immutable ``{key_field: value}`` dict: the key of one row of a ``SQLAlchemyPersister``.
 
     It *is* a ``dict`` (so it works anywhere the persister takes a key -- ``store[key]``,
     ``key in store`` -- and equals the plain dict with the same items), but, unlike a plain
     dict, it is hashable, as a ``Mapping`` key must be (``set(store)``, ``dict(store)``,
-    ``store.keys() & other``). Treat it as immutable.
+    ``store.keys() & other``), and so cannot be mutated. Key fields can also be read as
+    attributes (``key.id``), so code written for the ORM rows that ``__iter__`` used to yield
+    (``row.id``) keeps working.
 
     >>> k = RowKey(id='a')
-    >>> k == {'id': 'a'}, hash(k) == hash(RowKey(id='a')), {k: 1}[RowKey(id='a')]
-    (True, True, 1)
+    >>> k == {'id': 'a'}, hash(k) == hash(RowKey(id='a')), {k: 1}[RowKey(id='a')], k.id
+    (True, True, 1, 'a')
+    >>> k['id'] = 'b'
+    Traceback (most recent call last):
+      ...
+    TypeError: RowKey is immutable (it is hashable): build a new one
     """
 
     __slots__ = ()
 
     def __hash__(self):
         return hash(frozenset(self.items()))
+
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name) from None
+
+    __setitem__ = __delitem__ = update = pop = popitem = clear = setdefault = _immutable
+    __ior__ = _immutable
 
 
 class SQLAlchemyPersister(KvPersister):
