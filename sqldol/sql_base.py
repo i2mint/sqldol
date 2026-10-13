@@ -304,6 +304,9 @@ class RowKey(dict):
     __setitem__ = __delitem__ = update = pop = popitem = clear = setdefault = _immutable
     __ior__ = _immutable
 
+    def __reduce__(self):  # pickle/copy rebuild through __init__, not __setitem__
+        return (RowKey, (dict(self),))
+
 
 class SQLAlchemyPersister(KvPersister):
     TYPE_INTEGER = sqlalchemy.INTEGER

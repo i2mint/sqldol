@@ -167,3 +167,12 @@ def test_consumer_written_for_orm_rows_keeps_working():
     store = wrap_kvs(raw, key_of_id=lambda row: row.id, id_of_key=lambda k: {"id": k})
     store["a"] = {"doc": "x"}
     assert list(store) == ["a"]
+
+
+def test_rowkey_survives_pickle_and_copy():
+    import copy
+    import pickle
+
+    k = RowKey(id="a", n=1)
+    for clone in (pickle.loads(pickle.dumps(k)), copy.copy(k), copy.deepcopy(k)):
+        assert clone == k and type(clone) is RowKey and hash(clone) == hash(k)
