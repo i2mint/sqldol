@@ -77,7 +77,7 @@ def test_lookups_after_iteration_hit_the_database_again():
     list(store.items())
     store[{"id": "new"}] = {"doc": "n"}
     assert store[{"id": "new"}].doc == "n"
-    assert store._prefetches == []
+    assert store._prefetch is None
 
 
 def test_writes_and_deletes_during_iteration():
@@ -97,5 +97,90 @@ def test_partial_and_interleaved_iterations_leave_no_state_behind():
     next(a), next(b), next(a)
     b.close()
     del a
-    assert store._prefetches == []
+    assert store._prefetch is None
     assert store[{"id": "k001"}].doc == "v1"
+
+
+# ---- the prefetched rows never outlive the view's own lookup (review of PR #12) --------
+
+
+def _file_persister(tmp_path, name="t"):
+    return SQLAlchemyPersister(
+        uri=f"sqlite:///{tmp_path}/db.sqlite",
+        collection_name=name,
+        key_fields=KEY_FIELDS,
+        data_fields=DATA_FIELDS,
+    )
+
+
+def _filled(tmp_path, n=20):
+    p = _file_persister(tmp_path)
+    for i in range(n):
+        p[{"id": f"k{i:03d}"}] = {"doc": f"v{i}"}
+    return p
+
+
+def test_row_deleted_by_the_session_then_rewritten_in_the_loop_is_reinserted(tmp_path):
+    p = _filled(tmp_path)
+    for key, row in p.items():
+        if key["id"] == "k003":
+            p.session.delete(row)
+            p.session.commit()
+            p[key] = {"doc": "recreated"}
+    assert len(p) == 20 and p[{"id": "k003"}].doc == "recreated"
+
+
+def test_write_after_session_close_in_the_loop_lands(tmp_path):
+    p = _filled(tmp_path)
+    for key, _ in p.items():
+        if key["id"] == "k005":
+            p.session.close()
+            p[key] = {"doc": "after-close"}
+    assert p[{"id": "k005"}].doc == "after-close"
+
+
+def test_changed_primary_key_in_the_loop_is_not_served_stale(tmp_path):
+    p = _filled(tmp_path)
+    for key, _ in p.items():
+        if key["id"] == "k001":
+            p[key] = {"id": "zzz", "doc": "moved"}
+    with pytest.raises(KeyError):
+        p[{"id": "k001"}]
+    assert p[{"id": "zzz"}].doc == "moved"
+
+
+def test_paused_view_does_not_change_lookups_elsewhere(tmp_path):
+    a, b = _filled(tmp_path), _file_persister(tmp_path)
+    it = iter(a.items())
+    next(it)
+    del b[{"id": "k005"}]
+    assert {"id": "k005"} not in a
+    with pytest.raises(KeyError):
+        a[{"id": "k005"}]
+    a[{"id": "k005"}] = {"doc": "again"}  # inserts, as without a paused view
+    assert a[{"id": "k005"}].doc == "again"
+
+
+def test_row_deleted_behind_the_views_back_raises_like_a_plain_lookup(tmp_path):
+    a, b = _filled(tmp_path), _file_persister(tmp_path)
+    seen = []
+    with pytest.raises(KeyError):
+        for key, row in a.items():
+            seen.append(key["id"])
+            if len(seen) == 1:
+                a.session.query(a.table).filter_by(id="k004").delete()
+                a.session.commit()
+    assert "k004" not in seen
+
+
+def test_rows_are_read_in_batches_not_all_at_once(tmp_path):
+    p = _filled(tmp_path, 30)
+    p._prefetch_batch = 10
+    counter = Counter(p)
+    assert len(dict(p.items())) == 30
+    assert counter.n <= 1 + 3 + 1  # keys + one query per batch
+    counter.n = 0
+    from itertools import islice
+
+    assert len(list(islice(p.items(), 3))) == 3
+    assert counter.n <= 2
