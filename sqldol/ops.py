@@ -33,7 +33,7 @@ store's: treat them as leaf escape hatches.
 >>> query(store)  # doctest: +ELLIPSIS
 Traceback (most recent call last):
   ...
-sqldol.ops.WrappedStoreError: SQLAlchemyTupleStore wraps a SQLAlchemyPersister...
+sqldol.ops.WrappedStoreError: SQLAlchemyTupleStore is not a bare SQLAlchemyPersister...
 >>> [(row.id, row.data) for row in query(store, leaf_coordinates=True)]
 [('a', 'one')]
 """
@@ -63,6 +63,9 @@ def query(store, *, leaf_coordinates: bool = False):
     honour its scope nor speak its keys, so ``WrappedStoreError`` is raised unless you pass
     ``leaf_coordinates=True``, which says you know.
 
+    A *subclass* of ``SQLAlchemyPersister`` counts as bare, even if it maps keys or values
+    itself: ``query`` cannot know.
+
     :param store: a ``SQLAlchemyPersister``, wrapped or not
     :param leaf_coordinates: accept a wrapped ``store`` and return the persister's query
     :raises WrappedStoreError: if ``store`` is wrapped and ``leaf_coordinates`` is not set
@@ -70,7 +73,7 @@ def query(store, *, leaf_coordinates: bool = False):
     persister = _persister_of(store)
     if store is not persister and not leaf_coordinates:
         raise WrappedStoreError(
-            f"{type(store).__name__} wraps a SQLAlchemyPersister: a Query answers in the "
+            f"{type(store).__name__} is not a bare SQLAlchemyPersister (it wraps one): a Query answers in the "
             "persister's coordinates (ORM rows, its own keys), not the store's, and cannot "
             "honour the wrapper's scope. Pass leaf_coordinates=True if that is what you "
             "want (i2mint/sqldol#3)."
