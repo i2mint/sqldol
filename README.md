@@ -194,8 +194,15 @@ persister = SQLAlchemyPersister(
     data_fields={'timestamp': SQLAlchemyPersister.TYPE_STRING, 'data': SQLAlchemyPersister.TYPE_TEXT}
 )
 
-# Direct access to SQLAlchemy session and query objects
-query_result = persister.query.filter_by(event_id='EVT001').first()
+# Direct access to the SQLAlchemy query of the table (a free function, not a method:
+# a method would be served unchanged by every dol wrapper, in the persister's coordinates)
+from sqldol import ops
+
+query_result = ops.query(persister).filter_by(event_id='EVT001').first()
+
+# Under a wrapper (e.g. SQLAlchemyTupleStore) the rows are the persister's ORM rows, not
+# the store's tuples: ops.query refuses unless you say so
+# ops.query(tuple_store, leaf_coordinates=True)
 ```
 
 ## Testing
