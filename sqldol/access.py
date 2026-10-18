@@ -4,7 +4,8 @@ There is no SQLAlchemy dialect for Access off Windows, so this module bridges in
 rest of sqldol already has (``engine``):
 
 - :class:`AccessReader` ``(path)`` is a ``Mapping`` of table name to rows (a list of dicts).
-  No SQL involved.
+  No SQL involved. :class:`AccessColumns` ``(path_or_reader)`` is its sibling: table name to
+  column names, in definition order.
 - :func:`access_engine` ``(path)`` copies the tables into SQLite (in memory unless you give a
   ``sqlite_path``) and returns a SQLAlchemy ``Engine``, so every sqldol store works on an Access
   file: ``TablesDol(engine)``, ``SqlDictReader(engine, 'Items', key_columns='ID')``, ...
@@ -13,23 +14,32 @@ rest of sqldol already has (``engine``):
 
 The file is read by a **backend**, chosen at runtime. None is a hard dependency:
 
-- ``'access_parser'``: pure Python, ``pip install "sqldol[access]"`` (Apache-2.0). Default.
 - ``'mdbtools'``: the mdbtools command-line programs, if they are on ``PATH``
   (``brew install mdbtools``, ``apt install mdbtools``). Called as programs, not linked.
+  Reads Jet3, Jet4 and ACE, with Access's own column types.
+- ``'access_parser'``: pure Python, ``pip install "sqldol[access]"`` (Apache-2.0). Needs
+  nothing else, but cannot open some files (ACE ``.accdb`` files written by Jackcess, some
+  long memo layouts).
 
-``backend=None`` takes the first available one, in that order. A backend can also be any callable
-``backend(path)`` returning an object with ``table_names()``, ``column_names(table)`` and
-``rows(table)`` (an iterable of dicts); that is the escape hatch for Windows ODBC or UCanAccess.
+``backend=None`` tries the available ones in that order and takes the first that opens the
+file. A backend can also be any callable ``backend(path)`` returning an object with
+``table_names()``, ``column_names(table)`` and ``rows(table)`` (an iterable of dicts); UCanAccess
+would fit there. A *live* Windows ODBC engine would not: it would be its own function, since
+``access_engine``'s contract is that it never writes to the Access file.
 
-The two shipped backends agree on text (Jet3 files are read as cp1252, as Access wrote them)
-and on GUIDs (``'{0B339502-3145-11D2-8D45-0080C6FD2CAA}'``, Access's display form), which this
-module normalises. Where they differ:
+Values are normalised so the two backends agree: text is ``str`` (Jet3 read as cp1252),
+Currency and Numeric are ``decimal.Decimal``, Yes/No is ``bool``, Replication ID (GUID) is
+``'{0B339502-3145-11D2-8D45-0080C6FD2CAA}'``, binary is ``bytes``, and date/times are
+``'YYYY-MM-DD HH:MM:SS'`` strings. Known differences that remain:
 
-- dates: ``datetime`` from ``access_parser``, ``'YYYY-MM-DD HH:MM:SS'`` strings from
-  ``mdbtools``; in the SQLite copy both are that string.
 - Jet3 text holding UTF-8 bytes (text pasted into the database already encoded): ``mdbtools``
   shows it as Access does (``'â€”'``); ``access_parser`` tries UTF-8 first and gives the
   intended ``'—'``.
+- ``access_parser`` returns a Currency field that has a Format property as the formatted
+  string (``'$1,234.57'``), which cannot be turned back into the exact amount.
+
+Each table is read into memory whole (``reader[table]``, and one table at a time by
+``access_engine``).
 
 >>> reader = AccessReader('some.mdb', backend=_DictSource.factory({
 ...     'Items': [{'ID': 1, 'Title': 'alpha'}, {'ID': 2, 'Title': 'beta'}],
@@ -71,24 +81,31 @@ from sqlalchemy import (
     Integer,
     LargeBinary,
     MetaData,
-    Numeric,
     Table,
     Text,
     create_engine,
 )
+from sqlalchemy.engine import URL
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.types import UserDefinedType
 
 __all__ = [
     "AccessReader",
+    "AccessColumns",
     "access_engine",
     "check_requirements",
     "MissingAccessBackendError",
+    "AccessReadError",
     "BACKENDS",
 ]
 
 
 class MissingAccessBackendError(ImportError):
     """No backend that can read Access files is available (or the one asked for is not)."""
+
+
+class AccessReadError(RuntimeError):
+    """A backend could not read the file (or one of its tables)."""
 
 
 # --------------------------------------------------------------------------------------
@@ -107,62 +124,16 @@ def _quiet_logger(name, level=logging.CRITICAL):
         logger.setLevel(previous)
 
 
-class AccessParserSource:
-    """Reads an Access file with the pure-Python ``access_parser`` package."""
-
-    name = "access_parser"
-    install_hint = 'pip install "sqldol[access]"   (or: pip install access-parser)'
-
-    @staticmethod
-    def is_available() -> bool:
-        return importlib.util.find_spec("access_parser") is not None
-
-    def __init__(self, path):
-        from access_parser import AccessParser
-
-        with _quiet_logger("access_parser"):
-            self._db = AccessParser(os.fspath(path))
-
-    def table_names(self) -> list[str]:
-        return [name for name in self._db.catalog if not name.startswith("MSys")]
-
-    def column_names(self, table: str) -> list[str]:
-        with _quiet_logger("access_parser"):
-            columns = self._db.get_table(table).columns
-        # keyed by the column's position in the table definition
-        return [columns[i].col_name_str for i in sorted(columns)]
-
-    def rows(self, table: str) -> Iterator[dict]:
-        with _quiet_logger("access_parser"):
-            access_table = self._db.get_table(table)
-            data = access_table.parse()
-        columns = [access_table.columns[i] for i in sorted(access_table.columns)]
-        fixes = {c.col_name_str: self._fix_for(c.type) for c in columns}
-        names = list(fixes)
-        n_rows = len(data[names[0]]) if names else 0
-        for i in range(n_rows):
-            yield {name: fixes[name](data[name][i]) for name in names}
-
-    def _fix_for(self, column_type):
-        """access_parser 0.0.6 decodes Jet3 text as latin-1 (not the cp1252 Jet3 files use)
-        and formats GUIDs from their raw little-endian bytes; undo both."""
-        if column_type == _ACCESS_PARSER_TYPE_GUID:
-            return _guid_from_access_parser
-        if column_type in _ACCESS_PARSER_TEXT_TYPES and self._db.version == 3:
-            return _cp1252_from_latin1
-        return _identity
-
-
 class MdbtoolsSource:
-    """Reads an Access file with the mdbtools programs (``mdb-tables``, ``mdb-schema``,
-    ``mdb-json``)."""
+    """Reads an Access file with the mdbtools programs (``mdb-ver``, ``mdb-tables``,
+    ``mdb-schema``, ``mdb-json``)."""
 
     name = "mdbtools"
     install_hint = (
         "brew install mdbtools   (macOS)  |  sudo apt-get install mdbtools   (Debian/Ubuntu)"
         "  |  https://github.com/mdbtools/mdbtools"
     )
-    programs = ("mdb-tables", "mdb-schema", "mdb-json")
+    programs = ("mdb-ver", "mdb-tables", "mdb-schema", "mdb-json")
     datetime_format = "%Y-%m-%d %H:%M:%S"
     date_format = "%Y-%m-%d"
 
@@ -172,11 +143,21 @@ class MdbtoolsSource:
 
     def __init__(self, path):
         self.path = os.fspath(path)
+        self.version = self._run("mdb-ver", self.path).strip()  # fails early on a non-Access file
 
     def _run(self, *args) -> str:
-        return subprocess.run(
-            args, capture_output=True, check=True, text=True, encoding="utf-8"
-        ).stdout
+        try:
+            return subprocess.run(
+                args, capture_output=True, check=True, text=True, encoding="utf-8"
+            ).stdout
+        except subprocess.CalledProcessError as error:
+            detail = (error.stderr or "").strip() or f"exit status {error.returncode}"
+            raise AccessReadError(f"{args[0]} could not read {self.path!r}: {detail}") from error
+        except UnicodeDecodeError as error:
+            raise AccessReadError(
+                f"{args[0]} wrote non-UTF-8 output for {self.path!r} (an mdbtools built "
+                f"without iconv?): {error}"
+            ) from error
 
     def table_names(self) -> list[str]:
         return [line for line in self._run("mdb-tables", "-1", self.path).splitlines() if line]
@@ -191,27 +172,59 @@ class MdbtoolsSource:
         return [name for name, _ in self._columns(table)]
 
     def rows(self, table: str) -> Iterator[dict]:
-        columns = self._columns(table)
+        columns = [(name, _mdbtools_converter(t)) for name, t in self._columns(table)]
         out = self._run(
             "mdb-json", "-D", self.date_format, "-T", self.datetime_format, self.path, table
         )
         for line in out.splitlines():
             if line:
                 record = json.loads(line)  # mdb-json leaves out the null fields
-                yield {
-                    name: _from_mdb_json(record.get(name), access_type)
-                    for name, access_type in columns
-                }
+                yield {name: convert(record.get(name)) for name, convert in columns}
 
 
-def _from_mdb_json(value, access_type: str):
-    """mdb-json writes binary values (GUIDs among them) as ``{"$binary": <base64>, ...}``."""
+def _mdbtools_converter(access_type: str) -> Callable:
+    """How to normalise an ``mdb-json`` value, given the column's Access type."""
+    if access_type == "Replication ID":
+        return _guid_from_mdb_json
+    if access_type.startswith(("Currency", "Numeric")):
+        return _decimal
+    if access_type.startswith("Boolean"):
+        return _bool
+    return _bytes_from_mdb_json
+
+
+def _decoded_binary(value):
     if isinstance(value, dict) and "$binary" in value:
-        raw = base64.b64decode(value["$binary"])
-        if access_type == "Replication ID":  # libmdb's text form of the GUID
-            return _canonical_guid(uuid.UUID(raw.decode("ascii").strip("{}")))
-        return raw
+        return base64.b64decode(value["$binary"])
     return value
+
+
+def _bytes_from_mdb_json(value):
+    """mdb-json writes binary values as ``{"$binary": <base64>, "$type": ...}``."""
+    return _decoded_binary(value)
+
+
+def _guid_from_mdb_json(value):
+    """mdb-json writes a GUID as libmdb's text form of it, base64'd as a binary."""
+    raw = _decoded_binary(value)
+    if isinstance(raw, bytes):
+        return _canonical_guid(uuid.UUID(raw.decode("ascii").strip("{}")))
+    return raw
+
+
+def _decimal(value):
+    """Currency and Numeric, exactly (``str`` first, so a float's repr is kept, not its binary).
+
+    >>> _decimal(1234.5678), _decimal('123456789012345678.'), _decimal(None)
+    (Decimal('1234.5678'), Decimal('123456789012345678'), None)
+    """
+    if value is None or isinstance(value, decimal.Decimal):
+        return value
+    return decimal.Decimal(str(value))
+
+
+def _bool(value):
+    return value if value is None else bool(value)
 
 
 def _canonical_guid(guid: uuid.UUID) -> str:
@@ -223,12 +236,106 @@ def _canonical_guid(guid: uuid.UUID) -> str:
     return "{" + str(guid).upper() + "}"
 
 
-_ACCESS_PARSER_TYPE_GUID = 15  # access_parser.utils.TYPE_GUID
+# Access forbids brackets in names, so the bracketed form is unambiguous.
+_DDL_COLUMN = re.compile(r"^\s*\[([^\]]+)\]\s+(.*?),?\s*$", re.MULTILINE)
+
+
+def _columns_of_create_table(ddl: str) -> list[tuple[str, str]]:
+    """``(name, Access type)`` pairs, in order, from ``mdb-schema -T <t> <file> access``.
+
+    >>> _columns_of_create_table(
+    ...     'CREATE TABLE [T]\\n (\\n\\t[ID]\\t\\t\\tLong Integer, \\n\\t[My Name]\\t\\t\\tText (50)\\n);'
+    ... )
+    [('ID', 'Long Integer'), ('My Name', 'Text (50)')]
+    """
+    body = ddl[ddl.index("(") + 1 :] if "(" in ddl else ""
+    return _DDL_COLUMN.findall(body)
+
+
+class AccessParserSource:
+    """Reads an Access file with the pure-Python ``access_parser`` package."""
+
+    name = "access_parser"
+    install_hint = 'pip install "sqldol[access]"   (or: pip install access-parser)'
+
+    @staticmethod
+    def is_available() -> bool:
+        return importlib.util.find_spec("access_parser") is not None
+
+    def __init__(self, path):
+        from access_parser import AccessParser
+
+        try:
+            with _quiet_logger("access_parser"):
+                self._db = AccessParser(os.fspath(path))
+        except Exception as error:  # it raises KeyError, struct.error, ... on files it can't parse
+            raise AccessReadError(
+                f"access_parser could not open {os.fspath(path)!r}: "
+                f"{type(error).__name__}: {error}. Try backend='mdbtools'."
+            ) from error
+
+    def table_names(self) -> list[str]:
+        return [name for name in self._db.catalog if not name.startswith("MSys")]
+
+    def _columns(self, table: str) -> list:
+        with _quiet_logger("access_parser"):
+            columns = self._db.get_table(table).columns
+        # keyed by the column's position in the table definition
+        return [columns[i] for i in sorted(columns)]
+
+    def column_names(self, table: str) -> list[str]:
+        return [column.col_name_str for column in self._columns(table)]
+
+    def rows(self, table: str) -> Iterator[dict]:
+        try:
+            with _quiet_logger("access_parser"):
+                data = self._db.get_table(table).parse()
+        except Exception as error:
+            raise AccessReadError(
+                f"access_parser could not read table {table!r}: {type(error).__name__}: "
+                f"{error}. Try backend='mdbtools'."
+            ) from error
+        fixes = {c.col_name_str: self._fix_for(c.type) for c in self._columns(table)}
+        names = list(fixes)
+        n_rows = len(data[names[0]]) if names else 0
+        for i in range(n_rows):
+            yield {name: fixes[name](data[name][i]) for name in names}
+
+    def _fix_for(self, column_type) -> Callable:
+        """Undo what access_parser 0.0.6 gets wrong: Jet3 text decoded as latin-1 (Jet3 is
+        cp1252), GUIDs formatted from their little-endian bytes, Currency as an int scaled by
+        10**4, Numeric as a string."""
+        if column_type == _ACCESS_PARSER_TYPE_GUID:
+            return _guid_from_access_parser
+        if column_type == _ACCESS_PARSER_TYPE_MONEY:
+            return _money_from_access_parser
+        if column_type == _ACCESS_PARSER_TYPE_NUMERIC:
+            return _decimal
+        if column_type in _ACCESS_PARSER_TEXT_TYPES and self._db.version == 3:
+            return _cp1252_from_latin1
+        return _identity
+
+
+# access_parser.utils type codes
+_ACCESS_PARSER_TYPE_MONEY = 5
+_ACCESS_PARSER_TYPE_GUID = 15
+_ACCESS_PARSER_TYPE_NUMERIC = 16
 _ACCESS_PARSER_TEXT_TYPES = (10, 12)  # TYPE_TEXT, TYPE_MEMO
 
 
 def _identity(value):
     return value
+
+
+def _money_from_access_parser(value):
+    """Currency is stored as an integer count of 1/10000ths.
+
+    >>> _money_from_access_parser(12345678), _money_from_access_parser('$1,234.57')
+    (Decimal('1234.5678'), '$1,234.57')
+    """
+    if isinstance(value, int) and not isinstance(value, bool):
+        return decimal.Decimal(value).scaleb(-4)
+    return value  # None, or the formatted string it returns when the field has a Format
 
 
 def _guid_from_access_parser(value):
@@ -261,47 +368,38 @@ def _cp1252_from_latin1(value):
         return value
 
 
-# Access forbids brackets in names, so the bracketed form is unambiguous.
-_DDL_COLUMN = re.compile(r"^\s*\[([^\]]+)\]\s+(.*?),?\s*$", re.MULTILINE)
-
-
-def _columns_of_create_table(ddl: str) -> list[tuple[str, str]]:
-    """``(name, Access type)`` pairs, in order, from ``mdb-schema -T <t> <file> access``.
-
-    >>> _columns_of_create_table(
-    ...     'CREATE TABLE [T]\\n (\\n\\t[ID]\\t\\t\\tLong Integer, \\n\\t[My Name]\\t\\t\\tText (50)\\n);'
-    ... )
-    [('ID', 'Long Integer'), ('My Name', 'Text (50)')]
-    """
-    body = ddl[ddl.index("(") + 1 :] if "(" in ddl else ""
-    return _DDL_COLUMN.findall(body)
-
-
-BACKENDS = {source.name: source for source in (AccessParserSource, MdbtoolsSource)}
+BACKENDS = {source.name: source for source in (MdbtoolsSource, AccessParserSource)}
 """Shipped backends, in the order ``backend=None`` tries them."""
 
 BackendSpec = None | str | Callable
 
 
-def _resolve_backend(backend: BackendSpec) -> Callable:
+def _open_source(path, backend: BackendSpec):
+    """The source for ``path``: the one asked for, or the first available one that opens it."""
     if callable(backend):
-        return backend
-    if backend is None:
-        for source in BACKENDS.values():
-            if source.is_available():
-                return source
+        return backend(path)
+    if backend is not None:
+        if backend not in BACKENDS:
+            raise ValueError(f"Unknown Access backend {backend!r}. Known: {list(BACKENDS)}")
+        source = BACKENDS[backend]
+        if not source.is_available():
+            raise MissingAccessBackendError(
+                f"The {backend!r} Access backend is not available. {source.install_hint}"
+            )
+        return source(path)
+    available = [source for source in BACKENDS.values() if source.is_available()]
+    if not available:
         hints = "\n".join(f"  - {name}: {s.install_hint}" for name, s in BACKENDS.items())
         raise MissingAccessBackendError(
             f"No backend to read Access files is available. Install one of:\n{hints}"
         )
-    if backend not in BACKENDS:
-        raise ValueError(f"Unknown Access backend {backend!r}. Known: {list(BACKENDS)}")
-    source = BACKENDS[backend]
-    if not source.is_available():
-        raise MissingAccessBackendError(
-            f"The {backend!r} Access backend is not available. {source.install_hint}"
-        )
-    return source
+    failures = []
+    for source in available:
+        try:
+            return source(path)
+        except AccessReadError as error:
+            failures.append(f"  - {source.name}: {error}")
+    raise AccessReadError(f"No available backend could open {path!r}:\n" + "\n".join(failures))
 
 
 def check_requirements(*, verbose: bool = True) -> dict[str, bool]:
@@ -327,14 +425,14 @@ def check_requirements(*, verbose: bool = True) -> dict[str, bool]:
 class AccessReader(Mapping):
     """A ``Mapping`` of an Access file's table names to their rows (lists of dicts).
 
-    ``backend`` is ``None`` (first available), a name in :data:`BACKENDS`, or a callable
-    ``backend(path)`` returning a source (see the module docstring).
-    System tables (``MSys*``) are not listed.
+    ``backend`` is ``None`` (the first available one that opens the file), a name in
+    :data:`BACKENDS`, or a callable ``backend(path)`` returning a source (see the module
+    docstring). System tables (``MSys*``) are not listed.
     """
 
     def __init__(self, path, *, backend: BackendSpec = None):
         self.path = path
-        self.source = _resolve_backend(backend)(path)
+        self.source = _open_source(path, backend)
 
     @cached_property
     def _table_names(self) -> tuple[str, ...]:
@@ -354,38 +452,86 @@ class AccessReader(Mapping):
             raise KeyError(table)
         return list(self.source.rows(table))
 
-    def column_names(self, table: str) -> list[str]:
-        """The table's column names, in definition order."""
-        if table not in self:
-            raise KeyError(table)
-        return list(self.source.column_names(table))
-
     def __repr__(self):
-        return f"{type(self).__name__}({self.path!r}, backend={getattr(self.source, 'name', self.source)!r})"
+        backend = getattr(self.source, "name", type(self.source).__name__)
+        return f"{type(self).__name__}({self.path!r}, backend={backend!r})"
+
+
+class AccessColumns(Mapping):
+    """A ``Mapping`` of an Access file's table names to their column names (definition order).
+
+    The sibling of :class:`AccessReader` over the same keys, rather than a
+    ``reader.column_names(table)`` method: dol wrappers map keys only through the Mapping
+    methods, so a key-taking method would be handed unmapped keys (i2mint/dol#83).
+    Pass a reader to share its open source, or a path (and ``backend``) to open one.
+    """
+
+    def __init__(self, path_or_reader, *, backend: BackendSpec = None):
+        if isinstance(path_or_reader, AccessReader):
+            self._reader = path_or_reader
+        else:
+            self._reader = AccessReader(path_or_reader, backend=backend)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._reader)
+
+    def __len__(self) -> int:
+        return len(self._reader)
+
+    def __contains__(self, table) -> bool:
+        return table in self._reader
+
+    def __getitem__(self, table: str) -> list[str]:
+        if table not in self._reader:
+            raise KeyError(table)
+        return list(self._reader.source.column_names(table))
+
+
+_INT64 = range(-(2**63), 2**63)
 
 
 def _sqlite_value(value):
+    """A value SQLite stores without loss of meaning (exactness is lost only for non-integral
+    Decimals, stored as float)."""
     if isinstance(value, datetime.datetime):
         return value.isoformat(sep=" ")
-    if isinstance(value, datetime.date):
+    if isinstance(value, (datetime.date, datetime.time)):
         return value.isoformat()
+    if isinstance(value, decimal.Decimal):
+        if value == value.to_integral_value() and int(value) in _INT64:
+            return int(value)
+        return float(value)
+    if isinstance(value, bytearray):
+        return bytes(value)
+    if isinstance(value, int) and not isinstance(value, bool) and value not in _INT64:
+        return str(value)
     return value
 
 
+class _Untyped(UserDefinedType):
+    """A column with no declared type: SQLite stores each value as it is."""
+
+    cache_ok = True
+
+    def get_col_spec(self, **kw):
+        return ""
+
+
 def _column_type(values: Iterable):
-    """The SQLAlchemy type for a column, from its first non-null value."""
-    first = next((v for v in values if v is not None), None)
-    if isinstance(first, bool):
+    """The SQLAlchemy type for a column, from the kinds of its non-null values. Mixed kinds
+    get no declared type, so SQLite stores each value as it is."""
+    kinds = {type(v) for v in values if v is not None}
+    if not kinds or kinds == {str}:
+        return Text
+    if kinds == {bool}:
         return Boolean
-    if isinstance(first, int):
+    if kinds <= {int, bool}:
         return Integer
-    if isinstance(first, float):
+    if kinds <= {int, bool, float}:
         return Float
-    if isinstance(first, decimal.Decimal):
-        return Numeric
-    if isinstance(first, (bytes, bytearray)):
+    if kinds == {bytes}:
         return LargeBinary
-    return Text
+    return _Untyped
 
 
 def access_engine(
@@ -399,7 +545,8 @@ def access_engine(
 
     :param path_or_reader: the Access file, or an :class:`AccessReader` already open on it.
     :param sqlite_path: where the copy lives. ``None`` (default) keeps it in memory; a path
-        writes a SQLite file there (tables of the same name in it are replaced).
+        writes a SQLite file there. A table of the same name already in it is replaced, only
+        once its new contents are fully written.
     :param backend: as in :class:`AccessReader` (ignored if a reader is given).
     :param tables: the tables to copy (default: all of them).
 
@@ -416,23 +563,35 @@ def access_engine(
             connect_args={"check_same_thread": False},
         )
     else:
-        engine = create_engine(f"sqlite:///{os.fspath(sqlite_path)}")
+        engine = create_engine(URL.create("sqlite", database=os.fspath(sqlite_path)))
 
-    metadata = MetaData()
-    for name in reader if tables is None else tables:
-        names = reader.column_names(name)
+    columns_of = AccessColumns(reader)
+    for name in dict.fromkeys(reader if tables is None else tables):
+        names = columns_of[name]
         rows = [{c: _sqlite_value(row.get(c)) for c in names} for row in reader[name]]
-        table = Table(
-            name,
-            metadata,
-            *(Column(c, _column_type(row[c] for row in rows)) for c in names),
-        )
-        table.drop(engine, checkfirst=True)
-        table.create(engine)
+        columns = [Column(c, _column_type(row[c] for row in rows)) for c in names]
+        _replace_table(engine, name, columns, rows)
+    return engine
+
+
+def _replace_table(engine, name, columns, rows):
+    """Write ``rows`` to a staging table, and only then swap it in for ``name``."""
+    staging = Table(f"{name}__sqldol_staging", MetaData(), *columns)
+    staging.drop(engine, checkfirst=True)
+    staging.create(engine)
+    try:
         if rows:
             with engine.begin() as connection:
-                connection.execute(table.insert(), rows)
-    return engine
+                connection.execute(staging.insert(), rows)
+    except Exception:
+        staging.drop(engine, checkfirst=True)
+        raise
+    quote = engine.dialect.identifier_preparer.quote
+    with engine.begin() as connection:
+        Table(name, MetaData()).drop(connection, checkfirst=True)
+        connection.exec_driver_sql(
+            f"ALTER TABLE {quote(staging.name)} RENAME TO {quote(name)}"
+        )
 
 
 class _DictSource:
