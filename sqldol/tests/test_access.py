@@ -53,12 +53,15 @@ def test_reader_is_a_mapping_of_tables_to_rows():
     with pytest.raises(KeyError):
         reader["Nope"]
     columns = AccessColumns(reader)
-    assert dict(columns) == {"Items": ["ID", "Title", "When"], "Empty Table": ["ID", "Name"]}
+    assert dict(columns) == {
+        "Items": ["ID", "Title", "When"],
+        "Empty Table": ["ID", "Name"],
+    }
     with pytest.raises(KeyError):
         columns["Nope"]
-    assert not [m for m in dir(AccessReader) if not m.startswith("_") and m not in dir(Mapping)], (
-        "AccessReader has public non-Mapping methods; key-taking ones break under wrappers (dol#83)"
-    )
+    assert not [
+        m for m in dir(AccessReader) if not m.startswith("_") and m not in dir(Mapping)
+    ], "AccessReader has public non-Mapping methods; key-taking ones break under wrappers (dol#83)"
 
 
 def test_engine_copies_tables_and_sqldol_stores_work_on_it():
@@ -84,7 +87,9 @@ def test_a_failed_copy_leaves_the_existing_table_intact(tmp_path):
     access_engine("x.mdb", backend=_fake(), sqlite_path=db, tables=["Items"])
     unstorable = {"Items": [{"ID": 9, "Title": {"not": "storable"}, "When": None}]}
     with pytest.raises(Exception):
-        access_engine("x.mdb", backend=_fake(unstorable), sqlite_path=db, tables=["Items"])
+        access_engine(
+            "x.mdb", backend=_fake(unstorable), sqlite_path=db, tables=["Items"]
+        )
     engine = access_engine("x.mdb", backend=_fake({}), sqlite_path=db, tables=[])
     assert list(TablesDol(engine)) == ["Items"]
     assert sorted(SqlDictReader(engine, "Items", key_columns="ID")) == [1, 2]
@@ -123,7 +128,10 @@ def test_no_backend_available_says_how_to_get_one(monkeypatch):
         monkeypatch.setattr(source, "is_available", staticmethod(lambda: False))
     with pytest.raises(MissingAccessBackendError, match="mdbtools"):
         AccessReader("x.mdb")
-    assert check_requirements(verbose=False) == {"mdbtools": False, "access_parser": False}
+    assert check_requirements(verbose=False) == {
+        "mdbtools": False,
+        "access_parser": False,
+    }
 
 
 def test_auto_backend_falls_back_when_one_cannot_open_the_file(monkeypatch):
@@ -171,7 +179,13 @@ def test_mdbtools_output_parsing(monkeypatch, tmp_path):
     reader = AccessReader(path, backend=MdbtoolsSource)
     assert list(reader) == ["Items", "Categories"]
     assert AccessColumns(reader)["Items"] == [
-        "ID", "My Title", "Key", "Blob", "Amount", "Flag", "Ratio"
+        "ID",
+        "My Title",
+        "Key",
+        "Blob",
+        "Amount",
+        "Flag",
+        "Ratio",
     ]
     first, second = reader["Items"]
     assert first == {
@@ -184,7 +198,12 @@ def test_mdbtools_output_parsing(monkeypatch, tmp_path):
         "Ratio": 0.5,
     }
     assert second == {
-        "ID": 2, "My Title": None, "Key": None, "Blob": None, "Amount": None, "Flag": False,
+        "ID": 2,
+        "My Title": None,
+        "Key": None,
+        "Blob": None,
+        "Amount": None,
+        "Flag": False,
         "Ratio": None,
     }
 
@@ -220,7 +239,14 @@ def test_real_backend_reads_fixture(backend, tiny_mdb):
     _skip_unless_available(backend)
     reader = AccessReader(tiny_mdb, backend=backend)
     assert sorted(reader) == ["Categories", "Items", "Numbers"]
-    assert AccessColumns(reader)["Items"] == ["ID", "Title", "Body", "Price", "Created", "Key"]
+    assert AccessColumns(reader)["Items"] == [
+        "ID",
+        "Title",
+        "Body",
+        "Price",
+        "Created",
+        "Key",
+    ]
     rows = {row["ID"]: row for row in reader["Items"]}
     assert rows[1] == {
         "ID": 1,
@@ -231,9 +257,16 @@ def test_real_backend_reads_fixture(backend, tiny_mdb):
         "Key": "{0B339502-3145-11D2-8D45-0080C6FD2CAA}",
     }
     assert rows[2]["Title"] == "béta"
-    assert rows[2]["Body"].startswith("line 0; ") and rows[2]["Body"].endswith("line 299; ")
+    assert rows[2]["Body"].startswith("line 0; ") and rows[2]["Body"].endswith(
+        "line 299; "
+    )
     assert rows[3] == {
-        "ID": 3, "Title": "gamma", "Body": None, "Price": None, "Created": None, "Key": None
+        "ID": 3,
+        "Title": "gamma",
+        "Body": None,
+        "Price": None,
+        "Created": None,
+        "Key": None,
     }
     assert reader["Numbers"] == [
         {
@@ -243,8 +276,13 @@ def test_real_backend_reads_fixture(backend, tiny_mdb):
             "Flag": True,
             "Small": Decimal("0.10000000000000000001"),
         },
-        {"ID": 2, "Amount": Decimal("0.0001"), "Big": Decimal("-7"), "Flag": False,
-         "Small": Decimal("-12.5")},
+        {
+            "ID": 2,
+            "Amount": Decimal("0.0001"),
+            "Big": Decimal("-7"),
+            "Flag": False,
+            "Small": Decimal("-12.5"),
+        },
         {"ID": 3, "Amount": None, "Big": None, "Flag": False, "Small": None},
     ]
 
@@ -253,7 +291,11 @@ def test_real_backend_reads_fixture(backend, tiny_mdb):
     assert item["Created"] == "2001-02-03 04:05:06"
     number = SqlDictReader(engine, "Numbers", key_columns="ID")[1]
     assert number == {
-        "ID": 1, "Amount": 1234.5678, "Big": 123456789012345678, "Flag": True, "Small": 0.1
+        "ID": 1,
+        "Amount": 1234.5678,
+        "Big": 123456789012345678,
+        "Flag": True,
+        "Small": 0.1,
     }
 
 

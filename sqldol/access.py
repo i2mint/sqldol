@@ -146,7 +146,9 @@ class MdbtoolsSource:
         self.path = os.fspath(path)
         if not os.path.exists(self.path):
             raise FileNotFoundError(self.path)
-        self.version = self._run("mdb-ver", self.path).strip()  # fails early on a non-Access file
+        self.version = self._run(
+            "mdb-ver", self.path
+        ).strip()  # fails early on a non-Access file
 
     def _run(self, *args) -> str:
         try:
@@ -155,7 +157,9 @@ class MdbtoolsSource:
             ).stdout
         except subprocess.CalledProcessError as error:
             detail = (error.stderr or "").strip() or f"exit status {error.returncode}"
-            raise AccessReadError(f"{args[0]} could not read {self.path!r}: {detail}") from error
+            raise AccessReadError(
+                f"{args[0]} could not read {self.path!r}: {detail}"
+            ) from error
         except UnicodeDecodeError as error:
             raise AccessReadError(
                 f"{args[0]} wrote non-UTF-8 output for {self.path!r} (an mdbtools built "
@@ -163,11 +167,21 @@ class MdbtoolsSource:
             ) from error
 
     def table_names(self) -> list[str]:
-        return [line for line in self._run("mdb-tables", "-1", self.path).splitlines() if line]
+        return [
+            line
+            for line in self._run("mdb-tables", "-1", self.path).splitlines()
+            if line
+        ]
 
     def _columns(self, table: str) -> list[tuple[str, str]]:
         ddl = self._run(
-            "mdb-schema", "-T", table, "--no-indexes", "--no-relations", self.path, "access"
+            "mdb-schema",
+            "-T",
+            table,
+            "--no-indexes",
+            "--no-relations",
+            self.path,
+            "access",
         )
         return _columns_of_create_table(ddl)
 
@@ -177,7 +191,13 @@ class MdbtoolsSource:
     def rows(self, table: str) -> Iterator[dict]:
         columns = [(name, _mdbtools_converter(t)) for name, t in self._columns(table)]
         out = self._run(
-            "mdb-json", "-D", self.date_format, "-T", self.datetime_format, self.path, table
+            "mdb-json",
+            "-D",
+            self.date_format,
+            "-T",
+            self.datetime_format,
+            self.path,
+            table,
         )
         for line in out.splitlines():
             if line:
@@ -278,7 +298,9 @@ class AccessParserSource:
                 self._db = AccessParser(os.fspath(path))
         except FileNotFoundError:
             raise
-        except Exception as error:  # it raises KeyError, struct.error, ... on files it can't parse
+        except (
+            Exception
+        ) as error:  # it raises KeyError, struct.error, ... on files it can't parse
             raise AccessReadError(
                 f"access_parser could not open {os.fspath(path)!r}: "
                 f"{type(error).__name__}: {error}. Try backend='mdbtools'."
@@ -408,7 +430,9 @@ def _open_source(path, backend: BackendSpec):
         return backend(path)
     if backend is not None:
         if backend not in BACKENDS:
-            raise ValueError(f"Unknown Access backend {backend!r}. Known: {list(BACKENDS)}")
+            raise ValueError(
+                f"Unknown Access backend {backend!r}. Known: {list(BACKENDS)}"
+            )
         source = BACKENDS[backend]
         if not source.is_available():
             raise MissingAccessBackendError(
@@ -417,7 +441,9 @@ def _open_source(path, backend: BackendSpec):
         return source(path)
     available = [source for source in BACKENDS.values() if source.is_available()]
     if not available:
-        hints = "\n".join(f"  - {name}: {s.install_hint}" for name, s in BACKENDS.items())
+        hints = "\n".join(
+            f"  - {name}: {s.install_hint}" for name, s in BACKENDS.items()
+        )
         raise MissingAccessBackendError(
             f"No backend to read Access files is available. Install one of:\n{hints}"
         )
@@ -427,7 +453,9 @@ def _open_source(path, backend: BackendSpec):
             return source(path)
         except AccessReadError as error:
             failures.append(f"  - {source.name}: {error}")
-    raise AccessReadError(f"No available backend could open {path!r}:\n" + "\n".join(failures))
+    raise AccessReadError(
+        f"No available backend could open {path!r}:\n" + "\n".join(failures)
+    )
 
 
 def check_requirements(*, verbose: bool = True) -> dict[str, bool]:
@@ -442,7 +470,9 @@ def check_requirements(*, verbose: bool = True) -> dict[str, bool]:
             status = "available" if ok else f"missing: {BACKENDS[name].install_hint}"
             print(f"{name:14} {status}")
         if not any(available.values()):
-            print("No Access backend: AccessReader and access_engine cannot read files yet.")
+            print(
+                "No Access backend: AccessReader and access_engine cannot read files yet."
+            )
     return available
 
 
