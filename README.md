@@ -205,6 +205,24 @@ query_result = ops.query(persister).filter_by(event_id='EVT001').first()
 # ops.query(tuple_store, leaf_coordinates=True)
 ```
 
+### Microsoft Access files (.mdb, .accdb)
+
+Read an Access file (Jet3/Access 97, Jet4, ACE; any extension) as a Mapping of tables, or copy it into SQLite and use every sqldol store on it. A reading backend is needed, and none is a hard dependency: `pip install "sqldol[access]"` (pure-Python `access-parser`), or the mdbtools programs on your `PATH` (`brew install mdbtools`, `apt install mdbtools`). `sqldol.access.check_requirements()` says which you have.
+
+```python
+from sqldol import AccessReader, access_engine, SqlDictReader
+
+db = AccessReader('inventory.mdb')      # backend: first available, or backend='mdbtools'
+list(db)                                # ['Items', 'Categories']
+db.column_names('Items')                # ['ID', 'Title', 'Price']
+db['Items'][0]                          # {'ID': 1, 'Title': 'alpha', 'Price': 1.5}
+
+engine = access_engine(db)              # in-memory SQLite copy (sqlite_path=... to keep it)
+SqlDictReader(engine, 'Items', key_columns='ID')[1]
+```
+
+The engine is a snapshot: writes go to the SQLite copy, never back to the Access file.
+
 ## Testing
 
 The project includes comprehensive tests. To run them:

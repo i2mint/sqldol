@@ -33,3 +33,5 @@ from sqldol.stores import (
 from sqldol.util import create_table_from_dict, rows_iter
 
 from sqldol import ops
+from sqldol import access
+from sqldol.access import AccessReader, access_engine
