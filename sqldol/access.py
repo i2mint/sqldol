@@ -72,7 +72,7 @@ import subprocess
 import uuid
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import contextmanager
-from functools import cached_property
+from functools import cached_property, partial
 
 from sqlalchemy import (
     Boolean,
@@ -85,6 +85,7 @@ from sqlalchemy import (
     Text,
     create_engine,
 )
+from sqlalchemy import event
 from sqlalchemy.engine import URL
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.types import UserDefinedType
@@ -143,6 +144,8 @@ class MdbtoolsSource:
 
     def __init__(self, path):
         self.path = os.fspath(path)
+        if not os.path.exists(self.path):
+            raise FileNotFoundError(self.path)
         self.version = self._run("mdb-ver", self.path).strip()  # fails early on a non-Access file
 
     def _run(self, *args) -> str:
@@ -178,7 +181,9 @@ class MdbtoolsSource:
         )
         for line in out.splitlines():
             if line:
-                record = json.loads(line)  # mdb-json leaves out the null fields
+                # Decimal, not float, so Currency/Numeric keep every digit; mdb-json leaves out
+                # the null fields
+                record = json.loads(line, parse_float=decimal.Decimal)
                 yield {name: convert(record.get(name)) for name, convert in columns}
 
 
@@ -190,18 +195,21 @@ def _mdbtools_converter(access_type: str) -> Callable:
         return _decimal
     if access_type.startswith("Boolean"):
         return _bool
-    return _bytes_from_mdb_json
+    return _plain_from_mdb_json
+
+
+def _plain_from_mdb_json(value):
+    """Binaries to bytes; the other non-integers (Double, Single) back to float."""
+    if isinstance(value, decimal.Decimal):
+        return float(value)
+    return _decoded_binary(value)
 
 
 def _decoded_binary(value):
+    """mdb-json writes binary values as ``{"$binary": <base64>, "$type": ...}``."""
     if isinstance(value, dict) and "$binary" in value:
         return base64.b64decode(value["$binary"])
     return value
-
-
-def _bytes_from_mdb_json(value):
-    """mdb-json writes binary values as ``{"$binary": <base64>, "$type": ...}``."""
-    return _decoded_binary(value)
 
 
 def _guid_from_mdb_json(value):
@@ -268,6 +276,8 @@ class AccessParserSource:
         try:
             with _quiet_logger("access_parser"):
                 self._db = AccessParser(os.fspath(path))
+        except FileNotFoundError:
+            raise
         except Exception as error:  # it raises KeyError, struct.error, ... on files it can't parse
             raise AccessReadError(
                 f"access_parser could not open {os.fspath(path)!r}: "
@@ -295,22 +305,25 @@ class AccessParserSource:
                 f"access_parser could not read table {table!r}: {type(error).__name__}: "
                 f"{error}. Try backend='mdbtools'."
             ) from error
-        fixes = {c.col_name_str: self._fix_for(c.type) for c in self._columns(table)}
+        fixes = {c.col_name_str: self._fix_for(c) for c in self._columns(table)}
         names = list(fixes)
         n_rows = len(data[names[0]]) if names else 0
         for i in range(n_rows):
             yield {name: fixes[name](data[name][i]) for name in names}
 
-    def _fix_for(self, column_type) -> Callable:
+    def _fix_for(self, column) -> Callable:
         """Undo what access_parser 0.0.6 gets wrong: Jet3 text decoded as latin-1 (Jet3 is
         cp1252), GUIDs formatted from their little-endian bytes, Currency as an int scaled by
-        10**4, Numeric as a string."""
+        10**4, Numeric as a string that loses its decimal point when the digits are fewer
+        than the scale."""
+        column_type = column.type
         if column_type == _ACCESS_PARSER_TYPE_GUID:
             return _guid_from_access_parser
         if column_type == _ACCESS_PARSER_TYPE_MONEY:
             return _money_from_access_parser
         if column_type == _ACCESS_PARSER_TYPE_NUMERIC:
-            return _decimal
+            scale = (column.get("various") or {}).get("scale", 0)
+            return partial(_numeric_from_access_parser, scale=scale)
         if column_type in _ACCESS_PARSER_TEXT_TYPES and self._db.version == 3:
             return _cp1252_from_latin1
         return _identity
@@ -336,6 +349,21 @@ def _money_from_access_parser(value):
     if isinstance(value, int) and not isinstance(value, bool):
         return decimal.Decimal(value).scaleb(-4)
     return value  # None, or the formatted string it returns when the field has a Format
+
+
+def _numeric_from_access_parser(value, *, scale: int):
+    """access_parser writes the digits, and puts the point in only when they outnumber the scale.
+
+    >>> _numeric_from_access_parser('10000000000000000001', scale=20)
+    Decimal('0.10000000000000000001')
+    >>> _numeric_from_access_parser('-12.50', scale=2), _numeric_from_access_parser('7.', scale=0)
+    (Decimal('-12.50'), Decimal('7'))
+    """
+    if not isinstance(value, str):
+        return value
+    if "." in value or not scale:
+        return decimal.Decimal(value.rstrip("."))
+    return decimal.Decimal(value).scaleb(-scale)
 
 
 def _guid_from_access_parser(value):
@@ -545,8 +573,8 @@ def access_engine(
 
     :param path_or_reader: the Access file, or an :class:`AccessReader` already open on it.
     :param sqlite_path: where the copy lives. ``None`` (default) keeps it in memory; a path
-        writes a SQLite file there. A table of the same name already in it is replaced, only
-        once its new contents are fully written.
+        writes a SQLite file there. A table of the same name already in it is replaced, in one
+        transaction (a failed copy leaves it as it was).
     :param backend: as in :class:`AccessReader` (ignored if a reader is given).
     :param tables: the tables to copy (default: all of them).
 
@@ -564,6 +592,7 @@ def access_engine(
         )
     else:
         engine = create_engine(URL.create("sqlite", database=os.fspath(sqlite_path)))
+    _make_ddl_transactional(engine)
 
     columns_of = AccessColumns(reader)
     for name in dict.fromkeys(reader if tables is None else tables):
@@ -574,24 +603,31 @@ def access_engine(
     return engine
 
 
+def _make_ddl_transactional(engine):
+    """Let a transaction hold DDL too (pysqlite otherwise commits around CREATE/DROP).
+
+    The SQLAlchemy recipe for pysqlite: turn off the driver's own transaction handling and
+    emit BEGIN ourselves (https://docs.sqlalchemy.org/en/20/dialects/sqlite.html, "Serializable
+    isolation / Savepoints / Transactional DDL").
+    """
+
+    @event.listens_for(engine, "connect")
+    def _no_driver_transactions(dbapi_connection, connection_record):
+        dbapi_connection.isolation_level = None
+
+    @event.listens_for(engine, "begin")
+    def _begin(connection):
+        connection.exec_driver_sql("BEGIN")
+
+
 def _replace_table(engine, name, columns, rows):
-    """Write ``rows`` to a staging table, and only then swap it in for ``name``."""
-    staging = Table(f"{name}__sqldol_staging", MetaData(), *columns)
-    staging.drop(engine, checkfirst=True)
-    staging.create(engine)
-    try:
-        if rows:
-            with engine.begin() as connection:
-                connection.execute(staging.insert(), rows)
-    except Exception:
-        staging.drop(engine, checkfirst=True)
-        raise
-    quote = engine.dialect.identifier_preparer.quote
+    """Drop, create and fill ``name`` in one transaction: on any failure the old table stays."""
+    table = Table(name, MetaData(), *columns)
     with engine.begin() as connection:
-        Table(name, MetaData()).drop(connection, checkfirst=True)
-        connection.exec_driver_sql(
-            f"ALTER TABLE {quote(staging.name)} RENAME TO {quote(name)}"
-        )
+        table.drop(connection, checkfirst=True)
+        table.create(connection)
+        if rows:
+            connection.execute(table.insert(), rows)
 
 
 class _DictSource:

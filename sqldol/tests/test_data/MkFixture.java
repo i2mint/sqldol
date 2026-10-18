@@ -33,10 +33,12 @@ public class MkFixture {
             .addColumn(new ColumnBuilder("Amount", DataType.MONEY))
             .addColumn(new ColumnBuilder("Big", DataType.NUMERIC).setPrecision(18).setScale(0))
             .addColumn(new ColumnBuilder("Flag", DataType.BOOLEAN))
+            .addColumn(new ColumnBuilder("Small", DataType.NUMERIC).setPrecision(28).setScale(20))
             .toTable(db);
-        n.addRow(1, new BigDecimal("1234.5678"), new BigDecimal("123456789012345678"), true);
-        n.addRow(2, new BigDecimal("0.0001"), new BigDecimal("-7"), false);
-        n.addRow(3, null, null, false);
+        n.addRow(1, new BigDecimal("1234.5678"), new BigDecimal("123456789012345678"), true,
+                 new BigDecimal("0.10000000000000000001"));
+        n.addRow(2, new BigDecimal("0.0001"), new BigDecimal("-7"), false, new BigDecimal("-12.5"));
+        n.addRow(3, null, null, false, null);
         Table c = new TableBuilder("Categories")
             .addColumn(new ColumnBuilder("ID", DataType.LONG))
             .addColumn(new ColumnBuilder("Name", DataType.TEXT))

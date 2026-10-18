@@ -90,6 +90,16 @@ def test_a_failed_copy_leaves_the_existing_table_intact(tmp_path):
     assert sorted(SqlDictReader(engine, "Items", key_columns="ID")) == [1, 2]
 
 
+def test_replacing_a_table_that_a_view_depends_on(tmp_path):
+    db = tmp_path / "copy.sqlite"
+    engine = access_engine("x.mdb", backend=_fake(), sqlite_path=db, tables=["Items"])
+    with engine.begin() as connection:
+        connection.exec_driver_sql('CREATE VIEW titles AS SELECT "Title" FROM "Items"')
+    engine = access_engine("x.mdb", backend=_fake(), sqlite_path=db, tables=["Items"])
+    with engine.connect() as connection:
+        assert connection.exec_driver_sql("SELECT count(*) FROM titles").scalar() == 2
+
+
 def test_mixed_and_wide_values_are_stored():
     tables = {
         "T": [
@@ -139,37 +149,43 @@ def test_auto_backend_falls_back_when_one_cannot_open_the_file(monkeypatch):
         AccessReader("x.mdb")
 
 
-def test_mdbtools_output_parsing(monkeypatch):
+def test_mdbtools_output_parsing(monkeypatch, tmp_path):
     outputs = {
         "mdb-ver": "JET4\n",
         "mdb-tables": "Items\nCategories\n",
         "mdb-schema": (
             "CREATE TABLE [Items]\n (\n\t[ID]\t\t\tLong Integer, \n\t[My Title]\t\t\tText (50), "
             "\n\t[Key]\t\t\tReplication ID, \n\t[Blob]\t\t\tOLE, \n\t[Amount]\t\t\tCurrency, "
-            "\n\t[Flag]\t\t\tBoolean NOT NULL\n);\n"
+            "\n\t[Flag]\t\t\tBoolean NOT NULL, \n\t[Ratio]\t\t\tDouble\n);\n"
         ),
         "mdb-json": (
             '{"ID":1,"My Title":"alpha","Blob":{"$binary":"AAE=","$type":"00"},'
             '"Key":{"$binary":"ezBCMzM5NTAyLTMxNDUtMTFEMi04RDQ1MDA4MEM2RkQyQ0FBfQ==","$type":"00"},'
-            '"Amount":1234.5678,"Flag":1}\n'
+            '"Amount":922337203685477.5807,"Flag":1,"Ratio":0.5}\n'
             '{"ID":2,"Flag":0}\n'
         ),
     }
     monkeypatch.setattr(MdbtoolsSource, "_run", lambda self, *args: outputs[args[0]])
-    reader = AccessReader("x.mdb", backend=MdbtoolsSource)
+    path = tmp_path / "x.mdb"
+    path.touch()  # the programs are faked; the file only has to exist
+    reader = AccessReader(path, backend=MdbtoolsSource)
     assert list(reader) == ["Items", "Categories"]
-    assert AccessColumns(reader)["Items"] == ["ID", "My Title", "Key", "Blob", "Amount", "Flag"]
+    assert AccessColumns(reader)["Items"] == [
+        "ID", "My Title", "Key", "Blob", "Amount", "Flag", "Ratio"
+    ]
     first, second = reader["Items"]
     assert first == {
         "ID": 1,
         "My Title": "alpha",
         "Key": "{0B339502-3145-11D2-8D45-0080C6FD2CAA}",
         "Blob": b"\x00\x01",
-        "Amount": Decimal("1234.5678"),
+        "Amount": Decimal("922337203685477.5807"),
         "Flag": True,
+        "Ratio": 0.5,
     }
     assert second == {
-        "ID": 2, "My Title": None, "Key": None, "Blob": None, "Amount": None, "Flag": False
+        "ID": 2, "My Title": None, "Key": None, "Blob": None, "Amount": None, "Flag": False,
+        "Ratio": None,
     }
 
 
@@ -220,16 +236,25 @@ def test_real_backend_reads_fixture(backend, tiny_mdb):
         "ID": 3, "Title": "gamma", "Body": None, "Price": None, "Created": None, "Key": None
     }
     assert reader["Numbers"] == [
-        {"ID": 1, "Amount": Decimal("1234.5678"), "Big": Decimal("123456789012345678"), "Flag": True},
-        {"ID": 2, "Amount": Decimal("0.0001"), "Big": Decimal("-7"), "Flag": False},
-        {"ID": 3, "Amount": None, "Big": None, "Flag": False},
+        {
+            "ID": 1,
+            "Amount": Decimal("1234.5678"),
+            "Big": Decimal("123456789012345678"),
+            "Flag": True,
+            "Small": Decimal("0.10000000000000000001"),
+        },
+        {"ID": 2, "Amount": Decimal("0.0001"), "Big": Decimal("-7"), "Flag": False,
+         "Small": Decimal("-12.5")},
+        {"ID": 3, "Amount": None, "Big": None, "Flag": False, "Small": None},
     ]
 
     engine = access_engine(reader)
     item = SqlDictReader(engine, "Items", key_columns="ID")[1]
     assert item["Created"] == "2001-02-03 04:05:06"
     number = SqlDictReader(engine, "Numbers", key_columns="ID")[1]
-    assert number == {"ID": 1, "Amount": 1234.5678, "Big": 123456789012345678, "Flag": True}
+    assert number == {
+        "ID": 1, "Amount": 1234.5678, "Big": 123456789012345678, "Flag": True, "Small": 0.1
+    }
 
 
 def test_mdbtools_reads_accdb(tiny_accdb):
@@ -253,3 +278,5 @@ def test_mdbtools_error_says_what_went_wrong(tmp_path):
     not_access.write_bytes(b"definitely not a Jet database" * 100)
     with pytest.raises(AccessReadError, match="mdb-ver could not read"):
         AccessReader(not_access, backend="mdbtools")
+    with pytest.raises(FileNotFoundError):
+        AccessReader(tmp_path / "missing.mdb")
