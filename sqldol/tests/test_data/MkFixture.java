@@ -16,13 +16,15 @@ public class MkFixture {
             .addColumn(new ColumnBuilder("Body", DataType.MEMO))
             .addColumn(new ColumnBuilder("Price", DataType.DOUBLE))
             .addColumn(new ColumnBuilder("Created", DataType.SHORT_DATE_TIME))
+            .addColumn(new ColumnBuilder("Key", DataType.GUID))
             .addIndex(new IndexBuilder(IndexBuilder.PRIMARY_KEY_NAME).addColumns("ID").setPrimaryKey())
             .toTable(db);
         StringBuilder longBody = new StringBuilder();
         for (int i = 0; i < 300; i++) longBody.append("line ").append(i).append("; ");
-        t.addRow(1, "alpha", "short memo", 1.5, LocalDateTime.of(2001, 2, 3, 4, 5, 6));
-        t.addRow(2, "béta", longBody.toString(), 2.25, LocalDateTime.of(2002, 3, 4, 0, 0, 0));
-        t.addRow(3, "gamma", null, null, null);
+        t.addRow(1, "alpha", "short memo", 1.5, LocalDateTime.of(2001, 2, 3, 4, 5, 6),
+                 "{0B339502-3145-11D2-8D45-0080C6FD2CAA}");
+        t.addRow(2, "béta", longBody.toString(), 2.25, LocalDateTime.of(2002, 3, 4, 0, 0, 0), null);
+        t.addRow(3, "gamma", null, null, null, null);
         Table c = new TableBuilder("Categories")
             .addColumn(new ColumnBuilder("ID", DataType.LONG))
             .addColumn(new ColumnBuilder("Name", DataType.TEXT))

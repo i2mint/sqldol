@@ -84,14 +84,28 @@ def test_no_backend_available_says_how_to_get_one(monkeypatch):
 def test_mdbtools_output_parsing(monkeypatch):
     outputs = {
         "mdb-tables": "Items\nCategories\n",
-        "mdb-schema": "CREATE TABLE `Items`\n (\n\t`ID`\t\tINTEGER, \n\t`My Title`\tvarchar\n);\n",
-        "mdb-json": '{"ID":1,"My Title":"alpha"}\n{"ID":2}\n',
+        "mdb-schema": (
+            "CREATE TABLE [Items]\n (\n\t[ID]\t\t\tLong Integer, \n\t[My Title]\t\t\tText (50), "
+            "\n\t[Key]\t\t\tReplication ID, \n\t[Blob]\t\t\tOLE\n);\n"
+        ),
+        "mdb-json": (
+            '{"ID":1,"My Title":"alpha","Blob":{"$binary":"AAE=","$type":"00"},'
+            '"Key":{"$binary":"ezBCMzM5NTAyLTMxNDUtMTFEMi04RDQ1MDA4MEM2RkQyQ0FBfQ==","$type":"00"}}\n'
+            '{"ID":2}\n'
+        ),
     }
     monkeypatch.setattr(MdbtoolsSource, "_run", lambda self, *args: outputs[args[0]])
     reader = AccessReader("x.mdb", backend=MdbtoolsSource)
     assert list(reader) == ["Items", "Categories"]
-    assert reader.column_names("Items") == ["ID", "My Title"]
-    assert reader["Items"] == [{"ID": 1, "My Title": "alpha"}, {"ID": 2, "My Title": None}]
+    assert reader.column_names("Items") == ["ID", "My Title", "Key", "Blob"]
+    first, second = reader["Items"]
+    assert first == {
+        "ID": 1,
+        "My Title": "alpha",
+        "Key": "{0B339502-3145-11D2-8D45-0080C6FD2CAA}",
+        "Blob": b"\x00\x01",
+    }
+    assert second == {"ID": 2, "My Title": None, "Key": None, "Blob": None}
 
 
 # --------------------------------------------------------------------------------------
@@ -112,12 +126,15 @@ def test_real_backend_reads_fixture(backend, tiny_mdb):
         pytest.skip(f"{backend} backend not installed")
     reader = AccessReader(tiny_mdb, backend=backend)
     assert sorted(reader) == ["Categories", "Items"]
-    assert reader.column_names("Items") == ["ID", "Title", "Body", "Price", "Created"]
+    assert reader.column_names("Items") == ["ID", "Title", "Body", "Price", "Created", "Key"]
     rows = {row["ID"]: row for row in reader["Items"]}
     assert rows[1]["Title"] == "alpha" and rows[1]["Price"] == 1.5
+    assert rows[1]["Key"] == "{0B339502-3145-11D2-8D45-0080C6FD2CAA}"
     assert rows[2]["Title"] == "béta"
     assert rows[2]["Body"].startswith("line 0; ") and rows[2]["Body"].endswith("line 299; ")
-    assert rows[3] == {"ID": 3, "Title": "gamma", "Body": None, "Price": None, "Created": None}
+    assert rows[3] == {
+        "ID": 3, "Title": "gamma", "Body": None, "Price": None, "Created": None, "Key": None
+    }
 
     engine = access_engine(reader)
     item = SqlDictReader(engine, "Items", key_columns="ID")[1]

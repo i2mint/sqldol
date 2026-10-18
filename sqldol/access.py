@@ -21,10 +21,15 @@ The file is read by a **backend**, chosen at runtime. None is a hard dependency:
 ``backend(path)`` returning an object with ``table_names()``, ``column_names(table)`` and
 ``rows(table)`` (an iterable of dicts); that is the escape hatch for Windows ODBC or UCanAccess.
 
-The two shipped backends do not return identical types: dates come back as ``datetime`` from
-``access_parser`` and as ``'YYYY-MM-DD HH:MM:SS'`` strings from ``mdbtools``, and
-``access_parser`` has been seen returning an integer key column as ``str``. In the SQLite copy,
-dates are written as that same string from both.
+The two shipped backends agree on text (Jet3 files are read as cp1252, as Access wrote them)
+and on GUIDs (``'{0B339502-3145-11D2-8D45-0080C6FD2CAA}'``, Access's display form), which this
+module normalises. Where they differ:
+
+- dates: ``datetime`` from ``access_parser``, ``'YYYY-MM-DD HH:MM:SS'`` strings from
+  ``mdbtools``; in the SQLite copy both are that string.
+- Jet3 text holding UTF-8 bytes (text pasted into the database already encoded): ``mdbtools``
+  shows it as Access does (``'â€”'``); ``access_parser`` tries UTF-8 first and gives the
+  intended ``'—'``.
 
 >>> reader = AccessReader('some.mdb', backend=_DictSource.factory({
 ...     'Items': [{'ID': 1, 'Title': 'alpha'}, {'ID': 2, 'Title': 'beta'}],
@@ -44,6 +49,7 @@ dates are written as that same string from both.
 # extraction candidate: an ``mdbdol`` package, once Access-specific concerns beyond tables
 # appear (write-back, saved queries, relationships, more backends). See i2mint/sqldol#15.
 
+import base64
 import datetime
 import decimal
 import importlib.util
@@ -53,6 +59,7 @@ import os
 import re
 import shutil
 import subprocess
+import uuid
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from functools import cached_property
@@ -129,11 +136,21 @@ class AccessParserSource:
         with _quiet_logger("access_parser"):
             access_table = self._db.get_table(table)
             data = access_table.parse()
-        columns = access_table.columns
-        names = [columns[i].col_name_str for i in sorted(columns)]
+        columns = [access_table.columns[i] for i in sorted(access_table.columns)]
+        fixes = {c.col_name_str: self._fix_for(c.type) for c in columns}
+        names = list(fixes)
         n_rows = len(data[names[0]]) if names else 0
         for i in range(n_rows):
-            yield {name: data[name][i] for name in names}
+            yield {name: fixes[name](data[name][i]) for name in names}
+
+    def _fix_for(self, column_type):
+        """access_parser 0.0.6 decodes Jet3 text as latin-1 (not the cp1252 Jet3 files use)
+        and formats GUIDs from their raw little-endian bytes; undo both."""
+        if column_type == _ACCESS_PARSER_TYPE_GUID:
+            return _guid_from_access_parser
+        if column_type in _ACCESS_PARSER_TEXT_TYPES and self._db.version == 3:
+            return _cp1252_from_latin1
+        return _identity
 
 
 class MdbtoolsSource:
@@ -164,29 +181,97 @@ class MdbtoolsSource:
     def table_names(self) -> list[str]:
         return [line for line in self._run("mdb-tables", "-1", self.path).splitlines() if line]
 
+    def _columns(self, table: str) -> list[tuple[str, str]]:
+        ddl = self._run(
+            "mdb-schema", "-T", table, "--no-indexes", "--no-relations", self.path, "access"
+        )
+        return _columns_of_create_table(ddl)
+
     def column_names(self, table: str) -> list[str]:
-        ddl = self._run("mdb-schema", "-T", table, "--no-indexes", "--no-relations", self.path, "sqlite")
-        return _column_names_of_create_table(ddl)
+        return [name for name, _ in self._columns(table)]
 
     def rows(self, table: str) -> Iterator[dict]:
-        names = self.column_names(table)
+        columns = self._columns(table)
         out = self._run(
             "mdb-json", "-D", self.date_format, "-T", self.datetime_format, self.path, table
         )
         for line in out.splitlines():
             if line:
                 record = json.loads(line)  # mdb-json leaves out the null fields
-                yield {name: record.get(name) for name in names}
+                yield {
+                    name: _from_mdb_json(record.get(name), access_type)
+                    for name, access_type in columns
+                }
 
 
-_DDL_COLUMN = re.compile(r"^\s*`([^`]+)`\s+\S", re.MULTILINE)
+def _from_mdb_json(value, access_type: str):
+    """mdb-json writes binary values (GUIDs among them) as ``{"$binary": <base64>, ...}``."""
+    if isinstance(value, dict) and "$binary" in value:
+        raw = base64.b64decode(value["$binary"])
+        if access_type == "Replication ID":  # libmdb's text form of the GUID
+            return _canonical_guid(uuid.UUID(raw.decode("ascii").strip("{}")))
+        return raw
+    return value
 
 
-def _column_names_of_create_table(ddl: str) -> list[str]:
-    """Column names, in order, from the ``CREATE TABLE`` that ``mdb-schema ... sqlite`` prints.
+def _canonical_guid(guid: uuid.UUID) -> str:
+    """Access's own display form of a GUID.
 
-    >>> _column_names_of_create_table('CREATE TABLE `T`\\n (\\n\\t`ID`\\t\\tINTEGER, \\n\\t`My Name`\\tvarchar\\n);')
-    ['ID', 'My Name']
+    >>> _canonical_guid(uuid.UUID('0b339502-3145-11d2-8d45-0080c6fd2caa'))
+    '{0B339502-3145-11D2-8D45-0080C6FD2CAA}'
+    """
+    return "{" + str(guid).upper() + "}"
+
+
+_ACCESS_PARSER_TYPE_GUID = 15  # access_parser.utils.TYPE_GUID
+_ACCESS_PARSER_TEXT_TYPES = (10, 12)  # TYPE_TEXT, TYPE_MEMO
+
+
+def _identity(value):
+    return value
+
+
+def _guid_from_access_parser(value):
+    """access_parser 0.0.6 builds the UUID from the bytes as stored (little-endian fields).
+
+    >>> _guid_from_access_parser('0295330b-4531-d211-8d45-0080c6fd2caa')
+    '{0B339502-3145-11D2-8D45-0080C6FD2CAA}'
+    """
+    if not isinstance(value, str):
+        return value
+    return _canonical_guid(uuid.UUID(bytes_le=uuid.UUID(value).bytes))
+
+
+_C1_CONTROLS = re.compile("[\x80-\x9f]")
+
+
+def _cp1252_from_latin1(value):
+    """Re-decode Jet3 text that was decoded as latin-1, when it shows it (C1 control chars).
+
+    >>> _cp1252_from_latin1('haven\x92t')
+    'haven’t'
+    >>> _cp1252_from_latin1('café')
+    'café'
+    """
+    if not isinstance(value, str) or not _C1_CONTROLS.search(value):
+        return value
+    try:
+        return value.encode("latin-1").decode("cp1252")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return value
+
+
+# Access forbids brackets in names, so the bracketed form is unambiguous.
+_DDL_COLUMN = re.compile(r"^\s*\[([^\]]+)\]\s+(.*?),?\s*$", re.MULTILINE)
+
+
+def _columns_of_create_table(ddl: str) -> list[tuple[str, str]]:
+    """``(name, Access type)`` pairs, in order, from ``mdb-schema -T <t> <file> access``.
+
+    >>> _columns_of_create_table(
+    ...     'CREATE TABLE [T]\\n (\\n\\t[ID]\\t\\t\\tLong Integer, \\n\\t[My Name]\\t\\t\\tText (50)\\n);'
+    ... )
+    [('ID', 'Long Integer'), ('My Name', 'Text (50)')]
     """
     body = ddl[ddl.index("(") + 1 :] if "(" in ddl else ""
     return _DDL_COLUMN.findall(body)
