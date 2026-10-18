@@ -1,4 +1,4 @@
-> built 2026-10-13 23:13 UTC from cb59111 (master) · sqldol 0.1.11. Details: build_info.json
+> built 2026-10-18 03:58 UTC from c4e2563 (master) · sqldol 0.1.12. Details: build_info.json
 
 # index.html.md
 
@@ -211,6 +211,24 @@ query_result = ops.query(persister).filter_by(event_id='EVT001').first()
 # ops.query(tuple_store, leaf_coordinates=True)
 ```
 
+### Microsoft Access files (.mdb, .accdb)
+
+Read an Access file (Jet3/Access 97, Jet4, ACE; any extension) as a Mapping of tables, or copy it into SQLite and use every sqldol store on it. A reading backend is needed, and none is a hard dependency: the mdbtools programs on your `PATH` (`brew install mdbtools`, `apt install mdbtools`; the more complete reader), or `pip install "sqldol[access]"` (pure-Python `access-parser`). With both, the first that opens the file is used. `sqldol.access.check_requirements()` says which you have.
+
+```python
+from sqldol import AccessReader, AccessColumns, access_engine, SqlDictReader
+
+db = AccessReader('inventory.mdb')      # backend: first that opens it, or backend='mdbtools'
+list(db)                                # ['Items', 'Categories']
+AccessColumns(db)['Items']              # ['ID', 'Title', 'Price']
+db['Items'][0]                          # {'ID': 1, 'Title': 'alpha', 'Price': 1.5}
+
+engine = access_engine(db)              # in-memory SQLite copy (sqlite_path=... to keep it)
+SqlDictReader(engine, 'Items', key_columns='ID')[1]
+```
+
+Values come back the same from both backends: Currency/Numeric as `Decimal`, Yes/No as `bool`, GUIDs as `'{XXXXXXXX-...}'`, date/times as `'YYYY-MM-DD HH:MM:SS'`. The engine is a snapshot: writes go to the SQLite copy, never back to the Access file.
+
 ## Testing
 
 The project includes comprehensive tests. To run them:
@@ -246,6 +264,156 @@ Contributions are welcome! Please feel free to submit pull requests or open issu
 - [SQLAlchemy](https://www.sqlalchemy.org/) - The SQL toolkit powering sqldol
 
 <p class="epythet-aggregates">This documentation as a single file: <a href="sqldol.md">sqldol.md</a> (Markdown, for agents).</p>
+
+
+# _autosummary/sqldol.access.html.md
+
+# sqldol.access
+
+Read Microsoft Access files (`.mdb`, `.accdb`: Jet3, Jet4, ACE) as Mappings and as engines.
+
+There is no SQLAlchemy dialect for Access off Windows, so this module bridges into the seam the
+rest of sqldol already has (`engine`):
+
+- [`AccessReader`](_autosummary/sqldol.access.html.md#sqldol.access.AccessReader) `(path)` is a `Mapping` of table name to rows (a list of dicts).
+  No SQL involved. [`AccessColumns`](_autosummary/sqldol.access.html.md#sqldol.access.AccessColumns) `(path_or_reader)` is its sibling: table name to
+  column names, in definition order.
+- [`access_engine()`](_autosummary/sqldol.access.html.md#sqldol.access.access_engine) `(path)` copies the tables into SQLite (in memory unless you give a
+  `sqlite_path`) and returns a SQLAlchemy `Engine`, so every sqldol store works on an Access
+  file: `TablesDol(engine)`, `SqlDictReader(engine, 'Items', key_columns='ID')`, …
+  It is a **snapshot**: writes through that engine change the copy, never the Access file.
+- [`check_requirements()`](_autosummary/sqldol.access.html.md#sqldol.access.check_requirements) says which backends this machine has, and how to get one.
+
+The file is read by a **backend**, chosen at runtime. None is a hard dependency:
+
+- `'mdbtools'`: the mdbtools command-line programs, if they are on `PATH`
+  (`brew install mdbtools`, `apt install mdbtools`). Called as programs, not linked.
+  Reads Jet3, Jet4 and ACE, with Access’s own column types.
+- `'access_parser'`: pure Python, `pip install "sqldol[access]"` (Apache-2.0). Needs
+  nothing else, but cannot open some files (ACE `.accdb` files written by Jackcess, some
+  long memo layouts).
+
+`backend=None` tries the available ones in that order and takes the first that opens the
+file. A backend can also be any callable `backend(path)` returning an object with
+`table_names()`, `column_names(table)` and `rows(table)` (an iterable of dicts); UCanAccess
+would fit there. A *live* Windows ODBC engine would not: it would be its own function, since
+`access_engine`’s contract is that it never writes to the Access file.
+
+Values are normalised so the two backends agree: text is `str` (Jet3 read as cp1252),
+Currency and Numeric are `decimal.Decimal`, Yes/No is `bool`, Replication ID (GUID) is
+`'{0B339502-3145-11D2-8D45-0080C6FD2CAA}'`, binary is `bytes`, and date/times are
+`'YYYY-MM-DD HH:MM:SS'` strings. Known differences that remain:
+
+- Jet3 text holding UTF-8 bytes (text pasted into the database already encoded): `mdbtools`
+  shows it as Access does (`'â€”'`); `access_parser` tries UTF-8 first and gives the
+  intended `'—'`.
+- `access_parser` returns a Currency field that has a Format property as the formatted
+  string (`'$1,234.57'`), which cannot be turned back into the exact amount.
+
+Each table is read into memory whole (`reader[table]`, and one table at a time by
+`access_engine`).
+
+```pycon
+>>> reader = AccessReader('some.mdb', backend=_DictSource.factory({
+...     'Items': [{'ID': 1, 'Title': 'alpha'}, {'ID': 2, 'Title': 'beta'}],
+... }))
+>>> list(reader)
+['Items']
+>>> reader['Items'][1]
+{'ID': 2, 'Title': 'beta'}
+>>> from sqldol import SqlDictReader
+>>> engine = access_engine(reader)
+>>> SqlDictReader(engine, 'Items', key_columns='ID')[2]
+{'ID': 2, 'Title': 'beta'}
+```
+
+(`_DictSource` stands in for a real file here; with one, write `AccessReader('songs.mdb')`.)
+
+### Module Attributes
+
+| [`BACKENDS`](_autosummary/sqldol.access.html.md#sqldol.access.BACKENDS)   | Shipped backends, in the order `backend=None` tries them.   |
+|-------------------------------------------------------------|-------------------------------------------------------------|
+
+### Functions
+
+| [`access_engine`](_autosummary/sqldol.access.html.md#sqldol.access.access_engine)(path_or_reader, \*[, ...])   | Copy an Access file's tables into SQLite and return the SQLAlchemy `Engine`.   |
+|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`check_requirements`](_autosummary/sqldol.access.html.md#sqldol.access.check_requirements)(\*[, verbose])          | Which Access backends this machine has; prints how to get the missing ones.    |
+
+### Classes
+
+| [`AccessReader`](_autosummary/sqldol.access.html.md#sqldol.access.AccessReader)(path, \*[, backend])            | A `Mapping` of an Access file's table names to their rows (lists of dicts).           |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`AccessColumns`](_autosummary/sqldol.access.html.md#sqldol.access.AccessColumns)(path_or_reader, \*[, backend]) | A `Mapping` of an Access file's table names to their column names (definition order). |
+
+### Exceptions
+
+| [`MissingAccessBackendError`](_autosummary/sqldol.access.html.md#sqldol.access.MissingAccessBackendError)   | No backend that can read Access files is available (or the one asked for is not).   |
+|------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| [`AccessReadError`](_autosummary/sqldol.access.html.md#sqldol.access.AccessReadError)             | A backend could not read the file (or one of its tables).                           |
+
+### *class* sqldol.access.AccessColumns(path_or_reader, , backend=None)
+
+Bases: [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)
+
+A `Mapping` of an Access file’s table names to their column names (definition order).
+
+The sibling of [`AccessReader`](_autosummary/sqldol.access.html.md#sqldol.access.AccessReader) over the same keys, rather than a
+`reader.column_names(table)` method: dol wrappers map keys only through the Mapping
+methods, so a key-taking method would be handed unmapped keys (i2mint/dol#83).
+Pass a reader to share its open source, or a path (and `backend`) to open one.
+
+### *exception* sqldol.access.AccessReadError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+A backend could not read the file (or one of its tables).
+
+### *class* sqldol.access.AccessReader(path, , backend=None)
+
+Bases: [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)
+
+A `Mapping` of an Access file’s table names to their rows (lists of dicts).
+
+`backend` is `None` (the first available one that opens the file), a name in
+[`BACKENDS`](_autosummary/sqldol.access.html.md#sqldol.access.BACKENDS), or a callable `backend(path)` returning a source (see the module
+docstring). System tables (`MSys*`) are not listed.
+
+### sqldol.access.BACKENDS *= {'access_parser': <class 'sqldol.access.AccessParserSource'>, 'mdbtools': <class 'sqldol.access.MdbtoolsSource'>}*
+
+Shipped backends, in the order `backend=None` tries them.
+
+### *exception* sqldol.access.MissingAccessBackendError
+
+Bases: [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
+
+No backend that can read Access files is available (or the one asked for is not).
+
+### sqldol.access.access_engine(path_or_reader, , sqlite_path=None, backend=None, tables=None)
+
+Copy an Access file’s tables into SQLite and return the SQLAlchemy `Engine`.
+
+* **Parameters:**
+  * **path_or_reader** – the Access file, or an [`AccessReader`](_autosummary/sqldol.access.html.md#sqldol.access.AccessReader) already open on it.
+  * **sqlite_path** – where the copy lives. `None` (default) keeps it in memory; a path
+    writes a SQLite file there. A table of the same name already in it is replaced, in one
+    transaction (a failed copy leaves it as it was).
+  * **backend** ([`None`](https://docs.python.org/3/builtins/constants.html#None) | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)) – as in [`AccessReader`](_autosummary/sqldol.access.html.md#sqldol.access.AccessReader) (ignored if a reader is given).
+  * **tables** ([`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – the tables to copy (default: all of them).
+
+The engine is a snapshot: writing through it changes the copy, never the Access file.
+
+### sqldol.access.check_requirements(, verbose=True)
+
+Which Access backends this machine has; prints how to get the missing ones.
+
+```pycon
+>>> sorted(check_requirements(verbose=False))
+['access_parser', 'mdbtools']
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bool`](https://docs.python.org/3/builtins/functions.html#bool)]
 
 
 # _autosummary/sqldol.base.html.md
@@ -319,12 +487,13 @@ sql with a simple (dict-like or list-like) interface
 
 ### Modules
 
-| [`base`](_autosummary/sqldol.base.html.md#module-sqldol.base)         | Base objects for sqldol                                                              |
-|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`ops`](_autosummary/sqldol.ops.html.md#module-sqldol.ops)           | Leaf-level operations, as free functions over the caller's (possibly wrapped) store. |
-| [`sql_base`](_autosummary/sqldol.sql_base.html.md#module-sqldol.sql_base) | Independent legacy DOLs sql with a simple (dict-like or list-like) interface         |
-| [`stores`](_autosummary/sqldol.stores.html.md#module-sqldol.stores)     | Higher level stores for sql data                                                     |
-| [`util`](_autosummary/sqldol.util.html.md#module-sqldol.util)         | Utils for sqldol                                                                     |
+| [`access`](_autosummary/sqldol.access.html.md#module-sqldol.access)     | Read Microsoft Access files (`.mdb`, `.accdb`: Jet3, Jet4, ACE) as Mappings and as engines.   |
+|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| [`base`](_autosummary/sqldol.base.html.md#module-sqldol.base)         | Base objects for sqldol                                                                       |
+| [`ops`](_autosummary/sqldol.ops.html.md#module-sqldol.ops)           | Leaf-level operations, as free functions over the caller's (possibly wrapped) store.          |
+| [`sql_base`](_autosummary/sqldol.sql_base.html.md#module-sqldol.sql_base) | Independent legacy DOLs sql with a simple (dict-like or list-like) interface                  |
+| [`stores`](_autosummary/sqldol.stores.html.md#module-sqldol.stores)     | Higher level stores for sql data                                                              |
+| [`util`](_autosummary/sqldol.util.html.md#module-sqldol.util)         | Utils for sqldol                                                                              |
 
 
 # _autosummary/sqldol.ops.html.md
@@ -738,7 +907,7 @@ Get or create a table in the database.
 If the table does not exist, it will be created with the specified columns.
 
 * **Parameters:**
-  * **engine** (`Union`[`Engine`, [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – The SQLAlchemy engine or a URI string
+  * **engine** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[`Engine`, [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – The SQLAlchemy engine or a URI string
   * **table_name** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – The name of the table
   * **columns** – An iterable of column names or Column objects, used if the table
     does not exist and needs to be created
@@ -750,7 +919,7 @@ If the table does not exist, it will be created with the specified columns.
 
 # About this build
 
-This documentation was built on **2026-10-13 23:13 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/cb5911144b2e7d6c8dfc956be54945f12f9bed93"><code>cb59111</code></a> on branch <code>master</code>, for **sqldol 0.1.11** (from <code>setup.cfg</code>).
+This documentation was built on **2026-10-18 03:58 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/c4e25633cbc7cc4a3643f9ea7fbb41669409add7"><code>c4e2563</code></a> on branch <code>master</code>, for **sqldol 0.1.12** (from <code>setup.cfg</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -759,9 +928,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/sqldol/commit/cb5911144b2e7d6c8dfc956be54945f12f9bed93"><code>cb5911144b2e7d6c8dfc956be54945f12f9bed93</code></a> |
+| Commit              | <a href="https://github.com/i2mint/sqldol/commit/c4e25633cbc7cc4a3643f9ea7fbb41669409add7"><code>c4e25633cbc7cc4a3643f9ea7fbb41669409add7</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.11</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.12</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/sqldol</code>                                                                                                        |
 
@@ -770,9 +939,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/sqldol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/38482687412">38482687412</a>        |
+| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/39095377073">39095377073</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>9ca4862aef5f603371c2a7a37a039dbb87fe82e7</code> (in the history of the built commit) |
+| Event commit | <code>2163059288525449c7d3b9f2b8d7cd82a00b5f69</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -797,13 +966,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/sqldol/0.1.11/">0.1.11</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/sqldol/0.1.12/">0.1.12</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/sqldol && cd sqldol
-git checkout cb5911144b2e7d6c8dfc956be54945f12f9bed93
+git checkout c4e25633cbc7cc4a3643f9ea7fbb41669409add7
 pip install "epythet==0.2.17"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

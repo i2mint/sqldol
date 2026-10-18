@@ -30,6 +30,7 @@
 <meta content="sqldol" name="twitter:title"/>
 <link href="_static/pygments.css?v=d75fae25" rel="stylesheet" type="text/css"/>
 <link href="_static/theme.css?v=d6d7c91b" rel="stylesheet" type="text/css"/>
+<link href="_static/sphinx_autodoc_typehints.css?v=057ac668" rel="stylesheet" type="text/css"/>
 <link href="_static/copybutton.css?v=76b2166b" rel="stylesheet" type="text/css"/>
 <link href="_static/epythet.css?v=c1c29737" rel="stylesheet" type="text/css"/>
 <link href="search.html" rel="search" title="Search"/>
@@ -82,6 +83,7 @@
 <ul>
 <li class="toctree-l1" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="api.html">API reference<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-cloak="" x-show="expanded">
 <li class="toctree-l2" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="_autosummary/sqldol.html">sqldol<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-cloak="" x-show="expanded">
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.access.html">sqldol.access</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.base.html">sqldol.base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.ops.html">sqldol.ops</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.sql_base.html">sqldol.sql_base</a></li>
@@ -316,6 +318,22 @@
 </span></code></pre></div>
 </div>
 </section>
+<section id="microsoft-access-files-mdb-accdb">
+<h3>Microsoft Access files (.mdb, .accdb)<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#microsoft-access-files-mdb-accdb" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#microsoft-access-files-mdb-accdb'">¶</a></h3>
+<p>Read an Access file (Jet3/Access 97, Jet4, ACE; any extension) as a Mapping of tables, or copy it into SQLite and use every sqldol store on it. A reading backend is needed, and none is a hard dependency: the mdbtools programs on your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> (<code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">mdbtools</span></code>, <code class="docutils literal notranslate"><span class="pre">apt</span> <span class="pre">install</span> <span class="pre">mdbtools</span></code>; the more complete reader), or <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">"sqldol[access]"</span></code> (pure-Python <code class="docutils literal notranslate"><span class="pre">access-parser</span></code>). With both, the first that opens the file is used. <code class="docutils literal notranslate"><span class="pre">sqldol.access.check_requirements()</span></code> says which you have.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccessReader</span><span class="p">,</span> <span class="n">AccessColumns</span><span class="p">,</span> <span class="n">access_engine</span><span class="p">,</span> <span class="n">SqlDictReader</span>
+</span><span id="line-2">
+</span><span id="line-3"><span class="n">db</span> <span class="o">=</span> <span class="n">AccessReader</span><span class="p">(</span><span class="s1">'inventory.mdb'</span><span class="p">)</span>      <span class="c1"># backend: first that opens it, or backend='mdbtools'</span>
+</span><span id="line-4"><span class="nb">list</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>                                <span class="c1"># ['Items', 'Categories']</span>
+</span><span id="line-5"><span class="n">AccessColumns</span><span class="p">(</span><span class="n">db</span><span class="p">)[</span><span class="s1">'Items'</span><span class="p">]</span>              <span class="c1"># ['ID', 'Title', 'Price']</span>
+</span><span id="line-6"><span class="n">db</span><span class="p">[</span><span class="s1">'Items'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>                          <span class="c1"># {'ID': 1, 'Title': 'alpha', 'Price': 1.5}</span>
+</span><span id="line-7">
+</span><span id="line-8"><span class="n">engine</span> <span class="o">=</span> <span class="n">access_engine</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>              <span class="c1"># in-memory SQLite copy (sqlite_path=... to keep it)</span>
+</span><span id="line-9"><span class="n">SqlDictReader</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s1">'Items'</span><span class="p">,</span> <span class="n">key_columns</span><span class="o">=</span><span class="s1">'ID'</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+</span></code></pre></div>
+</div>
+<p>Values come back the same from both backends: Currency/Numeric as <code class="docutils literal notranslate"><span class="pre">Decimal</span></code>, Yes/No as <code class="docutils literal notranslate"><span class="pre">bool</span></code>, GUIDs as <code class="docutils literal notranslate"><span class="pre">'{XXXXXXXX-...}'</span></code>, date/times as <code class="docutils literal notranslate"><span class="pre">'YYYY-MM-DD</span> <span class="pre">HH:MM:SS'</span></code>. The engine is a snapshot: writes go to the SQLite copy, never back to the Access file.</p>
+</section>
 </section>
 <section id="testing">
 <h2>Testing<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#testing" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#testing'">¶</a></h2>
@@ -357,7 +375,7 @@
 
 </section>
 </section>
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-10-13 23:13 UTC from <a href="https://github.com/i2mint/sqldol/commit/cb5911144b2e7d6c8dfc956be54945f12f9bed93">cb59111</a> (master) · sqldol 0.1.11 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-10-18 03:58 UTC from <a href="https://github.com/i2mint/sqldol/commit/c4e25633cbc7cc4a3643f9ea7fbb41669409add7">c4e2563</a> (master) · sqldol 0.1.12 · <a href="about-this-build.html">about this build</a></p>
 </div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
 <div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] h-full overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
 <ul>
@@ -385,6 +403,7 @@
 <li><a :data-current="activeSection === '#advanced-usage'" class="reference internal" href="#advanced-usage">Advanced Usage</a><ul>
 <li><a :data-current="activeSection === '#database-collections'" class="reference internal" href="#database-collections">Database Collections</a></li>
 <li><a :data-current="activeSection === '#custom-persisters'" class="reference internal" href="#custom-persisters">Custom Persisters</a></li>
+<li><a :data-current="activeSection === '#microsoft-access-files-mdb-accdb'" class="reference internal" href="#microsoft-access-files-mdb-accdb">Microsoft Access files (.mdb, .accdb)</a></li>
 </ul>
 </li>
 <li><a :data-current="activeSection === '#testing'" class="reference internal" href="#testing">Testing</a></li>
@@ -405,7 +424,7 @@
 </div>
 </footer>
 </div>
-<script src="_static/documentation_options.js?v=1e825a29"></script>
+<script src="_static/documentation_options.js?v=297ad043"></script>
 <script src="_static/doctools.js?v=fd6eb6e6"></script>
 <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
 <script src="_static/clipboard.min.js?v=a7894cd8"></script>

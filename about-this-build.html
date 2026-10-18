@@ -30,6 +30,7 @@
 <meta content="About this build | sqldol" name="twitter:title"/>
 <link href="_static/pygments.css?v=d75fae25" rel="stylesheet" type="text/css"/>
 <link href="_static/theme.css?v=d6d7c91b" rel="stylesheet" type="text/css"/>
+<link href="_static/sphinx_autodoc_typehints.css?v=057ac668" rel="stylesheet" type="text/css"/>
 <link href="_static/copybutton.css?v=76b2166b" rel="stylesheet" type="text/css"/>
 <link href="_static/epythet.css?v=c1c29737" rel="stylesheet" type="text/css"/>
 <link href="search.html" rel="search" title="Search"/>
@@ -81,6 +82,7 @@
 <ul>
 <li class="toctree-l1" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="api.html">API reference<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-cloak="" x-show="expanded">
 <li class="toctree-l2" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="_autosummary/sqldol.html">sqldol<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-cloak="" x-show="expanded">
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.access.html">sqldol.access</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.base.html">sqldol.base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.ops.html">sqldol.ops</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/sqldol.sql_base.html">sqldol.sql_base</a></li>
@@ -115,7 +117,7 @@
 
 <section id="about-this-build">
 <h1>About this build<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#about-this-build">¶</a></h1>
-<p>This documentation was built on <strong>2026-10-13 23:13 UTC</strong> from commit <a href="https://github.com/i2mint/sqldol/commit/cb5911144b2e7d6c8dfc956be54945f12f9bed93"><code>cb59111</code></a> on branch <code>master</code>, for <strong>sqldol 0.1.11</strong> (from <code>setup.cfg</code>).</p>
+<p>This documentation was built on <strong>2026-10-18 03:58 UTC</strong> from commit <a href="https://github.com/i2mint/sqldol/commit/c4e25633cbc7cc4a3643f9ea7fbb41669409add7"><code>c4e2563</code></a> on branch <code>master</code>, for <strong>sqldol 0.1.12</strong> (from <code>setup.cfg</code>).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.</p>
@@ -130,13 +132,13 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Commit</p></td>
-<td><p><a href="https://github.com/i2mint/sqldol/commit/cb5911144b2e7d6c8dfc956be54945f12f9bed93"><code>cb5911144b2e7d6c8dfc956be54945f12f9bed93</code></a></p></td>
+<td><p><a href="https://github.com/i2mint/sqldol/commit/c4e25633cbc7cc4a3643f9ea7fbb41669409add7"><code>c4e25633cbc7cc4a3643f9ea7fbb41669409add7</code></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>Branch</p></td>
 <td><p><code>master</code></p></td>
 </tr>
 <tr class="row-even"><td><p>Tags at this commit</p></td>
-<td><p><code>0.1.11</code></p></td>
+<td><p><code>0.1.12</code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Working tree</p></td>
 <td><p>clean</p></td>
@@ -160,13 +162,13 @@
 <td><p><code>i2mint/sqldol</code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Run</p></td>
-<td><p><a href="https://github.com/i2mint/sqldol/actions/runs/38482687412">38482687412</a></p></td>
+<td><p><a href="https://github.com/i2mint/sqldol/actions/runs/39095377073">39095377073</a></p></td>
 </tr>
 <tr class="row-even"><td><p>Ref</p></td>
 <td><p><code>refs/heads/master</code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Event commit</p></td>
-<td><p><code>9ca4862aef5f603371c2a7a37a039dbb87fe82e7</code> (in the history of the built commit)</p></td>
+<td><p><code>2163059288525449c7d3b9f2b8d7cd82a00b5f69</code> (in the history of the built commit)</p></td>
 </tr>
 </tbody>
 </table>
@@ -230,13 +232,13 @@
 </section>
 <section id="package-on-pypi">
 <h2>Package on PyPI<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#package-on-pypi" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#package-on-pypi'">¶</a></h2>
-<p>Latest release: <a href="https://pypi.org/project/sqldol/0.1.11/">0.1.11</a>, the same as the documented version.</p>
+<p>Latest release: <a href="https://pypi.org/project/sqldol/0.1.12/">0.1.12</a>, the same as the documented version.</p>
 </section>
-<section id="site"><h2>Site</h2><table class="docutils align-default"><tbody><tr><td><p>Modules documented</p></td><td><p>6</p></td></tr><tr><td><p>Objects documented</p></td><td><p>44</p></td></tr></tbody></table></section>
+<section id="site"><h2>Site</h2><table class="docutils align-default"><tbody><tr><td><p>Modules documented</p></td><td><p>7</p></td></tr><tr><td><p>Objects documented</p></td><td><p>51</p></td></tr></tbody></table></section>
 <section id="reproduce">
 <h2>Reproduce<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#reproduce" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#reproduce'">¶</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><code><span id="line-1">git<span class="w"> </span>clone<span class="w"> </span>https://github.com/i2mint/sqldol<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>sqldol
-</span><span id="line-2">git<span class="w"> </span>checkout<span class="w"> </span>cb5911144b2e7d6c8dfc956be54945f12f9bed93
+</span><span id="line-2">git<span class="w"> </span>checkout<span class="w"> </span>c4e25633cbc7cc4a3643f9ea7fbb41669409add7
 </span><span id="line-3">pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"epythet==0.2.17"</span>
 </span><span id="line-4">epythet<span class="w"> </span>quickstart<span class="w"> </span>.<span class="w"> </span>--ignore<span class="w"> </span>tests/<span class="w"> </span>scrap/<span class="w"> </span>examples/
 </span></code></pre></div>
@@ -266,7 +268,7 @@
 </div>
 </footer>
 </div>
-<script src="_static/documentation_options.js?v=1e825a29"></script>
+<script src="_static/documentation_options.js?v=297ad043"></script>
 <script src="_static/doctools.js?v=fd6eb6e6"></script>
 <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
 <script src="_static/clipboard.min.js?v=a7894cd8"></script>

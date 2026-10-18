@@ -1,0 +1,33 @@
+sqldol.access
+=============
+
+.. automodule:: sqldol.access
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      BACKENDS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      access_engine
+      check_requirements
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AccessReader
+      AccessColumns
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MissingAccessBackendError
+      AccessReadError
+   

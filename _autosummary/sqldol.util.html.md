@@ -22,7 +22,7 @@ Get or create a table in the database.
 If the table does not exist, it will be created with the specified columns.
 
 * **Parameters:**
-  * **engine** (`Union`[`Engine`, [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – The SQLAlchemy engine or a URI string
+  * **engine** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[`Engine`, [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – The SQLAlchemy engine or a URI string
   * **table_name** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – The name of the table
   * **columns** – An iterable of column names or Column objects, used if the table
     does not exist and needs to be created

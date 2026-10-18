@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-13T23:13:08Z",
+  "built_at": "2026-10-18T03:58:16Z",
   "package": {
     "name": "sqldol",
-    "version": "0.1.11",
+    "version": "0.1.12",
     "display_name": "sqldol",
     "source": "setup.cfg"
   },
   "git": {
     "available": true,
-    "commit": "cb5911144b2e7d6c8dfc956be54945f12f9bed93",
-    "short_commit": "cb59111",
+    "commit": "c4e25633cbc7cc4a3643f9ea7fbb41669409add7",
+    "short_commit": "c4e2563",
     "branch": "master",
     "tags": [
-      "0.1.11"
+      "0.1.12"
     ],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/sqldol",
-    "commit_url": "https://github.com/i2mint/sqldol/commit/cb5911144b2e7d6c8dfc956be54945f12f9bed93",
+    "commit_url": "https://github.com/i2mint/sqldol/commit/c4e25633cbc7cc4a3643f9ea7fbb41669409add7",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/sqldol",
-    "sha": "9ca4862aef5f603371c2a7a37a039dbb87fe82e7",
+    "sha": "2163059288525449c7d3b9f2b8d7cd82a00b5f69",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "38482687412",
-    "run_url": "https://github.com/i2mint/sqldol/actions/runs/38482687412",
+    "run_id": "39095377073",
+    "run_url": "https://github.com/i2mint/sqldol/actions/runs/39095377073",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -57,16 +57,16 @@
     "docs_dir": "docsrc"
   },
   "site": {
-    "modules_documented": 6,
-    "objects_documented": 44
+    "modules_documented": 7,
+    "objects_documented": 51
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.11",
+    "latest": "0.1.12",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout cb5911144b2e7d6c8dfc956be54945f12f9bed93\npip install \"epythet==0.2.17\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout c4e25633cbc7cc4a3643f9ea7fbb41669409add7\npip install \"epythet==0.2.17\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,
