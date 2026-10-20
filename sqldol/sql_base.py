@@ -482,7 +482,8 @@ class SQLAlchemyPersister(KvPersister):
         self.session = sessionmaker(bind=engine)()
 
     def table_columns(self):
-        return self.connection.execute(f"DESCRIBE {self.table}")
+        """The column names of the store's table (dialect-independent)."""
+        return [column.name for column in self.table.__table__.columns]
 
     def teardown(self):
         self.session.close()
