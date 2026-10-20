@@ -149,6 +149,10 @@ A whole-store rebind cannot be intercepted or vetoed by the `dol` wrappers above
 the persister, which delegate public attributes to it, so under a wrapper it
 silently repointed the store at another database and table (i2mint/sqldol#3).
 
+#### table_columns()
+
+The column names of the store’s table (dialect-independent).
+
 ### *class* sqldol.sql_base.SQLAlchemyStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
 
 Bases: `Store`

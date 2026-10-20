@@ -2,7 +2,7 @@
 
 # About this build
 
-This documentation was built on **2026-10-18 03:58 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/c4e25633cbc7cc4a3643f9ea7fbb41669409add7"><code>c4e2563</code></a> on branch <code>master</code>, for **sqldol 0.1.12** (from <code>setup.cfg</code>).
+This documentation was built on **2026-10-20 09:51 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/c0df4b035eb1011f1120f0c380c001db8b6e4212"><code>c0df4b0</code></a> on branch <code>master</code>, for **sqldol 0.1.13** (from <code>setup.cfg</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -11,9 +11,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/sqldol/commit/c4e25633cbc7cc4a3643f9ea7fbb41669409add7"><code>c4e25633cbc7cc4a3643f9ea7fbb41669409add7</code></a> |
+| Commit              | <a href="https://github.com/i2mint/sqldol/commit/c0df4b035eb1011f1120f0c380c001db8b6e4212"><code>c0df4b035eb1011f1120f0c380c001db8b6e4212</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.12</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.13</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/i2mint/sqldol</code>                                                                                                        |
 
@@ -22,16 +22,16 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/sqldol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/39095377073">39095377073</a>        |
+| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/39403504360">39403504360</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>2163059288525449c7d3b9f2b8d7cd82a00b5f69</code> (in the history of the built commit) |
+| Event commit | <code>9a316790679dd0214f0c132ee73cd22d09c8896e</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.17  |
-| Sphinx   | 9.1.0   |
+| epythet  | 0.2.18  |
+| Sphinx   | 9.1.1   |
 | docutils | 0.22.4  |
 | Python   | 3.12.15 |
 
@@ -49,14 +49,14 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/sqldol/0.1.12/">0.1.12</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/sqldol/0.1.13/">0.1.13</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/sqldol && cd sqldol
-git checkout c4e25633cbc7cc4a3643f9ea7fbb41669409add7
-pip install "epythet==0.2.17"
+git checkout c0df4b035eb1011f1120f0c380c001db8b6e4212
+pip install "epythet==0.2.18"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 
