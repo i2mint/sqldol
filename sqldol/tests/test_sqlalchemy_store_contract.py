@@ -167,7 +167,9 @@ def test_consumer_written_for_orm_rows_keeps_working():
     from dol import wrap_kvs
 
     raw = _mk(SQLAlchemyStore, "iter_row_attr")
-    store = wrap_kvs(raw, key_decoder=lambda row: row.id, key_encoder=lambda k: {"id": k})
+    store = wrap_kvs(
+        raw, key_decoder=lambda row: row.id, key_encoder=lambda k: {"id": k}
+    )
     store["a"] = {"doc": "x"}
     assert list(store) == ["a"]
 
