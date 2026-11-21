@@ -140,7 +140,7 @@ def test_consumer_key_of_id_written_for_dict_or_row_still_works():
         return row_or_key.id
 
     raw = _mk(SQLAlchemyStore, "iter_lacing")
-    store = wrap_kvs(raw, key_of_id=key_of_id, id_of_key=lambda k: {"id": k})
+    store = wrap_kvs(raw, key_decoder=key_of_id, key_encoder=lambda k: {"id": k})
     store["a"] = {"doc": "x"}
     assert list(store) == ["a"] and "a" in store
 
@@ -167,7 +167,7 @@ def test_consumer_written_for_orm_rows_keeps_working():
     from dol import wrap_kvs
 
     raw = _mk(SQLAlchemyStore, "iter_row_attr")
-    store = wrap_kvs(raw, key_of_id=lambda row: row.id, id_of_key=lambda k: {"id": k})
+    store = wrap_kvs(raw, key_decoder=lambda row: row.id, key_encoder=lambda k: {"id": k})
     store["a"] = {"doc": "x"}
     assert list(store) == ["a"]
 

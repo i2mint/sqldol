@@ -65,7 +65,7 @@ def test_filt_iter_scope_and_key_codec_still_apply():
     persister = _mk(SQLAlchemyPersister, "bulk_scope")
     view = Pipe(
         filt_iter(filt=lambda k: k["id"] < "k005"),
-        wrap_kvs(key_of_id=lambda k: k["id"], id_of_key=lambda k: {"id": k}),
+        wrap_kvs(key_decoder=lambda k: k["id"], key_encoder=lambda k: {"id": k}),
     )(persister)
     counter = Counter(persister)
     assert sorted(k for k, _ in view.items()) == [f"k00{i}" for i in range(5)]
