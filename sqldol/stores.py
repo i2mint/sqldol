@@ -6,7 +6,7 @@ from sqldol.base import SqlBaseKvReader, SqlBaseKvStore
 from dol import wrap_kvs
 
 # TODO: Extend value wrappers to contain data_of_obj to be able to wrap SqlBaseKvStore
-list_values = wrap_kvs(obj_of_data=list)
+list_values = wrap_kvs(value_decoder=list)
 
 
 def _first_value(iterable):
@@ -20,7 +20,7 @@ def _first_value(iterable):
     return next(iter(iterable))
 
 
-first_value = wrap_kvs(obj_of_data=_first_value)
+first_value = wrap_kvs(value_decoder=_first_value)
 
 there_are_no_more = object()
 
@@ -48,7 +48,7 @@ def _get_first_and_assert_there_are_no_more(
 
 
 get_first_and_assert_there_are_no_more = wrap_kvs(
-    obj_of_data=_get_first_and_assert_there_are_no_more
+    value_decoder=_get_first_and_assert_there_are_no_more
 )
 
 Row = list
@@ -84,8 +84,8 @@ def _dictionarize_first_row(self, rows: Iterable[Row]):
         return None
 
 
-dictionarize_rows = wrap_kvs(obj_of_data=_dictionarize_rows)
-dictionarize_first_row = wrap_kvs(obj_of_data=_dictionarize_first_row)
+dictionarize_rows = wrap_kvs(value_decoder=_dictionarize_rows)
+dictionarize_first_row = wrap_kvs(value_decoder=_dictionarize_first_row)
 
 
 @list_values
