@@ -29,7 +29,7 @@
   <meta property="og:title" content="sqldol.stores | sqldol" />
   <meta name="twitter:title" content="sqldol.stores | sqldol" />
   <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d75fae25" />
-  <link rel="stylesheet" type="text/css" href="../../_static/theme.css?v=d6d7c91b" />
+  <link rel="stylesheet" type="text/css" href="../../_static/theme.css?v=009055c6" />
   <link rel="stylesheet" type="text/css" href="../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
   <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
   <link rel="stylesheet" type="text/css" href="../../_static/epythet.css?v=c1c29737" />
@@ -174,7 +174,7 @@
 </span><span id="line-6"><span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">wrap_kvs</span>
 </span><span id="line-7">
 </span><span id="line-8"><span class="c1"># TODO: Extend value wrappers to contain data_of_obj to be able to wrap SqlBaseKvStore</span>
-</span><span id="line-9"><span class="n">list_values</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">obj_of_data</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span id="line-9"><span class="n">list_values</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">value_decoder</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
 </span><span id="line-10">
 </span><span id="line-11">
 </span><span id="line-12"><span class="k">def</span><span class="w"> </span><span class="nf">_first_value</span><span class="p">(</span><span class="n">iterable</span><span class="p">):</span>
@@ -188,7 +188,7 @@
 </span><span id="line-20">    <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">iterable</span><span class="p">))</span>
 </span><span id="line-21">
 </span><span id="line-22">
-</span><span id="line-23"><span class="n">first_value</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">obj_of_data</span><span class="o">=</span><span class="n">_first_value</span><span class="p">)</span>
+</span><span id="line-23"><span class="n">first_value</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">value_decoder</span><span class="o">=</span><span class="n">_first_value</span><span class="p">)</span>
 </span><span id="line-24">
 </span><span id="line-25"><span class="n">there_are_no_more</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
 </span><span id="line-26">
@@ -216,7 +216,7 @@
 </span><span id="line-48">
 </span><span id="line-49">
 </span><span id="line-50"><span class="n">get_first_and_assert_there_are_no_more</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span>
-</span><span id="line-51">    <span class="n">obj_of_data</span><span class="o">=</span><span class="n">_get_first_and_assert_there_are_no_more</span>
+</span><span id="line-51">    <span class="n">value_decoder</span><span class="o">=</span><span class="n">_get_first_and_assert_there_are_no_more</span>
 </span><span id="line-52"><span class="p">)</span>
 </span><span id="line-53">
 </span><span id="line-54"><span class="n">Row</span> <span class="o">=</span> <span class="nb">list</span>
@@ -252,8 +252,8 @@
 </span><span id="line-84">        <span class="k">return</span> <span class="kc">None</span>
 </span><span id="line-85">
 </span><span id="line-86">
-</span><span id="line-87"><span class="n">dictionarize_rows</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">obj_of_data</span><span class="o">=</span><span class="n">_dictionarize_rows</span><span class="p">)</span>
-</span><span id="line-88"><span class="n">dictionarize_first_row</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">obj_of_data</span><span class="o">=</span><span class="n">_dictionarize_first_row</span><span class="p">)</span>
+</span><span id="line-87"><span class="n">dictionarize_rows</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">value_decoder</span><span class="o">=</span><span class="n">_dictionarize_rows</span><span class="p">)</span>
+</span><span id="line-88"><span class="n">dictionarize_first_row</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span><span class="n">value_decoder</span><span class="o">=</span><span class="n">_dictionarize_first_row</span><span class="p">)</span>
 </span><span id="line-89">
 </span><span id="line-90">
 <div class="viewcode-block" id="SqlRowsReader">
@@ -307,12 +307,12 @@
 </footer>
     </div>
     
-    <script src="../../_static/documentation_options.js?v=8d02545a"></script>
+    <script src="../../_static/documentation_options.js?v=468bc497"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../_static/copybutton.js?v=fd10adb8"></script>
-    <script defer="defer" src="../../_static/theme.js?v=5db23cf8"></script>
+    <script defer="defer" src="../../_static/theme.js?v=49cc6205"></script>
     <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
 
 
