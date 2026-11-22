@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-21T18:35:41Z",
+  "built_at": "2026-11-22T20:28:04Z",
   "package": {
     "name": "sqldol",
-    "version": "0.1.14",
+    "version": "0.1.15",
     "display_name": "sqldol",
     "source": "setup.cfg"
   },
   "git": {
     "available": true,
-    "commit": "2adbf5c25f5c813fbd6460d8caf5c6369f01a7f1",
-    "short_commit": "2adbf5c",
+    "commit": "7117c380543870a5e3f894393137e9a2d9ccc43e",
+    "short_commit": "7117c38",
     "branch": "master",
     "tags": [
-      "0.1.14"
+      "0.1.15"
     ],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/sqldol",
-    "commit_url": "https://github.com/i2mint/sqldol/commit/2adbf5c25f5c813fbd6460d8caf5c6369f01a7f1",
+    "commit_url": "https://github.com/i2mint/sqldol/commit/7117c380543870a5e3f894393137e9a2d9ccc43e",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/sqldol",
-    "sha": "46d9db3eb7b3c5fb179bad437bef13d60013d589",
+    "sha": "4147a5b66bab14023723555b69167b374923cff9",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "44936242064",
-    "run_url": "https://github.com/i2mint/sqldol/actions/runs/44936242064",
+    "run_id": "45066435959",
+    "run_url": "https://github.com/i2mint/sqldol/actions/runs/45066435959",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -62,11 +62,11 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.14",
+    "latest": "0.1.15",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout 2adbf5c25f5c813fbd6460d8caf5c6369f01a7f1\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout 7117c380543870a5e3f894393137e9a2d9ccc43e\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

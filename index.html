@@ -134,25 +134,25 @@
 <h2>Quick Start<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#quick-start" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#quick-start'">¶</a></h2>
 <section id="basic-usage-with-sqlalchemystore">
 <h3>Basic Usage with SQLAlchemyStore<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#basic-usage-with-sqlalchemystore" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#basic-usage-with-sqlalchemystore'">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLAlchemyStore</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLAlchemyStore</span><span class="p">,</span> <span class="n">SQLAlchemyPersister</span>  <span class="c1"># the TYPE_* constants live on the persister</span>
 </span><span id="line-2">
 </span><span id="line-3"><span class="c1"># Connect to an in-memory SQLite database</span>
 </span><span id="line-4"><span class="n">store</span> <span class="o">=</span> <span class="n">SQLAlchemyStore</span><span class="p">(</span>
 </span><span id="line-5">    <span class="n">uri</span><span class="o">=</span><span class="s1">'sqlite:///:memory:'</span><span class="p">,</span>
 </span><span id="line-6">    <span class="n">collection_name</span><span class="o">=</span><span class="s1">'users'</span><span class="p">,</span>
-</span><span id="line-7">    <span class="n">key_fields</span><span class="o">=</span><span class="p">{</span><span class="s1">'user_id'</span><span class="p">:</span> <span class="n">SQLAlchemyStore</span><span class="o">.</span><span class="n">TYPE_INTEGER</span><span class="p">},</span>
-</span><span id="line-8">    <span class="n">data_fields</span><span class="o">=</span><span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="n">SQLAlchemyStore</span><span class="o">.</span><span class="n">TYPE_STRING</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">:</span> <span class="n">SQLAlchemyStore</span><span class="o">.</span><span class="n">TYPE_STRING</span><span class="p">}</span>
+</span><span id="line-7">    <span class="n">key_fields</span><span class="o">=</span><span class="p">{</span><span class="s1">'user_id'</span><span class="p">:</span> <span class="n">SQLAlchemyPersister</span><span class="o">.</span><span class="n">TYPE_INTEGER</span><span class="p">},</span>
+</span><span id="line-8">    <span class="n">data_fields</span><span class="o">=</span><span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="n">SQLAlchemyPersister</span><span class="o">.</span><span class="n">TYPE_STRING</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">:</span> <span class="n">SQLAlchemyPersister</span><span class="o">.</span><span class="n">TYPE_STRING</span><span class="p">}</span>
 </span><span id="line-9"><span class="p">)</span>
 </span><span id="line-10">
 </span><span id="line-11"><span class="c1"># Create</span>
-</span><span id="line-12"><span class="n">store</span><span class="p">[{</span><span class="s1">'user_id'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Alice'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">:</span> <span class="s1">'alice@example.com'</span><span class="p">}</span>
+</span><span id="line-12"><span class="n">store</span><span class="p">[{</span><span class="s1">'user_id'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Alice'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">:</span> <span class="s1">'alice@acme.dev'</span><span class="p">}</span>
 </span><span id="line-13">
 </span><span id="line-14"><span class="c1"># Read</span>
 </span><span id="line-15"><span class="n">user</span> <span class="o">=</span> <span class="n">store</span><span class="p">[{</span><span class="s1">'user_id'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}]</span>
 </span><span id="line-16"><span class="nb">print</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1"># Alice</span>
 </span><span id="line-17">
 </span><span id="line-18"><span class="c1"># Update</span>
-</span><span id="line-19"><span class="n">store</span><span class="p">[{</span><span class="s1">'user_id'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Alice Smith'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">:</span> <span class="s1">'alice.smith@example.com'</span><span class="p">}</span>
+</span><span id="line-19"><span class="n">store</span><span class="p">[{</span><span class="s1">'user_id'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Alice Smith'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">:</span> <span class="s1">'alice.smith@acme.dev'</span><span class="p">}</span>
 </span><span id="line-20">
 </span><span id="line-21"><span class="c1"># Delete</span>
 </span><span id="line-22"><span class="k">del</span> <span class="n">store</span><span class="p">[{</span><span class="s1">'user_id'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}]</span>
@@ -161,12 +161,25 @@
 </section>
 <section id="working-with-different-store-types">
 <h3>Working with Different Store Types<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#working-with-different-store-types" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#working-with-different-store-types'">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">Sql*Reader</span></code>/<code class="docutils literal notranslate"><span class="pre">SqlDictStore</span></code> examples below read a table through a SQLAlchemy engine. Here is a small SQLite table to try them on:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">import</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sa</span>
+</span><span id="line-2">
+</span><span id="line-3"><span class="n">engine</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">create_engine</span><span class="p">(</span><span class="s1">'sqlite:///:memory:'</span><span class="p">)</span>
+</span><span id="line-4"><span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+</span><span id="line-5">    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sa</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">"CREATE TABLE my_table (id TEXT, name TEXT, age INTEGER, category TEXT, price REAL)"</span><span class="p">))</span>
+</span><span id="line-6">    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sa</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">"""INSERT INTO my_table VALUES</span>
+</span><span id="line-7"><span class="s2">        ('user123', 'John', 30, 'people', NULL),</span>
+</span><span id="line-8"><span class="s2">        ('1', 'Phone', NULL, 'electronics', NULL),</span>
+</span><span id="line-9"><span class="s2">        ('2', 'Laptop', NULL, 'electronics', NULL),</span>
+</span><span id="line-10"><span class="s2">        ('123', 'Widget', NULL, 'tools', 19.99)"""</span><span class="p">))</span>
+</span></code></pre></div>
+</div>
 <section id="sqldictstore-dictionary-values">
 <h4>SqlDictStore - Dictionary Values<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqldictstore-dictionary-values">¶</a></h4>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">SqlDictStore</span>
 </span><span id="line-2">
 </span><span id="line-3"><span class="c1"># Returns single dictionaries as values</span>
-</span><span id="line-4"><span class="n">dict_store</span> <span class="o">=</span> <span class="n">SqlDictStore</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s1">'my_table'</span><span class="p">,</span> <span class="n">key_columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span> <span class="n">value_columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">'age'</span><span class="p">])</span>
+</span><span id="line-4"><span class="n">dict_store</span> <span class="o">=</span> <span class="n">SqlDictStore</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s1">'my_table'</span><span class="p">,</span> <span class="n">key_columns</span><span class="o">=</span><span class="s1">'id'</span><span class="p">,</span> <span class="n">value_columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">'age'</span><span class="p">])</span>
 </span><span id="line-5">
 </span><span id="line-6"><span class="c1"># Access returns a dictionary</span>
 </span><span id="line-7"><span class="n">user_data</span> <span class="o">=</span> <span class="n">dict_store</span><span class="p">[</span><span class="s1">'user123'</span><span class="p">]</span>  <span class="c1"># {'name': 'John', 'age': 30}</span>
@@ -177,11 +190,11 @@
 <h4>SqlRowsReader - List of Rows<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqlrowsreader-list-of-rows">¶</a></h4>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">SqlRowsReader</span>
 </span><span id="line-2">
-</span><span id="line-3"><span class="c1"># Returns lists of rows (tuples)</span>
-</span><span id="line-4"><span class="n">rows_reader</span> <span class="o">=</span> <span class="n">SqlRowsReader</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s1">'my_table'</span><span class="p">,</span> <span class="n">key_columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'category'</span><span class="p">],</span> <span class="n">value_columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'id'</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">])</span>
+</span><span id="line-3"><span class="c1"># Returns lists of rows (each row a list)</span>
+</span><span id="line-4"><span class="n">rows_reader</span> <span class="o">=</span> <span class="n">SqlRowsReader</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s1">'my_table'</span><span class="p">,</span> <span class="n">key_columns</span><span class="o">=</span><span class="s1">'category'</span><span class="p">,</span> <span class="n">value_columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'id'</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">])</span>
 </span><span id="line-5">
-</span><span id="line-6"><span class="c1"># Access returns a list of tuples</span>
-</span><span id="line-7"><span class="n">items</span> <span class="o">=</span> <span class="n">rows_reader</span><span class="p">[</span><span class="s1">'electronics'</span><span class="p">]</span>  <span class="c1"># [('1', 'Phone'), ('2', 'Laptop')]</span>
+</span><span id="line-6"><span class="c1"># Access returns a list of rows</span>
+</span><span id="line-7"><span class="n">items</span> <span class="o">=</span> <span class="n">rows_reader</span><span class="p">[</span><span class="s1">'electronics'</span><span class="p">]</span>  <span class="c1"># [['1', 'Phone'], ['2', 'Laptop']]</span>
 </span></code></pre></div>
 </div>
 </section>
@@ -189,11 +202,11 @@
 <h4>SqlRowReader - Single Row<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqlrowreader-single-row">¶</a></h4>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">SqlRowReader</span>
 </span><span id="line-2">
-</span><span id="line-3"><span class="c1"># Returns single row (tuple)</span>
-</span><span id="line-4"><span class="n">row_reader</span> <span class="o">=</span> <span class="n">SqlRowReader</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s1">'my_table'</span><span class="p">,</span> <span class="n">key_columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span> <span class="n">value_columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">'price'</span><span class="p">])</span>
+</span><span id="line-3"><span class="c1"># Returns a single row (a list)</span>
+</span><span id="line-4"><span class="n">row_reader</span> <span class="o">=</span> <span class="n">SqlRowReader</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s1">'my_table'</span><span class="p">,</span> <span class="n">key_columns</span><span class="o">=</span><span class="s1">'id'</span><span class="p">,</span> <span class="n">value_columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">'price'</span><span class="p">])</span>
 </span><span id="line-5">
-</span><span id="line-6"><span class="c1"># Access returns a tuple</span>
-</span><span id="line-7"><span class="n">item</span> <span class="o">=</span> <span class="n">row_reader</span><span class="p">[</span><span class="s1">'123'</span><span class="p">]</span>  <span class="c1"># ('Widget', 19.99)</span>
+</span><span id="line-6"><span class="c1"># Access returns a row</span>
+</span><span id="line-7"><span class="n">item</span> <span class="o">=</span> <span class="n">row_reader</span><span class="p">[</span><span class="s1">'123'</span><span class="p">]</span>  <span class="c1"># ['Widget', 19.99]</span>
 </span></code></pre></div>
 </div>
 </section>
@@ -202,16 +215,19 @@
 <h3>Database Connection Examples<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#database-connection-examples" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#database-connection-examples'">¶</a></h3>
 <section id="sqlite">
 <h4>SQLite<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#sqlite">¶</a></h4>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="c1"># File-based SQLite</span>
-</span><span id="line-2"><span class="n">store</span> <span class="o">=</span> <span class="n">SQLAlchemyStore</span><span class="p">(</span><span class="s1">'sqlite:///my_database.db'</span><span class="p">,</span> <span class="s1">'my_table'</span><span class="p">)</span>
-</span><span id="line-3">
-</span><span id="line-4"><span class="c1"># In-memory SQLite</span>
-</span><span id="line-5"><span class="n">store</span> <span class="o">=</span> <span class="n">SQLAlchemyStore</span><span class="p">(</span><span class="s1">'sqlite:///:memory:'</span><span class="p">,</span> <span class="s1">'my_table'</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLAlchemyStore</span>
+</span><span id="line-2">
+</span><span id="line-3"><span class="c1"># File-based SQLite</span>
+</span><span id="line-4"><span class="n">store</span> <span class="o">=</span> <span class="n">SQLAlchemyStore</span><span class="p">(</span><span class="s1">'sqlite:///my_database.db'</span><span class="p">,</span> <span class="s1">'my_table'</span><span class="p">)</span>
+</span><span id="line-5">
+</span><span id="line-6"><span class="c1"># In-memory SQLite</span>
+</span><span id="line-7"><span class="n">store</span> <span class="o">=</span> <span class="n">SQLAlchemyStore</span><span class="p">(</span><span class="s1">'sqlite:///:memory:'</span><span class="p">,</span> <span class="s1">'my_table'</span><span class="p">)</span>
 </span></code></pre></div>
 </div>
 </section>
 <section id="postgresql">
 <h4>PostgreSQL<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#postgresql">¶</a></h4>
+
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="n">store</span> <span class="o">=</span> <span class="n">SQLAlchemyStore</span><span class="p">(</span>
 </span><span id="line-2">    <span class="s1">'postgresql://user:password@localhost:5432/my_db'</span><span class="p">,</span>
 </span><span id="line-3">    <span class="s1">'my_table'</span>
@@ -221,6 +237,7 @@
 </section>
 <section id="mysql">
 <h4>MySQL<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#mysql">¶</a></h4>
+
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="n">store</span> <span class="o">=</span> <span class="n">SQLAlchemyStore</span><span class="p">(</span>
 </span><span id="line-2">    <span class="s1">'mysql://user:password@localhost/my_db'</span><span class="p">,</span>
 </span><span id="line-3">    <span class="s1">'my_table'</span>
@@ -231,16 +248,16 @@
 </section>
 <section id="working-with-complex-data-types">
 <h3>Working with Complex Data Types<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#working-with-complex-data-types" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#working-with-complex-data-types'">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLAlchemyStore</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLAlchemyStore</span><span class="p">,</span> <span class="n">SQLAlchemyPersister</span>
 </span><span id="line-2"><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">JSON</span>
 </span><span id="line-3">
 </span><span id="line-4"><span class="c1"># Store with JSON field</span>
 </span><span id="line-5"><span class="n">store</span> <span class="o">=</span> <span class="n">SQLAlchemyStore</span><span class="p">(</span>
 </span><span id="line-6">    <span class="n">uri</span><span class="o">=</span><span class="s1">'sqlite:///example.db'</span><span class="p">,</span>
 </span><span id="line-7">    <span class="n">collection_name</span><span class="o">=</span><span class="s1">'products'</span><span class="p">,</span>
-</span><span id="line-8">    <span class="n">key_fields</span><span class="o">=</span><span class="p">{</span><span class="s1">'product_id'</span><span class="p">:</span> <span class="n">SQLAlchemyStore</span><span class="o">.</span><span class="n">TYPE_STRING</span><span class="p">},</span>
+</span><span id="line-8">    <span class="n">key_fields</span><span class="o">=</span><span class="p">{</span><span class="s1">'product_id'</span><span class="p">:</span> <span class="n">SQLAlchemyPersister</span><span class="o">.</span><span class="n">TYPE_STRING</span><span class="p">},</span>
 </span><span id="line-9">    <span class="n">data_fields</span><span class="o">=</span><span class="p">{</span>
-</span><span id="line-10">        <span class="s1">'name'</span><span class="p">:</span> <span class="n">SQLAlchemyStore</span><span class="o">.</span><span class="n">TYPE_STRING</span><span class="p">,</span>
+</span><span id="line-10">        <span class="s1">'name'</span><span class="p">:</span> <span class="n">SQLAlchemyPersister</span><span class="o">.</span><span class="n">TYPE_STRING</span><span class="p">,</span>
 </span><span id="line-11">        <span class="s1">'metadata'</span><span class="p">:</span> <span class="n">JSON</span>  <span class="c1"># Store complex data as JSON</span>
 </span><span id="line-12">    <span class="p">}</span>
 </span><span id="line-13"><span class="p">)</span>
@@ -259,6 +276,7 @@
 </section>
 <section id="tuple-based-operations">
 <h3>Tuple-based Operations<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#tuple-based-operations" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#tuple-based-operations'">¶</a></h3>
+
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLAlchemyTupleStore</span>
 </span><span id="line-2">
 </span><span id="line-3"><span class="c1"># Work with tuples for both keys and values</span>
@@ -280,6 +298,7 @@
 <h2>Advanced Usage<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#advanced-usage" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#advanced-usage'">¶</a></h2>
 <section id="database-collections">
 <h3>Database Collections<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#database-collections" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#database-collections'">¶</a></h3>
+
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">SqlDbReader</span>
 </span><span id="line-2">
 </span><span id="line-3"><span class="c1"># Access multiple tables in a database</span>
@@ -321,6 +340,7 @@
 <section id="microsoft-access-files-mdb-accdb">
 <h3>Microsoft Access files (.mdb, .accdb)<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#microsoft-access-files-mdb-accdb" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#microsoft-access-files-mdb-accdb'">¶</a></h3>
 <p>Read an Access file (Jet3/Access 97, Jet4, ACE; any extension) as a Mapping of tables, or copy it into SQLite and use every sqldol store on it. A reading backend is needed, and none is a hard dependency: the mdbtools programs on your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> (<code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">mdbtools</span></code>, <code class="docutils literal notranslate"><span class="pre">apt</span> <span class="pre">install</span> <span class="pre">mdbtools</span></code>; the more complete reader), or <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">"sqldol[access]"</span></code> (pure-Python <code class="docutils literal notranslate"><span class="pre">access-parser</span></code>). With both, the first that opens the file is used. <code class="docutils literal notranslate"><span class="pre">sqldol.access.check_requirements()</span></code> says which you have.</p>
+
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span><span class="w"> </span><span class="nn">sqldol</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccessReader</span><span class="p">,</span> <span class="n">AccessColumns</span><span class="p">,</span> <span class="n">access_engine</span><span class="p">,</span> <span class="n">SqlDictReader</span>
 </span><span id="line-2">
 </span><span id="line-3"><span class="n">db</span> <span class="o">=</span> <span class="n">AccessReader</span><span class="p">(</span><span class="s1">'inventory.mdb'</span><span class="p">)</span>      <span class="c1"># backend: first that opens it, or backend='mdbtools'</span>
@@ -348,6 +368,7 @@
 </section>
 <section id="supported-data-types">
 <h2>Supported Data Types<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#supported-data-types" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#supported-data-types'">¶</a></h2>
+<p>The constants below are attributes of <code class="docutils literal notranslate"><span class="pre">SQLAlchemyPersister</span></code>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">TYPE_INTEGER</span></code>: Integer values</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">TYPE_STRING</span></code>: Variable-length strings</p></li>
@@ -375,7 +396,7 @@
 
 </section>
 </section>
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-21 18:35 UTC from <a href="https://github.com/i2mint/sqldol/commit/2adbf5c25f5c813fbd6460d8caf5c6369f01a7f1">2adbf5c</a> (master) · sqldol 0.1.14 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-22 20:28 UTC from <a href="https://github.com/i2mint/sqldol/commit/7117c380543870a5e3f894393137e9a2d9ccc43e">7117c38</a> (master) · sqldol 0.1.15 · <a href="about-this-build.html">about this build</a></p>
 </div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
 <div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] h-full overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
 <ul>
@@ -424,7 +445,7 @@
 </div>
 </footer>
 </div>
-<script src="_static/documentation_options.js?v=468bc497"></script>
+<script src="_static/documentation_options.js?v=e2f3408e"></script>
 <script src="_static/doctools.js?v=fd6eb6e6"></script>
 <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
 <script src="_static/clipboard.min.js?v=a7894cd8"></script>

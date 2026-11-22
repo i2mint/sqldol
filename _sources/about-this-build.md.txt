@@ -5,7 +5,7 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-11-21 18:35 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/2adbf5c25f5c813fbd6460d8caf5c6369f01a7f1"><code>2adbf5c</code></a> on branch <code>master</code>, for **sqldol 0.1.14** (from <code>setup.cfg</code>).
+This documentation was built on **2026-11-22 20:28 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/7117c380543870a5e3f894393137e9a2d9ccc43e"><code>7117c38</code></a> on branch <code>master</code>, for **sqldol 0.1.15** (from <code>setup.cfg</code>).
 
 :::{note}
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -15,9 +15,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/i2mint/sqldol/commit/2adbf5c25f5c813fbd6460d8caf5c6369f01a7f1"><code>2adbf5c25f5c813fbd6460d8caf5c6369f01a7f1</code></a> |
+| Commit | <a href="https://github.com/i2mint/sqldol/commit/7117c380543870a5e3f894393137e9a2d9ccc43e"><code>7117c380543870a5e3f894393137e9a2d9ccc43e</code></a> |
 | Branch | <code>master</code> |
-| Tags at this commit | <code>0.1.14</code> |
+| Tags at this commit | <code>0.1.15</code> |
 | Working tree | clean |
 | Remote | <code>https://github.com/i2mint/sqldol</code> |
 
@@ -26,9 +26,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 | | |
 |---|---|
 | Repository | <code>i2mint/sqldol</code> |
-| Run | <a href="https://github.com/i2mint/sqldol/actions/runs/44936242064">44936242064</a> |
+| Run | <a href="https://github.com/i2mint/sqldol/actions/runs/45066435959">45066435959</a> |
 | Ref | <code>refs/heads/master</code> |
-| Event commit | <code>46d9db3eb7b3c5fb179bad437bef13d60013d589</code> (in the history of the built commit) |
+| Event commit | <code>4147a5b66bab14023723555b69167b374923cff9</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -53,13 +53,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/sqldol/0.1.14/">0.1.14</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/sqldol/0.1.15/">0.1.15</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/sqldol && cd sqldol
-git checkout 2adbf5c25f5c813fbd6460d8caf5c6369f01a7f1
+git checkout 7117c380543870a5e3f894393137e9a2d9ccc43e
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
