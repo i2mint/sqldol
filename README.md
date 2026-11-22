@@ -166,17 +166,18 @@ store[{'product_id': 'PROD001'}] = {
 
 ### Tuple-based Operations
 
-<!-- wads-docs: skip - i2mint/sqldol#19: list-valued key_fields/data_fields fail -->
 ```python
+import sqlalchemy as sa
 from sqldol import SQLAlchemyTupleStore
 
 # Work with tuples for both keys and values
 tuple_store = SQLAlchemyTupleStore(
     uri='sqlite:///:memory:',
     collection_name='coordinates',
-    key_fields=['x', 'y'],
-    data_fields=['label', 'value']
+    key_fields={'x': sa.Integer, 'y': sa.Integer},
+    data_fields={'label': sa.String, 'value': sa.Float},
 )
+# (a plain list of names also works; every column then gets ``default_field_type``, a String)
 
 # Keys and values are tuples
 tuple_store[(10, 20)] = ('Point A', 42.0)
@@ -187,7 +188,7 @@ point_data = tuple_store[(10, 20)]  # ('Point A', 42.0)
 
 ### Database Collections
 
-<!-- wads-docs: skip - i2mint/sqldol#19: table listing uses MySQL-only 'show tables' -->
+<!-- wads-docs: skip - needs an existing my_app.db with users, products and orders tables -->
 ```python
 from sqldol import SqlDbReader
 

@@ -233,7 +233,7 @@ class SqlDbCollection(Collection):
         )
 
     def __iter__(self):
-        yield from (x[0] for x in self.connection.execute("show tables"))
+        yield from sqlalchemy.inspect(self.connection).get_table_names()
 
 
 class SqlDbReader(SqlDbCollection, KvReader):
@@ -376,6 +376,13 @@ class _PrefetchingValuesView(_PrefetchingViewMixin, ValuesView):
             yield value
 
 
+def _as_typed_fields(fields, default_type):
+    """``{name: type}`` from a mapping, or from a list of names (all of ``default_type``)."""
+    if isinstance(fields, Mapping):
+        return fields
+    return {name: default_type for name in fields}
+
+
 class SQLAlchemyPersister(KvPersister):
     ItemsView = _PrefetchingItemsView
     ValuesView = _PrefetchingValuesView
@@ -409,6 +416,7 @@ class SQLAlchemyPersister(KvPersister):
         key_fields={"_id": TYPE_INTEGER},
         data_fields={"data": TYPE_STRING},
         autocommit=True,
+        default_field_type=TYPE_STRING,
         **db_kwargs,
     ):
         """
@@ -432,15 +440,17 @@ class SQLAlchemyPersister(KvPersister):
 
         :param collection_name: name of the table to use, i.e. "my_table".
             If not given, it will be assumed that it's in the uri (i.e. the last part of the uri).
-        :param key_fields: indexed keys columns names.
-        :param data_fields: non-indexed data columns names.
+        :param key_fields: indexed keys columns: a ``{name: sqlalchemy type}`` dict, or a
+            list of names (each then gets ``default_field_type``).
+        :param data_fields: non-indexed data columns, same two forms.
+        :param default_field_type: the column type given to a field named in a list.
         :param autocommit: whether each data change should be instantly commited, or not.
             It's off for context manager usecase (tbd).
 
         :param kwargs: any extra kwargs for SQLAlchemy engine to setup.
         """
-        self._key_fields = key_fields
-        self._data_fields = data_fields
+        self._key_fields = _as_typed_fields(key_fields, default_field_type)
+        self._data_fields = _as_typed_fields(data_fields, default_field_type)
         self.autocommit = autocommit
 
         self.connection = None
