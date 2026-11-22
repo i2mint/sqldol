@@ -104,9 +104,9 @@ from sqlalchemy import create_engine, Table, Column, Integer, MetaData, exc, Str
 
 
 def _prepare_columns(columns):
-    assert isinstance(
-        columns, Iterable
-    ), "Columns must be an iterable of strings or Column objects"
+    assert isinstance(columns, Iterable), (
+        "Columns must be an iterable of strings or Column objects"
+    )
     # Process columns input to handle both string names and Column objects
     for col in columns:
         if isinstance(col, str):

@@ -65,9 +65,9 @@ class TableColumnsDol(Mapping):
 
 def ensure_table_and_engine(table, engine) -> Table:
     if engine is None:
-        assert isinstance(
-            table, Table
-        ), "If engine is not provided, table must be a Table object"
+        assert isinstance(table, Table), (
+            "If engine is not provided, table must be a Table object"
+        )
         engine = table.bind
     else:
         engine = ensure_engine(engine)
