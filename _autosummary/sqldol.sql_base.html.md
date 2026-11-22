@@ -82,7 +82,7 @@ If E is present and has a .keys() method, then does:  for k in E.keys(): D[k] = 
 If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
 In either case, this is followed by: for k in F:  D[k] = F[k]
 
-### *class* sqldol.sql_base.SQLAlchemyPersister(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
+### *class* sqldol.sql_base.SQLAlchemyPersister(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, default_field_type=<class 'sqlalchemy.sql.sqltypes.String'>, \*\*db_kwargs)
 
 Bases: `KvPersister`
 
@@ -153,11 +153,11 @@ silently repointed the store at another database and table (i2mint/sqldol#3).
 
 The column names of the store’s table (dialect-independent).
 
-### *class* sqldol.sql_base.SQLAlchemyStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
+### *class* sqldol.sql_base.SQLAlchemyStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, default_field_type=<class 'sqlalchemy.sql.sqltypes.String'>, \*\*db_kwargs)
 
 Bases: `Store`
 
-### *class* sqldol.sql_base.SQLAlchemyTupleStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
+### *class* sqldol.sql_base.SQLAlchemyTupleStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, default_field_type=<class 'sqlalchemy.sql.sqltypes.String'>, \*\*db_kwargs)
 
 Bases: [`SQLAlchemyStore`](#sqldol.sql_base.SQLAlchemyStore)
 

@@ -1,4 +1,4 @@
-> built 2026-11-22 21:54 UTC from 8b3bda8 (master) · sqldol 0.1.15. Details: build_info.json
+> built 2026-11-22 22:52 UTC from 7186454 (master) · sqldol 0.1.15. Details: build_info.json
 
 # index.html.md
 
@@ -172,17 +172,18 @@ store[{'product_id': 'PROD001'}] = {
 
 ### Tuple-based Operations
 
-<!-- wads-docs: skip - i2mint/sqldol#19: list-valued key_fields/data_fields fail -->
 ```python
+import sqlalchemy as sa
 from sqldol import SQLAlchemyTupleStore
 
 # Work with tuples for both keys and values
 tuple_store = SQLAlchemyTupleStore(
     uri='sqlite:///:memory:',
     collection_name='coordinates',
-    key_fields=['x', 'y'],
-    data_fields=['label', 'value']
+    key_fields={'x': sa.Integer, 'y': sa.Integer},
+    data_fields={'label': sa.String, 'value': sa.Float},
 )
+# (a plain list of names also works; every column then gets ``default_field_type``, a String)
 
 # Keys and values are tuples
 tuple_store[(10, 20)] = ('Point A', 42.0)
@@ -193,7 +194,7 @@ point_data = tuple_store[(10, 20)]  # ('Point A', 42.0)
 
 ### Database Collections
 
-<!-- wads-docs: skip - i2mint/sqldol#19: table listing uses MySQL-only 'show tables' -->
+<!-- wads-docs: skip - needs an existing my_app.db with users, products and orders tables -->
 ```python
 from sqldol import SqlDbReader
 
@@ -687,7 +688,7 @@ If E is present and has a .keys() method, then does:  for k in E.keys(): D[k] = 
 If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
 In either case, this is followed by: for k in F:  D[k] = F[k]
 
-### *class* sqldol.sql_base.SQLAlchemyPersister(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
+### *class* sqldol.sql_base.SQLAlchemyPersister(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, default_field_type=<class 'sqlalchemy.sql.sqltypes.String'>, \*\*db_kwargs)
 
 Bases: `KvPersister`
 
@@ -758,11 +759,11 @@ silently repointed the store at another database and table (i2mint/sqldol#3).
 
 The column names of the store’s table (dialect-independent).
 
-### *class* sqldol.sql_base.SQLAlchemyStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
+### *class* sqldol.sql_base.SQLAlchemyStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, default_field_type=<class 'sqlalchemy.sql.sqltypes.String'>, \*\*db_kwargs)
 
 Bases: `Store`
 
-### *class* sqldol.sql_base.SQLAlchemyTupleStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, \*\*db_kwargs)
+### *class* sqldol.sql_base.SQLAlchemyTupleStore(uri='sqlite:///my_sqlite.db', collection_name='dol_default_table', \*, key_fields={'_id': <class 'sqlalchemy.sql.sqltypes.INTEGER'>}, data_fields={'data': <class 'sqlalchemy.sql.sqltypes.String'>}, autocommit=True, default_field_type=<class 'sqlalchemy.sql.sqltypes.String'>, \*\*db_kwargs)
 
 Bases: [`SQLAlchemyStore`](_autosummary/sqldol.sql_base.html.md#sqldol.sql_base.SQLAlchemyStore)
 
@@ -947,7 +948,7 @@ If the table does not exist, it will be created with the specified columns.
 
 # About this build
 
-This documentation was built on **2026-11-22 21:54 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc"><code>8b3bda8</code></a> on branch <code>master</code>, for **sqldol 0.1.15** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-22 22:52 UTC** from commit <a href="https://github.com/i2mint/sqldol/commit/7186454fc38721ca6f0b6f058900aaaf2de1e7ca"><code>7186454</code></a> on branch <code>master</code>, for **sqldol 0.1.15** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -956,7 +957,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/sqldol/commit/8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc"><code>8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc</code></a> |
+| Commit              | <a href="https://github.com/i2mint/sqldol/commit/7186454fc38721ca6f0b6f058900aaaf2de1e7ca"><code>7186454fc38721ca6f0b6f058900aaaf2de1e7ca</code></a> |
 | Branch              | <code>master</code>                                                                                                                                  |
 | Tags at this commit | none                                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
@@ -967,9 +968,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/sqldol</code>                                                                 |
-| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/45074558660">45074558660</a>        |
+| Run          | <a href="https://github.com/i2mint/sqldol/actions/runs/45080040730">45080040730</a>        |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc</code> (in the history of the built commit) |
+| Event commit | <code>7186454fc38721ca6f0b6f058900aaaf2de1e7ca</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -1000,7 +1001,7 @@ Latest release: <a href="https://pypi.org/project/sqldol/0.1.15/">0.1.15</a>, th
 
 ```bash
 git clone https://github.com/i2mint/sqldol && cd sqldol
-git checkout 8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc
+git checkout 7186454fc38721ca6f0b6f058900aaaf2de1e7ca
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

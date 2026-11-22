@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-22T21:54:23Z",
+  "built_at": "2026-11-22T22:52:59Z",
   "package": {
     "name": "sqldol",
     "version": "0.1.15",
@@ -9,24 +9,24 @@
   },
   "git": {
     "available": true,
-    "commit": "8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc",
-    "short_commit": "8b3bda8",
+    "commit": "7186454fc38721ca6f0b6f058900aaaf2de1e7ca",
+    "short_commit": "7186454",
     "branch": "master",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/sqldol",
-    "commit_url": "https://github.com/i2mint/sqldol/commit/8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc",
+    "commit_url": "https://github.com/i2mint/sqldol/commit/7186454fc38721ca6f0b6f058900aaaf2de1e7ca",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/sqldol",
-    "sha": "8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc",
+    "sha": "7186454fc38721ca6f0b6f058900aaaf2de1e7ca",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "45074558660",
-    "run_url": "https://github.com/i2mint/sqldol/actions/runs/45074558660",
+    "run_id": "45080040730",
+    "run_url": "https://github.com/i2mint/sqldol/actions/runs/45080040730",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -64,7 +64,7 @@
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout 8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout 7186454fc38721ca6f0b6f058900aaaf2de1e7ca\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,
