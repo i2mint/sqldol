@@ -1,34 +1,32 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-22T20:28:04Z",
+  "built_at": "2026-11-22T21:54:23Z",
   "package": {
     "name": "sqldol",
     "version": "0.1.15",
     "display_name": "sqldol",
-    "source": "setup.cfg"
+    "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "7117c380543870a5e3f894393137e9a2d9ccc43e",
-    "short_commit": "7117c38",
+    "commit": "8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc",
+    "short_commit": "8b3bda8",
     "branch": "master",
-    "tags": [
-      "0.1.15"
-    ],
+    "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/sqldol",
-    "commit_url": "https://github.com/i2mint/sqldol/commit/7117c380543870a5e3f894393137e9a2d9ccc43e",
+    "commit_url": "https://github.com/i2mint/sqldol/commit/8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/sqldol",
-    "sha": "4147a5b66bab14023723555b69167b374923cff9",
+    "sha": "8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "45066435959",
-    "run_url": "https://github.com/i2mint/sqldol/actions/runs/45066435959",
+    "run_id": "45074558660",
+    "run_url": "https://github.com/i2mint/sqldol/actions/runs/45074558660",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -66,7 +64,7 @@
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout 7117c380543870a5e3f894393137e9a2d9ccc43e\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout 8b3bda8f1aa80bb593dc5ec7c33a64ffb2d6a1bc\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,
