@@ -25,25 +25,25 @@ pip install sqldol
 ### Basic Usage with SQLAlchemyStore
 
 ```python
-from sqldol import SQLAlchemyStore
+from sqldol import SQLAlchemyStore, SQLAlchemyPersister  # the TYPE_* constants live on the persister
 
 # Connect to an in-memory SQLite database
 store = SQLAlchemyStore(
     uri='sqlite:///:memory:',
     collection_name='users',
-    key_fields={'user_id': SQLAlchemyStore.TYPE_INTEGER},
-    data_fields={'name': SQLAlchemyStore.TYPE_STRING, 'email': SQLAlchemyStore.TYPE_STRING}
+    key_fields={'user_id': SQLAlchemyPersister.TYPE_INTEGER},
+    data_fields={'name': SQLAlchemyPersister.TYPE_STRING, 'email': SQLAlchemyPersister.TYPE_STRING}
 )
 
 # Create
-store[{'user_id': 1}] = {'name': 'Alice', 'email': 'alice@example.com'}
+store[{'user_id': 1}] = {'name': 'Alice', 'email': 'alice@acme.dev'}
 
 # Read
 user = store[{'user_id': 1}]
 print(user.name)  # Alice
 
 # Update
-store[{'user_id': 1}] = {'name': 'Alice Smith', 'email': 'alice.smith@example.com'}
+store[{'user_id': 1}] = {'name': 'Alice Smith', 'email': 'alice.smith@acme.dev'}
 
 # Delete
 del store[{'user_id': 1}]
@@ -51,13 +51,28 @@ del store[{'user_id': 1}]
 
 ### Working with Different Store Types
 
+The `Sql*Reader`/`SqlDictStore` examples below read a table through a SQLAlchemy engine. Here is a small SQLite table to try them on:
+
+```python
+import sqlalchemy as sa
+
+engine = sa.create_engine('sqlite:///:memory:')
+with engine.begin() as conn:
+    conn.execute(sa.text("CREATE TABLE my_table (id TEXT, name TEXT, age INTEGER, category TEXT, price REAL)"))
+    conn.execute(sa.text("""INSERT INTO my_table VALUES
+        ('user123', 'John', 30, 'people', NULL),
+        ('1', 'Phone', NULL, 'electronics', NULL),
+        ('2', 'Laptop', NULL, 'electronics', NULL),
+        ('123', 'Widget', NULL, 'tools', 19.99)"""))
+```
+
 #### SqlDictStore - Dictionary Values
 
 ```python
 from sqldol import SqlDictStore
 
 # Returns single dictionaries as values
-dict_store = SqlDictStore(engine, 'my_table', key_columns=['id'], value_columns=['name', 'age'])
+dict_store = SqlDictStore(engine, 'my_table', key_columns='id', value_columns=['name', 'age'])
 
 # Access returns a dictionary
 user_data = dict_store['user123']  # {'name': 'John', 'age': 30}
@@ -68,11 +83,11 @@ user_data = dict_store['user123']  # {'name': 'John', 'age': 30}
 ```python
 from sqldol import SqlRowsReader
 
-# Returns lists of rows (tuples)
-rows_reader = SqlRowsReader(engine, 'my_table', key_columns=['category'], value_columns=['id', 'name'])
+# Returns lists of rows (each row a list)
+rows_reader = SqlRowsReader(engine, 'my_table', key_columns='category', value_columns=['id', 'name'])
 
-# Access returns a list of tuples
-items = rows_reader['electronics']  # [('1', 'Phone'), ('2', 'Laptop')]
+# Access returns a list of rows
+items = rows_reader['electronics']  # [['1', 'Phone'], ['2', 'Laptop']]
 ```
 
 #### SqlRowReader - Single Row
@@ -80,11 +95,11 @@ items = rows_reader['electronics']  # [('1', 'Phone'), ('2', 'Laptop')]
 ```python
 from sqldol import SqlRowReader
 
-# Returns single row (tuple)
-row_reader = SqlRowReader(engine, 'my_table', key_columns=['id'], value_columns=['name', 'price'])
+# Returns a single row (a list)
+row_reader = SqlRowReader(engine, 'my_table', key_columns='id', value_columns=['name', 'price'])
 
-# Access returns a tuple
-item = row_reader['123']  # ('Widget', 19.99)
+# Access returns a row
+item = row_reader['123']  # ['Widget', 19.99]
 ```
 
 ### Database Connection Examples
@@ -92,6 +107,8 @@ item = row_reader['123']  # ('Widget', 19.99)
 #### SQLite
 
 ```python
+from sqldol import SQLAlchemyStore
+
 # File-based SQLite
 store = SQLAlchemyStore('sqlite:///my_database.db', 'my_table')
 
@@ -101,6 +118,7 @@ store = SQLAlchemyStore('sqlite:///:memory:', 'my_table')
 
 #### PostgreSQL
 
+<!-- wads-docs: skip - needs a running PostgreSQL server -->
 ```python
 store = SQLAlchemyStore(
     'postgresql://user:password@localhost:5432/my_db',
@@ -110,6 +128,7 @@ store = SQLAlchemyStore(
 
 #### MySQL
 
+<!-- wads-docs: skip - needs a running MySQL server -->
 ```python
 store = SQLAlchemyStore(
     'mysql://user:password@localhost/my_db',
@@ -120,16 +139,16 @@ store = SQLAlchemyStore(
 ### Working with Complex Data Types
 
 ```python
-from sqldol import SQLAlchemyStore
+from sqldol import SQLAlchemyStore, SQLAlchemyPersister
 from sqlalchemy import JSON
 
 # Store with JSON field
 store = SQLAlchemyStore(
     uri='sqlite:///example.db',
     collection_name='products',
-    key_fields={'product_id': SQLAlchemyStore.TYPE_STRING},
+    key_fields={'product_id': SQLAlchemyPersister.TYPE_STRING},
     data_fields={
-        'name': SQLAlchemyStore.TYPE_STRING,
+        'name': SQLAlchemyPersister.TYPE_STRING,
         'metadata': JSON  # Store complex data as JSON
     }
 )
@@ -147,6 +166,7 @@ store[{'product_id': 'PROD001'}] = {
 
 ### Tuple-based Operations
 
+<!-- wads-docs: skip - i2mint/sqldol#19: list-valued key_fields/data_fields fail -->
 ```python
 from sqldol import SQLAlchemyTupleStore
 
@@ -167,6 +187,7 @@ point_data = tuple_store[(10, 20)]  # ('Point A', 42.0)
 
 ### Database Collections
 
+<!-- wads-docs: skip - i2mint/sqldol#19: table listing uses MySQL-only 'show tables' -->
 ```python
 from sqldol import SqlDbReader
 
@@ -209,6 +230,7 @@ query_result = ops.query(persister).filter_by(event_id='EVT001').first()
 
 Read an Access file (Jet3/Access 97, Jet4, ACE; any extension) as a Mapping of tables, or copy it into SQLite and use every sqldol store on it. A reading backend is needed, and none is a hard dependency: the mdbtools programs on your `PATH` (`brew install mdbtools`, `apt install mdbtools`; the more complete reader), or `pip install "sqldol[access]"` (pure-Python `access-parser`). With both, the first that opens the file is used. `sqldol.access.check_requirements()` says which you have.
 
+<!-- wads-docs: skip - needs the reader's own inventory.mdb -->
 ```python
 from sqldol import AccessReader, AccessColumns, access_engine, SqlDictReader
 
@@ -236,6 +258,8 @@ pytest sqldol/tests/
 ```
 
 ## Supported Data Types
+
+The constants below are attributes of `SQLAlchemyPersister`:
 
 - `TYPE_INTEGER`: Integer values
 - `TYPE_STRING`: Variable-length strings
