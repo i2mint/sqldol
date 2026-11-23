@@ -5,6 +5,7 @@ run against synthetic fixtures (``test_data/tiny_jet4.mdb.gz``, ``tiny_ace.accdb
 by ``test_data/MkFixture.java``) and are skipped when the backend is not installed.
 """
 
+import os
 import datetime
 import gzip
 import shutil
@@ -74,7 +75,8 @@ def test_engine_copies_tables_and_sqldol_stores_work_on_it():
 
 
 def test_engine_to_a_file_replaces_same_named_tables(tmp_path):
-    db = tmp_path / "copy?.sqlite"  # a '?' must not be read as a URL query
+    # a '?' must not be read as a URL query (but Windows forbids '?' in a file name)
+    db = tmp_path / ("copy.sqlite" if os.name == "nt" else "copy?.sqlite")
     access_engine("x.mdb", backend=_fake(), sqlite_path=db, tables=["Items", "Items"])
     engine = access_engine("x.mdb", backend=_fake(), sqlite_path=db, tables=["Items"])
     assert db.exists()
