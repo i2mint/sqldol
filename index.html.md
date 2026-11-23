@@ -10,18 +10,6 @@ SQL (through SQLAlchemy) with a simple (dict-like or list-like) interface
 pip install sqldol
 ```
 
-## Overview
-
-`sqldol` provides a pythonic, dict-like interface to SQL databases using SQLAlchemy under the hood. It allows you to interact with SQL tables as if they were Python dictionaries or lists, making database operations more intuitive and less verbose.
-
-## Key Features
-
-- **Dict-like interface**: Access SQL tables like Python dictionaries
-- **Multiple store types**: Choose from various store implementations based on your needs
-- **SQLAlchemy integration**: Built on top of SQLAlchemy for robust database support
-- **Flexible data formats**: Work with rows as tuples, dictionaries, or raw data
-- **Simple CRUD operations**: Create, read, update, and delete with familiar Python syntax
-
 ## Quick Start
 
 ### Basic Usage with SQLAlchemyStore
@@ -185,6 +173,18 @@ tuple_store = SQLAlchemyTupleStore(
 tuple_store[(10, 20)] = ('Point A', 42.0)
 point_data = tuple_store[(10, 20)]  # ('Point A', 42.0)
 ```
+
+## Overview
+
+`sqldol` provides a pythonic, dict-like interface to SQL databases using SQLAlchemy under the hood. It allows you to interact with SQL tables as if they were Python dictionaries or lists, making database operations more intuitive and less verbose.
+
+## Key Features
+
+- **Dict-like interface**: Access SQL tables like Python dictionaries
+- **Multiple store types**: Choose from various store implementations based on your needs
+- **SQLAlchemy integration**: Built on top of SQLAlchemy for robust database support
+- **Flexible data formats**: Work with rows as tuples, dictionaries, or raw data
+- **Simple CRUD operations**: Create, read, update, and delete with familiar Python syntax
 
 ## Advanced Usage
 

@@ -272,9 +272,9 @@
 </span><span id="line-104">
 </span><span id="line-105">
 </span><span id="line-106"><span class="k">def</span><span class="w"> </span><span class="nf">_prepare_columns</span><span class="p">(</span><span class="n">columns</span><span class="p">):</span>
-</span><span id="line-107">    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
-</span><span id="line-108">        <span class="n">columns</span><span class="p">,</span> <span class="n">Iterable</span>
-</span><span id="line-109">    <span class="p">),</span> <span class="s2">"Columns must be an iterable of strings or Column objects"</span>
+</span><span id="line-107">    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">),</span> <span class="p">(</span>
+</span><span id="line-108">        <span class="s2">"Columns must be an iterable of strings or Column objects"</span>
+</span><span id="line-109">    <span class="p">)</span>
 </span><span id="line-110">    <span class="c1"># Process columns input to handle both string names and Column objects</span>
 </span><span id="line-111">    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
 </span><span id="line-112">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -392,7 +392,7 @@
 </footer>
     </div>
     
-    <script src="../../_static/documentation_options.js?v=e2f3408e"></script>
+    <script src="../../_static/documentation_options.js?v=d50bcae4"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

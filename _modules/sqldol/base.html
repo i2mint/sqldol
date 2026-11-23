@@ -239,9 +239,9 @@
 </span><span id="line-65">
 </span><span id="line-66"><span class="k">def</span><span class="w"> </span><span class="nf">ensure_table_and_engine</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">engine</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Table</span><span class="p">:</span>
 </span><span id="line-67">    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="line-68">        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
-</span><span id="line-69">            <span class="n">table</span><span class="p">,</span> <span class="n">Table</span>
-</span><span id="line-70">        <span class="p">),</span> <span class="s2">"If engine is not provided, table must be a Table object"</span>
+</span><span id="line-68">        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">Table</span><span class="p">),</span> <span class="p">(</span>
+</span><span id="line-69">            <span class="s2">"If engine is not provided, table must be a Table object"</span>
+</span><span id="line-70">        <span class="p">)</span>
 </span><span id="line-71">        <span class="n">engine</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">bind</span>
 </span><span id="line-72">    <span class="k">else</span><span class="p">:</span>
 </span><span id="line-73">        <span class="n">engine</span> <span class="o">=</span> <span class="n">ensure_engine</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
@@ -573,7 +573,7 @@
 </footer>
     </div>
     
-    <script src="../../_static/documentation_options.js?v=e2f3408e"></script>
+    <script src="../../_static/documentation_options.js?v=d50bcae4"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

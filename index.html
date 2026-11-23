@@ -116,20 +116,6 @@
 </span></code></pre></div>
 </div>
 </section>
-<section id="overview">
-<h2>Overview<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#overview" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#overview'">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">sqldol</span></code> provides a pythonic, dict-like interface to SQL databases using SQLAlchemy under the hood. It allows you to interact with SQL tables as if they were Python dictionaries or lists, making database operations more intuitive and less verbose.</p>
-</section>
-<section id="key-features">
-<h2>Key Features<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#key-features" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#key-features'">¶</a></h2>
-<ul class="simple">
-<li><p><strong>Dict-like interface</strong>: Access SQL tables like Python dictionaries</p></li>
-<li><p><strong>Multiple store types</strong>: Choose from various store implementations based on your needs</p></li>
-<li><p><strong>SQLAlchemy integration</strong>: Built on top of SQLAlchemy for robust database support</p></li>
-<li><p><strong>Flexible data formats</strong>: Work with rows as tuples, dictionaries, or raw data</p></li>
-<li><p><strong>Simple CRUD operations</strong>: Create, read, update, and delete with familiar Python syntax</p></li>
-</ul>
-</section>
 <section id="quick-start">
 <h2>Quick Start<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#quick-start" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#quick-start'">¶</a></h2>
 <section id="basic-usage-with-sqlalchemystore">
@@ -295,6 +281,20 @@
 </div>
 </section>
 </section>
+<section id="overview">
+<h2>Overview<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#overview" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#overview'">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">sqldol</span></code> provides a pythonic, dict-like interface to SQL databases using SQLAlchemy under the hood. It allows you to interact with SQL tables as if they were Python dictionaries or lists, making database operations more intuitive and less verbose.</p>
+</section>
+<section id="key-features">
+<h2>Key Features<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#key-features" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#key-features'">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Dict-like interface</strong>: Access SQL tables like Python dictionaries</p></li>
+<li><p><strong>Multiple store types</strong>: Choose from various store implementations based on your needs</p></li>
+<li><p><strong>SQLAlchemy integration</strong>: Built on top of SQLAlchemy for robust database support</p></li>
+<li><p><strong>Flexible data formats</strong>: Work with rows as tuples, dictionaries, or raw data</p></li>
+<li><p><strong>Simple CRUD operations</strong>: Create, read, update, and delete with familiar Python syntax</p></li>
+</ul>
+</section>
 <section id="advanced-usage">
 <h2>Advanced Usage<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#advanced-usage" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#advanced-usage'">¶</a></h2>
 <section id="database-collections">
@@ -397,13 +397,11 @@
 
 </section>
 </section>
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-22 22:52 UTC from <a href="https://github.com/i2mint/sqldol/commit/7186454fc38721ca6f0b6f058900aaaf2de1e7ca">7186454</a> (master) · sqldol 0.1.15 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-23 03:15 UTC from <a href="https://github.com/i2mint/sqldol/commit/47c39a44473e9a24f967b93bbb98ce78d76893c8">47c39a4</a> (master) · sqldol 0.1.16 · <a href="about-this-build.html">about this build</a></p>
 </div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
 <div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] h-full overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
 <ul>
 <li><a :data-current="activeSection === '#installation'" class="reference internal" href="#installation">Installation</a></li>
-<li><a :data-current="activeSection === '#overview'" class="reference internal" href="#overview">Overview</a></li>
-<li><a :data-current="activeSection === '#key-features'" class="reference internal" href="#key-features">Key Features</a></li>
 <li><a :data-current="activeSection === '#quick-start'" class="reference internal" href="#quick-start">Quick Start</a><ul>
 <li><a :data-current="activeSection === '#basic-usage-with-sqlalchemystore'" class="reference internal" href="#basic-usage-with-sqlalchemystore">Basic Usage with SQLAlchemyStore</a></li>
 <li><a :data-current="activeSection === '#working-with-different-store-types'" class="reference internal" href="#working-with-different-store-types">Working with Different Store Types</a><ul>
@@ -422,6 +420,8 @@
 <li><a :data-current="activeSection === '#tuple-based-operations'" class="reference internal" href="#tuple-based-operations">Tuple-based Operations</a></li>
 </ul>
 </li>
+<li><a :data-current="activeSection === '#overview'" class="reference internal" href="#overview">Overview</a></li>
+<li><a :data-current="activeSection === '#key-features'" class="reference internal" href="#key-features">Key Features</a></li>
 <li><a :data-current="activeSection === '#advanced-usage'" class="reference internal" href="#advanced-usage">Advanced Usage</a><ul>
 <li><a :data-current="activeSection === '#database-collections'" class="reference internal" href="#database-collections">Database Collections</a></li>
 <li><a :data-current="activeSection === '#custom-persisters'" class="reference internal" href="#custom-persisters">Custom Persisters</a></li>
@@ -446,7 +446,7 @@
 </div>
 </footer>
 </div>
-<script src="_static/documentation_options.js?v=e2f3408e"></script>
+<script src="_static/documentation_options.js?v=d50bcae4"></script>
 <script src="_static/doctools.js?v=fd6eb6e6"></script>
 <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
 <script src="_static/clipboard.min.js?v=a7894cd8"></script>

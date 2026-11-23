@@ -1,32 +1,32 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-22T22:52:59Z",
+  "built_at": "2026-11-23T03:15:56Z",
   "package": {
     "name": "sqldol",
-    "version": "0.1.15",
+    "version": "0.1.16",
     "display_name": "sqldol",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "7186454fc38721ca6f0b6f058900aaaf2de1e7ca",
-    "short_commit": "7186454",
+    "commit": "47c39a44473e9a24f967b93bbb98ce78d76893c8",
+    "short_commit": "47c39a4",
     "branch": "master",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/sqldol",
-    "commit_url": "https://github.com/i2mint/sqldol/commit/7186454fc38721ca6f0b6f058900aaaf2de1e7ca",
+    "commit_url": "https://github.com/i2mint/sqldol/commit/47c39a44473e9a24f967b93bbb98ce78d76893c8",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/sqldol",
-    "sha": "7186454fc38721ca6f0b6f058900aaaf2de1e7ca",
+    "sha": "47c39a44473e9a24f967b93bbb98ce78d76893c8",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "45080040730",
-    "run_url": "https://github.com/i2mint/sqldol/actions/runs/45080040730",
+    "run_id": "45104794218",
+    "run_url": "https://github.com/i2mint/sqldol/actions/runs/45104794218",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -60,14 +60,16 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.15",
-    "relation": "same",
+    "latest": "0.1.17",
+    "relation": "behind",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout 7186454fc38721ca6f0b6f058900aaaf2de1e7ca\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/sqldol && cd sqldol\ngit checkout 47c39a44473e9a24f967b93bbb98ce78d76893c8\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": true,
-    "notes": []
+    "aligned": false,
+    "notes": [
+      "The documented version (0.1.16) is behind the latest release on PyPI (0.1.17): `pip install sqldol` gives newer code than these docs describe."
+    ]
   }
 }
