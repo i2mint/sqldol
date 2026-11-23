@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sqldol"
-version = "0.1.16"
+version = "0.1.17"
 description = "sql (through sqlalchemy) with a simple (dict-like or list-like) interface"
 readme = "README.md"
 requires-python = ">=3.10"
